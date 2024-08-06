@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Content;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "Protos/IT/WebServices/Fragments/Content/AssetRecord.proto";
+import "Protos/IT/WebServices/Fragments/Content/AudioAssetRecord.proto";
+import "Protos/IT/WebServices/Fragments/Content/ImageAssetRecord.proto";
+
+// Service for Asset fragment interface
+service AssetInterface {
+  rpc CreateAsset (CreateAssetRequest) returns (CreateAssetResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/cms/admin/asset"
+      body: "*"
+    };
+  }
+  rpc GetAsset (GetAssetRequest) returns (GetAssetResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/cms/asset/{AssetID}"
+    };
+  }
+  rpc GetAssetAdmin (GetAssetAdminRequest) returns (GetAssetAdminResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/cms/admin/asset/{AssetID}"
+    };
+  }
+  rpc GetAssetByOldContentID (GetAssetByOldContentIDRequest) returns (GetAssetByOldContentIDResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/cms/admin/asset/old/{OldAssetID}"
+    };
+  }
+  rpc GetListOfIDs (GetListOfIDsRequest) returns (stream GetListOfIDsResponse)
+  {
+  }
+  rpc GetListOfOldContentIDs (GetListOfOldContentIDsRequest) returns (stream GetListOfOldContentIDsResponse)
+  {
+  }
+  rpc SearchAsset (SearchAssetRequest) returns (SearchAssetResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/cms/admin/asset/search"
+    };
+  }
+}
+  
+message CreateAssetRequest {
+  oneof CreateAssetRequest_oneof
+  {
+    AudioAssetData Audio = 1;
+    ImageAssetData Image = 2;
+  }
+}
+  
+message CreateAssetResponse {
+  AssetRecord Record = 1;
+}
+
+message GetAssetRequest {
+  string AssetID = 1;   // Guid for the Asset record
+}
+  
+message GetAssetResponse {
+  oneof GetAssetResponse_oneof
+  {
+    AudioAssetPublicRecord Audio = 1;
+    ImageAssetPublicRecord Image = 2;
+  }
+}
+  
+message GetAssetAdminRequest {
+  string AssetID = 1;   // Guid for the content record
+}
+  
+message GetAssetAdminResponse {
+  AssetRecord Record = 1;
+}
+  
+message GetAssetByOldContentIDRequest {
+  string OldAssetID = 1;
+}
+  
+message GetAssetByOldContentIDResponse {
+  AssetRecord Record = 1;
+}
+
+message GetListOfIDsRequest {
+}
+
+message GetListOfIDsResponse {
+  string AssetID = 1;
+  google.protobuf.Timestamp ModifiedOnUTC = 2;
+}
+
+message GetListOfOldContentIDsRequest {
+}
+
+message GetListOfOldContentIDsResponse {
+  string AssetID = 1;
+  string OldAssetID = 2;
+  google.protobuf.Timestamp ModifiedOnUTC = 3;
+}
+
+message SearchAssetRequest {
+  uint32 PageSize = 1;
+  uint32 PageOffset = 2;
+  string Query = 6;
+  AssetType AssetType = 11;
+}
+
+message SearchAssetResponse {
+  repeated AssetListRecord Records = 1;
+  uint32 PageOffsetStart = 11;
+  uint32 PageOffsetEnd = 12;
+  uint32 PageTotalItems = 13;
+}
+
+enum AssetType {
+  None = 0;
+  Audio = 1;
+  Image = 2;
+}
+
+message AssetListRecord {
+  string AssetID = 1;                         // Guid for the asset record
+  google.protobuf.Timestamp CreatedOnUTC = 2; // UTC timestamp when content was created
+  string Title = 3;
+  string Caption = 4;
+  AssetType AssetType = 10;
+  uint32 Height = 20;
+  uint32 Width = 21;
+  uint32 LengthSeconds = 30;
+}

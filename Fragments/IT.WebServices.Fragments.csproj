@@ -1,0 +1,165 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authentication\UserInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakeInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakePaymentSettings.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakeSubscriptionRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomyInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomySettings.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomySubscriptionRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\PaymentInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalRecords.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalSettings.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalSubscriptionRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\SharedTypes.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeSettings.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\SharedTypes.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Comment\CommentInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Comment\CommentRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Comment\SharedTypes.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\AssetBackup.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\AssetInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\AssetRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\AudioAssetRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\ImageAssetRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\Music\MusicInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\Music\MusicRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\Page.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\SharedTypes.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\StatsInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\StatsRecords.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsProgressInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsQueryInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsSaveInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsShareInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsViewInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Notification\NotificationInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Notification\NotificationUserRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Notification\UserNotificationInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Notification\UserNotificationSettingsRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Page\PageRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Settings\Backup.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Settings\NotificationSettings.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Settings\SettingsInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Settings\SettingsRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authentication\Backup.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authentication\UserRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Backup.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Claims.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\Backup.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinRecords.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinService.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\Backup.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\PlanRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\Backup.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\Payments.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\ProductRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\SubscriptionRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\Backup.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\Content.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Content\ContentRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\CreatorDashboard\Settings\CreatorSettings.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\CreatorDashboard\Settings\SettingsManager.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\CreatorDashboard\Subscribers\Ban.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\CreatorDashboard\Subscribers\Manage.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\CreatorDashboard\Subscribers\Mute.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Generic\ServiceOps.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakePaymentSettings.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakeInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakeSubscriptionRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomySettings.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\PaymentInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalRecords.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalSettings.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\SharedTypes.proto">
+      <GrpcServices>None</GrpcServices>
+    </Protobuf>
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeSettings.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\SharedTypes.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\CommentInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\CommentRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\SharedTypes.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\AssetBackup.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\AssetRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Music\MusicInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Music\MusicRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Page\PageRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Page\PageInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Stats\StatsSaveInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Stats\StatsProgressInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Stats\StatsViewInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Stats\StatsShareInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Stats\StatsQueryInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Stats\StatsRecords.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Stats\StatsLikeInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\AssetInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\ImageAssetRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\SharedTypes.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Notification\NotificationInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Notification\UserNotificationInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Notification\NotificationUserRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Notification\UserNotificationSettingsRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Settings\Backup.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Notification\NotificationSettings.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Settings\SettingsInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Settings\SettingsRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\UserInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\Backup.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\UserRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\Backup.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinService.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinRecords.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\Backup.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomyInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\PlanRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomySubscriptionRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\Backup.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\Payments.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\ProductRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\SubscriptionRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\Backup.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Claims.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalSubscriptionRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\AudioAssetRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\ContentRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Backup.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Content.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\CreatorDashboard\Settings\CreatorSettings.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\CreatorDashboard\Settings\SettingsManager.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\CreatorDashboard\Subscribers\Ban.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\CreatorDashboard\Subscribers\Manage.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\CreatorDashboard\Subscribers\Mute.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Generic\ServiceOps.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalInterface.proto" GrpcServices="Both" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Grpc.Net.Client" Version="2.65.0" />
+	<PackageReference Include="Microsoft.AspNetCore.Grpc.HttpApi" Version="0.1.0-alpha.21317.5" />
+	<PackageReference Include="Microsoft.AspNetCore.Grpc.Swagger" Version="0.8.7" />
+    <PackageReference Include="Google.Protobuf" Version="3.27.3" />
+    <PackageReference Include="Grpc.Core" Version="2.46.6" />
+    <PackageReference Include="Grpc.Tools" Version="2.65.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

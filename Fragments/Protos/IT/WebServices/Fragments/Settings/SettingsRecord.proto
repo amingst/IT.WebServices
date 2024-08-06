@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Settings;
+
+import "google/protobuf/timestamp.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/SharedTypes.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Crypto/CryptoSettings.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Fake/FakePaymentSettings.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/ParallelEconomy/ParallelEconomySettings.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeSettings.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalSettings.proto";
+import "Protos/IT/WebServices/Fragments/Content/SharedTypes.proto";
+import "Protos/IT/WebServices/Fragments/Comment/SharedTypes.proto";
+import "Protos/IT/WebServices/Fragments/Notification/NotificationSettings.proto";
+
+// User authentication data
+message SettingsRecord {
+  SettingsPublicData Public = 1;
+  SettingsPrivateData Private = 2;
+  SettingsOwnerData Owner = 3;
+}
+
+message SettingsPublicData {
+  uint32 VersionNum = 1;                            // Version of settings
+  google.protobuf.Timestamp ModifiedOnUTC = 2;      // UTC timestamp when settings record was last modified
+  PersonalizationPublicRecord Personalization = 10;
+  SubscriptionPublicRecord Subscription = 11;
+  CommentsPublicRecord Comments = 12;
+  CMSPublicRecord CMS = 13;
+  NotificationPublicRecord Notification = 14;
+}
+
+message SettingsPrivateData {
+  string ModifiedBy = 2;
+  PersonalizationPrivateRecord Personalization = 10;
+  SubscriptionPrivateRecord Subscription = 11;
+  CommentsPrivateRecord Comments = 12;
+  CMSPrivateRecord CMS = 13;
+  NotificationPrivateRecord Notification = 14;
+}
+
+message SettingsOwnerData {
+  PersonalizationOwnerRecord Personalization = 10;
+  SubscriptionOwnerRecord Subscription = 11;
+  CommentsOwnerRecord Comments = 12;
+  CMSOwnerRecord CMS = 13;
+  NotificationOwnerRecord Notification = 14;
+}
+
+message PersonalizationPublicRecord {
+  string Title = 1;
+  string MetaDescription = 2;
+  bool DefaultToDarkMode = 3;
+  string ProfileImageAssetId = 4;
+  string HeaderImageAssetId = 5;
+}
+
+message PersonalizationPrivateRecord {
+}
+
+message PersonalizationOwnerRecord {
+}
+
+message SubscriptionPublicRecord {
+  repeated IT.WebServices.Fragments.Authorization.SubscriptionTier Tiers = 1;
+  bool AllowOther = 2;
+  bool MinimumAllowed = 3;
+  bool MaximumAllowed = 4;
+  IT.WebServices.Fragments.Authorization.Payment.Fake.FakePaymentPublicSettings Fake = 11;
+  IT.WebServices.Fragments.Authorization.Payment.ParallelEconomy.ParallelEconomyPublicSettings ParallelEconomy = 12;
+  IT.WebServices.Fragments.Authorization.Payment.Crypto.CryptoPublicSettings Crypto = 13;
+  IT.WebServices.Fragments.Authorization.Payment.Stripe.StripePublicSettings Stripe = 14;
+  IT.WebServices.Fragments.Authorization.Payment.Paypal.PaypalPublicSettings Paypal = 15;
+}
+
+message SubscriptionPrivateRecord {
+}
+
+message SubscriptionOwnerRecord {
+  IT.WebServices.Fragments.Authorization.Payment.ParallelEconomy.ParallelEconomyOwnerSettings ParallelEconomy = 12;
+  IT.WebServices.Fragments.Authorization.Payment.Stripe.StripeOwnerSettings Stripe = 14;
+  IT.WebServices.Fragments.Authorization.Payment.Paypal.PaypalOwnerSettings Paypal = 15;
+}
+
+message CommentsPublicRecord {
+  bool AllowLinks = 1;
+  IT.WebServices.Fragments.Comment.CommentOrder DefaultOrder = 2;
+  IT.WebServices.Fragments.Comment.CommentRestrictionMinimum DefaultRestriction = 3;
+  bool ExplicitModeEnabled = 4;
+}
+
+message CommentsPrivateRecord {
+  repeated string BlackList = 1;
+}
+
+message CommentsOwnerRecord {
+}
+
+message CMSPublicRecord {
+  IT.WebServices.Fragments.Content.LayoutEnum DefaultLayout = 1;
+  repeated ChannelRecord Channels = 2;
+  repeated CategoryRecord Categories = 3;
+  CMSPublicMenuRecord Menu = 4;
+}
+
+message CMSPrivateRecord {
+}
+
+message CMSOwnerRecord {
+}
+
+message NotificationPublicRecord {
+}
+
+message NotificationPrivateRecord {
+}
+
+message NotificationOwnerRecord {
+  IT.WebServices.Fragments.Notification.SendgridOwnerSettings Sendgrid = 1;
+}
+
+message ChannelRecord {
+  string ChannelId = 1;
+  string ParentChannelId = 2;
+  string DisplayName = 3;
+  string UrlStub = 4;
+  string ImageAssetId = 5;
+  string YoutubeUrl = 101;
+  string RumbleUrl = 102;
+
+  string OldChannelId = 1001;
+}
+
+message CategoryRecord {
+  string CategoryId = 1;
+  string ParentCategoryId = 2;
+  string DisplayName = 3;
+  string UrlStub = 4;
+
+  string OldCategoryId = 1001;
+}
+
+message CMSPublicMenuRecord {
+  string AudioMenuLinkName = 1;
+  string PictureMenuLinkName = 2;
+  string VideoMenuLinkName = 3;
+  string WrittenMenuLinkName = 4;
+}

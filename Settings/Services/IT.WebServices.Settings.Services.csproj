@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Authentication\Shared\IT.WebServices.Authentication.Shared.csproj" />
+		<ProjectReference Include="..\Shared\IT.WebServices.Settings.Shared.csproj" />
+	</ItemGroup>
+
+
+</Project>

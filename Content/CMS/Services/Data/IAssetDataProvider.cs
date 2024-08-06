@@ -1,0 +1,19 @@
+﻿using IT.WebServices.Fragments.Content;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace IT.WebServices.Content.CMS.Services.Data
+{
+    public interface IAssetDataProvider
+    {
+        IAsyncEnumerable<AssetRecord> GetAll();
+        IAsyncEnumerable<AssetListRecord> GetAllShort();
+        Task<AssetRecord> GetById(Guid assetId);
+        Task<AssetRecord> GetByOldAssetId(string oldAssetId);
+        Task<bool> Delete(Guid assetId);
+        Task<bool> Exists(Guid assetId);
+        Task Save(AssetRecord asset);
+    }
+}

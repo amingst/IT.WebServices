@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Authentication\Shared\IT.WebServices.Authentication.Shared.csproj" />
+    <ProjectReference Include="..\..\..\Settings\Shared\IT.WebServices.Settings.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Content;
+
+enum LayoutEnum {
+    List = 0;
+    Grid = 1;
+    Masonry = 2;
+}

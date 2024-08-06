@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Payment;
+
+import "google/api/annotations.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Crypto/CryptoRecords.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Fake/FakeSubscriptionRecord.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalRecords.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalSubscriptionRecord.proto";
+
+service PaymentInterface {
+  rpc GetNewDetails (GetNewDetailsRequest) returns (GetNewDetailsResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/new/{Level}"
+    };
+  }
+
+  rpc GetOwnSubscriptionRecords (GetOwnSubscriptionRecordsRequest) returns (GetOwnSubscriptionRecordsResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/subscription"
+    };
+  }
+}
+
+message GetNewDetailsRequest {
+  uint32 Level = 1;
+}
+
+message GetNewDetailsResponse {
+  Crypto.CryptoNewDetails Crypto = 1;
+  Paypal.PaypalNewDetails Paypal = 5;
+}
+
+
+message GetOwnSubscriptionRecordsRequest {
+}
+
+message GetOwnSubscriptionRecordsResponse {
+    Fake.FakeSubscriptionRecord Fake = 2;
+    repeated Paypal.PaypalSubscriptionFullRecord Paypal = 5;
+}

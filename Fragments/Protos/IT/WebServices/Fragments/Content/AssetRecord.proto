@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Content;
+
+import "Protos/IT/WebServices/Fragments/Content/AudioAssetRecord.proto";
+import "Protos/IT/WebServices/Fragments/Content/ImageAssetRecord.proto";
+
+message AssetRecord {
+  oneof AssetRecord_oneof
+  {
+    AudioAssetRecord Audio = 1;
+    ImageAssetRecord Image = 2;
+  }
+}

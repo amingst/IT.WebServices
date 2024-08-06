@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Authentication;
+
+import "google/protobuf/timestamp.proto";
+
+// User authentication data
+message UserRecord {
+  UserNormalRecord Normal = 1;
+  UserServerRecord Server = 2;
+}
+
+message UserNormalRecord {
+  UserPublicRecord Public = 1;
+  UserPrivateRecord Private = 2;
+}
+
+message UserPublicRecord {
+  string UserID = 1;                   // Guid for the user
+  google.protobuf.Timestamp CreatedOnUTC = 2;   // UTC timestamp when user was created
+  google.protobuf.Timestamp ModifiedOnUTC = 3;  // UTC timestamp when user record was last modified
+  google.protobuf.Timestamp DisabledOnUTC = 4;  // UTC timestamp when user was disabled, null = not disabled
+
+  UserPublicData Data = 20;
+}
+
+message UserPublicData {
+  string UserName = 1;                // User name of the user
+  string DisplayName = 2;             // Public display name of the user
+  repeated string Identities = 3;     // Public identities associated with the user ex: user@domain.com
+  string Bio = 4;                     // Biographical info of the user
+
+  bytes ProfileImagePNG = 20;         // Profile image saved as a PNG
+}
+
+message UserPrivateRecord {
+  repeated string Roles = 1;          // Roles for the user
+  string CreatedBy = 2;
+  string ModifiedBy = 3;
+  string DisabledBy = 4;
+
+  UserPrivateData Data = 20;
+}
+
+message UserPrivateData {
+  repeated string Emails = 1; // Private email(s) used for password resets
+  string OldUserID = 51;
+}
+
+message UserServerRecord {
+  bytes PasswordHash = 1;     // Password hash bytes
+  bytes PasswordSalt = 2;     // Password salt bytes
+  repeated TOTPDevice TOTPDevices = 10;
+  string OldPassword = 51;
+  string OldPasswordAlgorithm = 52;
+}
+
+// TOTP Record for MFA compliant with IETF RFC 6238
+message TOTPDevice {
+  string TotpID = 1;
+  string DeviceName = 2;  // Name of the device
+  bytes Key = 3;          // Key used by TOTP algorithm
+  google.protobuf.Timestamp CreatedOnUTC = 4;  // UTC timestamp when the record was created
+  google.protobuf.Timestamp VerifiedOnUTC = 5; // UTC timestamp when the record was verified
+  google.protobuf.Timestamp DisabledOnUTC = 6; // UTC timestamp when the record was disabled, null = not disabled
+}
