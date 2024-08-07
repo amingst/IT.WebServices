@@ -1,7 +1,7 @@
 ﻿using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using IT.WebServices.Authentication.Services.Models;
+using IT.WebServices.Models;
 using IT.WebServices.Fragments.Authentication;
 using IT.WebServices.Fragments.Generic;
 using System;

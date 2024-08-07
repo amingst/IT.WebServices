@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IT.WebServices.Content.Stats.Services.Data
 {
-    public interface IShareDataProvider
+    public interface IShareDataProvider : IQueryableDataProvider
     {
         Task LogShare(Guid userId, Guid contentId);
     }

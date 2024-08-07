@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IT.WebServices.Content.Stats.Services.Data
 {
-    public interface ILikeDataProvider
+    public interface ILikeDataProvider : IQueryableDataProvider
     {
         Task Like(Guid userId, Guid contentId);
         Task Unlike(Guid userId, Guid contentId);

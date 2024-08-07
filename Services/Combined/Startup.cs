@@ -4,12 +4,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using IT.WebServices.Authentication;
+using IT.WebServices.Models;
 using IT.WebServices.Settings;
 using IT.WebServices.Services.Combined.Models;
 using AuthS = IT.WebServices.Authentication.Services;
 using CmsS = IT.WebServices.Content.CMS.Services;
 using System;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 namespace IT.WebServices.Services.Combined
 {
@@ -39,7 +41,45 @@ namespace IT.WebServices.Services.Combined
             //services.AddGrpcHttpApi();
             //services.AddGrpcReflection();
 
-            services.AddSwaggerGen();
+            var securityScheme = new OpenApiSecurityScheme()
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "JSON Web Token based security",
+            };
+
+            var securityReq = new OpenApiSecurityRequirement()
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] {}
+                }
+            };
+
+            var info = new OpenApiInfo()
+            {
+                Version = "v1",
+                Title = "IT.WebServices API",
+                Description = "IT.WebServices API",
+            };
+
+            services.AddSwaggerGen(o =>
+            {
+                o.SwaggerDoc("v1", info);
+                o.AddSecurityDefinition("Bearer", securityScheme);
+                o.AddSecurityRequirement(securityReq);
+            });
+
             services.AddGrpcSwagger();
 
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
@@ -76,6 +116,7 @@ namespace IT.WebServices.Services.Combined
             app.UseRouting();
 
             app.UseJwtApiAuthentication();
+            app.LoadStatsSubscriptions();
 
             app.UseEndpoints(endpoints =>
             {

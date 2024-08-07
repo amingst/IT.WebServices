@@ -1,10 +1,9 @@
 ﻿using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Microsoft.Extensions.Options;
-using IT.WebServices.Content.Stats.Services.Models;
-using IT.WebServices.Fragments.Content;
 using IT.WebServices.Fragments.Content.Stats;
 using IT.WebServices.Fragments.Generic;
+using IT.WebServices.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;

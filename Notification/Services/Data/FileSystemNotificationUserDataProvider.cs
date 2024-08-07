@@ -1,11 +1,7 @@
 ﻿using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using IT.WebServices.Notification.Services.Models;
-using IT.WebServices.Fragments.Authentication;
-using IT.WebServices.Fragments.Generic;
-using System;
-using System.Collections.Concurrent;
+using IT.WebServices.Models;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,15 +24,15 @@ namespace IT.WebServices.Notification.Services.Data
             dataDir = root.CreateSubdirectory("notification");
         }
 
-        public async Task<bool> Delete(string tokenId)
+        public Task<bool> Delete(string tokenId)
         {
             var fd = GetDataFilePath(NotificationUserRecord.GenerateHash(tokenId));
             if (!fd.Exists)
-                return false;
+                return Task.FromResult(false);
 
             fd.Delete();
 
-            return true;
+            return Task.FromResult(true);
         }
 
         public Task<bool> Exists(string tokenId)

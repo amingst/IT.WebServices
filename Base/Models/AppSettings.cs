@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace IT.WebServices.Content.CMS.Services.Models
+namespace IT.WebServices.Models
 {
     public class AppSettings
     {

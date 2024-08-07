@@ -1,8 +1,6 @@
 ﻿using Google.Protobuf;
 using Microsoft.Extensions.Options;
-using IT.WebServices.Settings.Services.Models;
-using IT.WebServices.Fragments.Authentication;
-using IT.WebServices.Fragments.Generic;
+using IT.WebServices.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;

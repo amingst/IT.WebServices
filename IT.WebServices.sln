@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Notification
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Services.Combined", "Services\Combined\IT.WebServices.Services.Combined.csproj", "{5A62FD26-9DE5-46EC-9BCE-6C6FF2B44F93}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Base", "Base\IT.WebServices.Base.csproj", "{90F8B522-033F-49C3-BFCE-45471B11DD98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{5A62FD26-9DE5-46EC-9BCE-6C6FF2B44F93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A62FD26-9DE5-46EC-9BCE-6C6FF2B44F93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A62FD26-9DE5-46EC-9BCE-6C6FF2B44F93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90F8B522-033F-49C3-BFCE-45471B11DD98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90F8B522-033F-49C3-BFCE-45471B11DD98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90F8B522-033F-49C3-BFCE-45471B11DD98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90F8B522-033F-49C3-BFCE-45471B11DD98}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

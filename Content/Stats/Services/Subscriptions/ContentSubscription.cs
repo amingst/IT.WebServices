@@ -1,216 +1,82 @@
-﻿using EventStore.Client;
-using IT.WebServices.Content.Stats.Services.Helper;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Threading;
-using IT.WebServices.Fragments.Content.Stats;
 using Google.Protobuf;
 using IT.WebServices.Content.Stats.Services.Data;
+using IT.WebServices.Fragments.Content.Stats;
 using IT.WebServices.Fragments.Generic;
+using System;
+using System.Threading.Channels;
 
 namespace IT.WebServices.Content.Stats.Services.Subscriptions
 {
     public class ContentSubscription
     {
-        private readonly EventDBHelper eventDb;
+        private readonly SubscriptionList subList;
         private readonly IStatsContentPublicDataProvider pubDb;
         private readonly IStatsContentPrivateDataProvider prvDb;
+        private readonly ILikeDataProvider likeData;
+        private readonly ISaveDataProvider saveData;
 
-        public ContentSubscription(EventDBHelper eventDb, IStatsContentPublicDataProvider pubDb, IStatsContentPrivateDataProvider prvDb)
+        private Task listener;
+
+        public ContentSubscription(SubscriptionList subList, IStatsContentPublicDataProvider pubDb, IStatsContentPrivateDataProvider prvDb, ILikeDataProvider likeData, ISaveDataProvider saveData)
         {
-            this.eventDb = eventDb;
-            eventDb.SubscribeToAll("stats-", OnNewEvent).Wait();
-
+            this.subList = subList;
             this.pubDb = pubDb;
             this.prvDb = prvDb;
+            this.likeData = likeData;
+            this.saveData = saveData;
         }
 
-        private async Task OnNewEvent(StreamSubscription stream, ResolvedEvent e, CancellationToken token)
+        public void Load()
+        {
+            listener = ListenForEvents();
+        }
+
+        public async Task ListenForEvents()
+        {
+            await foreach (var contentId in subList.ContentChanges.Reader.ReadAllAsync())
+            {
+                await RebuildContent(contentId);
+            }
+        }
+
+        private async Task RebuildContent(Guid contentId)
         {
             try
             {
-                var msg = eventDb.Parse(e);
-                if (msg == null)
-                    return;
+                var rPub = new StatsContentPublicRecord() { ContentID = contentId.ToString() };
+                var rPrv = new StatsContentPrivateRecord() { ContentID = contentId.ToString() };
 
-                dynamic d = msg;
+                await Task.WhenAll(
+                        RebuildLikes(contentId, rPub, rPrv),
+                        RebuildSaves(contentId, rPub, rPrv)
+                    );
 
-                await Apply(d, e.Event.Position.CommitPosition);
+                await Task.WhenAll(
+                        pubDb.Save(rPub),
+                        prvDb.Save(rPrv)
+                    );
             }
             catch { }
         }
 
-        private Task Apply(IMessage e, ulong version) => Task.CompletedTask; // this is just here so an exception doesn't get thrown if there is not apply for a new event
-
-        private async Task Apply(LikeContentEvent e, ulong version)
+        private async Task RebuildLikes(Guid contentId, StatsContentPublicRecord rPub, StatsContentPrivateRecord rPrv)
         {
-            var contentId = e.ContentID.ToGuid();
-            var userId = e.UserID.ToGuid();
-            var tPub = pubDb.GetById(contentId);
-            var tPrv = prvDb.GetById(contentId);
+            var likes = likeData.GetAllForContent(contentId);
+            await foreach (var userId in likes)
+                rPrv.LikedBy.Add(userId.ToString());
 
-            await Task.WhenAll(tPub, tPrv);
-
-            var rPub = tPub.Result ?? new() { ContentID = contentId.ToString() };
-            var rPrv = tPrv.Result ?? new() { ContentID = contentId.ToString() };
-
-            if (rPub.Version < version)
-            {
-                rPub.Likes++;
-                rPub.Version = version;
-                await pubDb.Save(rPub);
-            }
-
-            if (rPrv.Version < version)
-            {
-                if (!rPrv.LikedBy.Contains(userId.ToString()))
-                    rPrv.LikedBy.Add(userId.ToString());
-
-                rPrv.Version = version;
-                await prvDb.Save(rPrv);
-            }
+            rPub.Likes = (ulong)rPrv.LikedBy.Count;
         }
 
-        private async Task Apply(UnlikeContentEvent e, ulong version)
+        private async Task RebuildSaves(Guid contentId, StatsContentPublicRecord rPub, StatsContentPrivateRecord rPrv)
         {
-            var contentId = e.ContentID.ToGuid();
-            var userId = e.UserID.ToGuid();
-            var tPub = pubDb.GetById(contentId);
-            var tPrv = prvDb.GetById(contentId);
+            var saves = saveData.GetAllForContent(contentId);
+            await foreach (var userId in saves)
+                rPrv.SavedBy.Add(userId.ToString());
 
-            await Task.WhenAll(tPub, tPrv);
-
-            var rPub = tPub.Result ?? new() { ContentID = contentId.ToString() };
-            var rPrv = tPrv.Result ?? new() { ContentID = contentId.ToString() };
-
-            if (rPub.Version < version)
-            {
-                rPub.Likes--;
-                rPub.Version = version;
-                await pubDb.Save(rPub);
-            }
-
-            if (rPrv.Version < version)
-            {
-                rPrv.LikedBy.Remove(userId.ToString());
-
-                rPrv.Version = version;
-                await prvDb.Save(rPrv);
-            }
-        }
-
-        private async Task Apply(SaveContentEvent e, ulong version)
-        {
-            var contentId = e.ContentID.ToGuid();
-            var userId = e.UserID.ToGuid();
-            var tPub = pubDb.GetById(contentId);
-            var tPrv = prvDb.GetById(contentId);
-
-            await Task.WhenAll(tPub, tPrv);
-
-            var rPub = tPub.Result ?? new() { ContentID = contentId.ToString() };
-            var rPrv = tPrv.Result ?? new() { ContentID = contentId.ToString() };
-
-            if (rPub.Version < version)
-            {
-                rPub.Saves++;
-                rPub.Version = version;
-                await pubDb.Save(rPub);
-            }
-
-            if (rPrv.Version < version)
-            {
-                if (!rPrv.SavedBy.Contains(userId.ToString()))
-                    rPrv.SavedBy.Add(userId.ToString());
-
-                rPrv.Version = version;
-                await prvDb.Save(rPrv);
-            }
-        }
-
-        private async Task Apply(UnsaveContentEvent e, ulong version)
-        {
-            var contentId = e.ContentID.ToGuid();
-            var userId = e.UserID.ToGuid();
-            var tPub = pubDb.GetById(contentId);
-            var tPrv = prvDb.GetById(contentId);
-
-            await Task.WhenAll(tPub, tPrv);
-
-            var rPub = tPub.Result ?? new() { ContentID = contentId.ToString() };
-            var rPrv = tPrv.Result ?? new() { ContentID = contentId.ToString() };
-
-            if (rPub.Version < version)
-            {
-                rPub.Saves--;
-                rPub.Version = version;
-                await pubDb.Save(rPub);
-            }
-
-            if (rPrv.Version < version)
-            {
-                rPrv.SavedBy.Remove(userId.ToString());
-
-                rPrv.Version = version;
-                await prvDb.Save(rPrv);
-            }
-        }
-
-        private async Task Apply(ShareContentEvent e, ulong version)
-        {
-            var contentId = e.ContentID.ToGuid();
-            var userId = e.UserID.ToGuid();
-            var tPub = pubDb.GetById(contentId);
-            var tPrv = prvDb.GetById(contentId);
-
-            await Task.WhenAll(tPub, tPrv);
-
-            var rPub = tPub.Result ?? new() { ContentID = contentId.ToString() };
-            var rPrv = tPrv.Result ?? new() { ContentID = contentId.ToString() };
-
-            if (rPub.Version < version)
-            {
-                rPub.Shares++;
-                rPub.Version = version;
-                await pubDb.Save(rPub);
-            }
-
-            if (rPrv.Version < version)
-            {
-                if (!rPrv.SharedBy.Contains(userId.ToString()))
-                    rPrv.SharedBy.Add(userId.ToString());
-
-                rPrv.Version = version;
-                await prvDb.Save(rPrv);
-            }
-        }
-
-        private async Task Apply(ViewContentEvent e, ulong version)
-        {
-            var contentId = e.ContentID.ToGuid();
-            var userId = e.UserID.ToGuid();
-            var tPub = pubDb.GetById(contentId);
-            var tPrv = prvDb.GetById(contentId);
-
-            await Task.WhenAll(tPub, tPrv);
-
-            var rPub = tPub.Result ?? new() { ContentID = contentId.ToString() };
-            var rPrv = tPrv.Result ?? new() { ContentID = contentId.ToString() };
-
-            if (rPub.Version < version)
-            {
-                rPub.Views++;
-                rPub.Version = version;
-                await pubDb.Save(rPub);
-            }
-
-            if (rPrv.Version < version)
-            {
-                if (!rPrv.ViewedBy.Contains(userId.ToString()))
-                    rPrv.ViewedBy.Add(userId.ToString());
-
-                rPrv.Version = version;
-                await prvDb.Save(rPrv);
-            }
+            rPub.Saves = (ulong)rPrv.SavedBy.Count;
         }
     }
 }

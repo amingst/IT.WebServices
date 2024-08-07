@@ -6,7 +6,6 @@ import "google/protobuf/timestamp.proto";
 
 message StatsContentPublicRecord {
     string ContentID = 1;
-	uint64 Version = 2;
 	uint64 Likes = 11;
 	uint64 Saves = 12;
 	uint64 Shares = 13;
@@ -15,7 +14,6 @@ message StatsContentPublicRecord {
 
 message StatsContentPrivateRecord {
     string ContentID = 1;
-	uint64 Version = 2;
 	repeated string LikedBy = 11;
 	repeated string SavedBy = 12;
 	repeated string SharedBy = 13;
@@ -24,7 +22,6 @@ message StatsContentPrivateRecord {
 
 message StatsUserPublicRecord {
     string UserID = 1;
-	uint64 Version = 2;
 	uint64 Likes = 11;
 	uint64 Saves = 12;
 	uint64 Shares = 13;
@@ -33,7 +30,6 @@ message StatsUserPublicRecord {
 
 message StatsUserPrivateRecord {
     string UserID = 1;
-	uint64 Version = 2;
 	repeated string Likes = 11;
 	repeated string Saves = 12;
 	repeated string Shares = 13;

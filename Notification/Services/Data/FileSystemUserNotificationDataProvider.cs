@@ -1,14 +1,10 @@
 ﻿using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using IT.WebServices.Notification.Services.Models;
-using IT.WebServices.Fragments.Authentication;
-using IT.WebServices.Fragments.Generic;
+using IT.WebServices.Models;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using IT.WebServices.Fragments.Notification;
 
@@ -28,15 +24,15 @@ namespace IT.WebServices.Notification.Services.Data
             dataDir = root.CreateSubdirectory("user");
         }
 
-        public async Task<bool> Delete(Guid userId)
+        public Task<bool> Delete(Guid userId)
         {
             var fd = GetDataFilePath(userId);
             if (!fd.Exists)
-                return false;
+                return Task.FromResult(false);
 
             fd.Delete();
 
-            return true;
+            return Task.FromResult(true);
         }
 
         public Task<bool> Exists(Guid userId)

@@ -6,10 +6,12 @@
 
   <ItemGroup>
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Authentication\Services\IT.WebServices.Authentication.Services.csproj" />
+    <ProjectReference Include="..\..\..\Base\IT.WebServices.Base.csproj" />
     <ProjectReference Include="..\..\..\Settings\Shared\IT.WebServices.Settings.Shared.csproj" />
   </ItemGroup>
 

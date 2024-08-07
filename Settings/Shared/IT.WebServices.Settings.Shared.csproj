@@ -6,12 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="EventStore.Client.Grpc.Streams" Version="23.3.3" />
-	<PackageReference Include="PubSub" Version="4.0.2" />
-    <PackageReference Include="Microsoft.Tye.Extensions.Configuration" Version="0.4.0-*" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Authentication\Shared\IT.WebServices.Authentication.Shared.csproj" />
     <ProjectReference Include="..\..\Fragments\IT.WebServices.Fragments.csproj" />
   </ItemGroup>

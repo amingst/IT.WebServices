@@ -1,8 +1,8 @@
 ﻿using Google.Protobuf;
 using Microsoft.Extensions.Options;
-using IT.WebServices.Content.Comment.Services.Models;
 using IT.WebServices.Fragments.Comment;
 using IT.WebServices.Fragments.Generic;
+using IT.WebServices.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
