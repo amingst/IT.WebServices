@@ -92,7 +92,8 @@ namespace IT.WebServices.Content.Stats.Services.Data
         private FileInfo GetFilePath(Guid recordId)
         {
             var name = recordId.ToString();
-            return new FileInfo(dataDir.FullName + "/" + name);
+            var dir = dataDir.CreateSubdirectory(name.Substring(0, 2)).CreateSubdirectory(name.Substring(2, 2));
+            return new FileInfo(dir.FullName + "/" + name);
         }
     }
 }

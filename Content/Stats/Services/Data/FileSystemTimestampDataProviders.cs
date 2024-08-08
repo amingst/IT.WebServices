@@ -11,49 +11,36 @@ using System.Reflection;
 using System.Threading.Tasks;
 using IT.WebServices.Fragments.Content.Stats;
 using IT.WebServices.Content.Stats.Services.Subscriptions;
-using System.Xml.Linq;
+using System.Runtime.CompilerServices;
+using IT.WebServices.Helpers;
 
 namespace IT.WebServices.Content.Stats.Services.Data
 {
-    public class FileSystemLikeDataProvider : GenericFileSystemEmptyDataProvider, ILikeDataProvider
+    public class FileSystemShareDataProvider : GenericFileSystemTimestampDataProvider, IShareDataProvider
     {
-        public FileSystemLikeDataProvider(IOptions<AppSettings> settings, SubscriptionList subList) : base("likes", settings, subList) { }
+        public FileSystemShareDataProvider(IOptions<AppSettings> settings, SubscriptionList subList) : base("shares", settings, subList) { }
 
-        public async Task Like(Guid userId, Guid contentId)
+        public async Task LogShare(Guid userId, Guid contentId)
         {
-            await Touch(userId, contentId);
-            await subList.ContentChanges.Writer.WriteAsync(contentId);
-            await subList.UserChanges.Writer.WriteAsync(userId);
-        }
-
-        public async Task Unlike(Guid userId, Guid contentId)
-        {
-            await Delete(userId, contentId);
+            await AppendTimestamp(userId, contentId);
             await subList.ContentChanges.Writer.WriteAsync(contentId);
             await subList.UserChanges.Writer.WriteAsync(userId);
         }
     }
 
-    public class FileSystemSaveDataProvider : GenericFileSystemEmptyDataProvider, ISaveDataProvider
+    public class FileSystemViewDataProvider : GenericFileSystemTimestampDataProvider, IViewDataProvider
     {
-        public FileSystemSaveDataProvider(IOptions<AppSettings> settings, SubscriptionList subList) : base("saves", settings, subList) { }
+        public FileSystemViewDataProvider(IOptions<AppSettings> settings, SubscriptionList subList) : base("views", settings, subList) { }
 
-        public async Task Save(Guid userId, Guid contentId)
+        public async Task LogView(Guid userId, Guid contentId)
         {
-            await Touch(userId, contentId);
-            await subList.ContentChanges.Writer.WriteAsync(contentId);
-            await subList.UserChanges.Writer.WriteAsync(userId);
-        }
-
-        public async Task Unsave(Guid userId, Guid contentId)
-        {
-            await Delete(userId, contentId);
+            await AppendTimestamp(userId, contentId);
             await subList.ContentChanges.Writer.WriteAsync(contentId);
             await subList.UserChanges.Writer.WriteAsync(userId);
         }
     }
 
-    public class GenericFileSystemEmptyDataProvider
+    public class GenericFileSystemTimestampDataProvider
     {
         protected readonly SubscriptionList subList;
 
@@ -61,7 +48,9 @@ namespace IT.WebServices.Content.Stats.Services.Data
         private readonly DirectoryInfo userDataDir;
         private readonly string subDirName;
 
-        public GenericFileSystemEmptyDataProvider(string subDirName, IOptions<AppSettings> settings, SubscriptionList subList)
+        public const int SIZE_OF_TIMESTAMP = 8;
+
+        public GenericFileSystemTimestampDataProvider(string subDirName, IOptions<AppSettings> settings, SubscriptionList subList)
         {
             this.subList = subList;
 
@@ -73,42 +62,44 @@ namespace IT.WebServices.Content.Stats.Services.Data
             userDataDir = root.CreateSubdirectory("stats").CreateSubdirectory("users");
         }
 
-        public Task Delete(Guid userId, Guid contentId)
+        public async Task AppendTimestamp(Guid userId, Guid contentId)
         {
             var fContent = GetContentFilePath(contentId, userId);
             var fUser = GetUserFilePath(userId, contentId);
 
-            fContent.Delete();
-            fUser.Delete();
+            await AppendTimestamp(fContent);
+            await AppendTimestamp(fUser);
 
-            return Task.CompletedTask;
+            //await Task.WhenAll(
+            //        AppendTimestamp(fContent),
+            //        AppendTimestamp(fUser)
+            //    );
         }
 
-        public async IAsyncEnumerable<Guid> GetAllForContent(Guid contentId)
+        private async Task AppendTimestamp(FileInfo fi)
+        {
+            using var stream = FileStreamHelper.WaitForFile(fi.FullName, FileMode.Append, FileAccess.Write, FileShare.None);
+            if (stream == null)
+                return;
+
+            DateTimeOffset dto = new DateTimeOffset(DateTime.UtcNow);
+            var unixTime = dto.ToUnixTimeSeconds();
+            byte[] bytes = BitConverter.GetBytes(unixTime);
+
+            await stream.WriteAsync(bytes, 0, SIZE_OF_TIMESTAMP);
+            await stream.FlushAsync();
+        }
+
+        public async IAsyncEnumerable<IQueryableTimestampDataProvider.Data> GetAllCountsForContent(Guid contentId)
         {
             foreach (var file in GetContentDir(contentId).GetFiles("*", SearchOption.AllDirectories))
-                yield return await Task.FromResult(file.Name.ToGuid());
+                yield return await Task.FromResult(new IQueryableTimestampDataProvider.Data(file.Name.ToGuid(), file.Length / SIZE_OF_TIMESTAMP));
         }
 
-        public async IAsyncEnumerable<Guid> GetAllForUser(Guid userId)
+        public async IAsyncEnumerable<IQueryableTimestampDataProvider.Data> GetAllCountsForUser(Guid userId)
         {
             foreach (var file in GetUserDir(userId).GetFiles("*", SearchOption.AllDirectories))
-                yield return await Task.FromResult(file.Name.ToGuid());
-        }
-
-        public async Task Touch(Guid userId, Guid contentId)
-        {
-            var fContent = GetContentFilePath(contentId, userId);
-            var fUser = GetUserFilePath(userId, contentId);
-
-            await Touch(fContent);
-            await Touch(fUser);
-        }
-
-        private ValueTask Touch(FileInfo fi)
-        {
-            fi.Delete();
-            return fi.Create().DisposeAsync();
+                yield return await Task.FromResult(new IQueryableTimestampDataProvider.Data(file.Name.ToGuid(), file.Length / SIZE_OF_TIMESTAMP));
         }
 
         private DirectoryInfo GetContentDir(Guid contentId)

@@ -10,7 +10,5 @@ namespace IT.WebServices.Content.Stats.Services.Data
     {
         IAsyncEnumerable<Guid> GetAllForContent(Guid contentId);
         IAsyncEnumerable<Guid> GetAllForUser(Guid userId);
-        Task<DateTime> GetLastChangeForContent(Guid contentId);
-        Task<DateTime> GetLastChangeForUser(Guid userId);
     }
 }

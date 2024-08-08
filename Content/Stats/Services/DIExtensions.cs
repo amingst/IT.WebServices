@@ -13,8 +13,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ILikeDataProvider, FileSystemLikeDataProvider>();
             //services.AddSingleton<IProgressDataProvider, EventDdProgressDataProvider>();
             services.AddSingleton<ISaveDataProvider, FileSystemSaveDataProvider>();
-            //services.AddSingleton<IShareDataProvider, EventDdShareDataProvider>();
-            //services.AddSingleton<IViewDataProvider, EventDdViewDataProvider>();
+            services.AddSingleton<IShareDataProvider, FileSystemShareDataProvider>();
+            services.AddSingleton<IViewDataProvider, FileSystemViewDataProvider>();
 
             services.AddSingleton<IStatsContentPublicDataProvider, FileSystemStatsContentPublicDataProvider>();
             services.AddSingleton<IStatsContentPrivateDataProvider, FileSystemStatsContentPrivateDataProvider>();
@@ -40,8 +40,8 @@ namespace Microsoft.Extensions.DependencyInjection
             //endpoints.MapGrpcService<ProgressService>();
             endpoints.MapGrpcService<QueryService>();
             endpoints.MapGrpcService<SaveService>();
-            //endpoints.MapGrpcService<ShareService>();
-            //endpoints.MapGrpcService<ViewService>();
+            endpoints.MapGrpcService<ShareService>();
+            endpoints.MapGrpcService<ViewService>();
         }
     }
 }

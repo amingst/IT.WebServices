@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IT.WebServices.Content.Stats.Services.Data
 {
-    public interface IViewDataProvider : IQueryableDataProvider
+    public interface IViewDataProvider : IQueryableTimestampDataProvider
     {
         Task LogView(Guid userId, Guid contentId);
     }
