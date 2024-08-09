@@ -1,4 +1,5 @@
 ﻿using IT.WebServices.Fragments.Content;
+using IT.WebServices.Fragments.Content.Stats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,11 @@ namespace IT.WebServices.Content.Stats.Services.Data
 {
     public interface IProgressDataProvider
     {
+        Task<bool> Delete(Guid userId, Guid contentId);
+        Task<bool> Exists(Guid userId, Guid contentId);
+        Task<UserProgressRecord> Get(Guid userId, Guid contentId);
+        IAsyncEnumerable<UserProgressRecord> GetAll();
+        IAsyncEnumerable<UserProgressRecord> GetAllForUser(Guid userId);
         Task LogProgress(Guid userId, Guid contentId, float progress);
     }
 }

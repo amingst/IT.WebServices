@@ -15,18 +15,20 @@ namespace IT.WebServices.Content.Stats.Services.Subscriptions
         private readonly IStatsUserPublicDataProvider pubDb;
         private readonly IStatsUserPrivateDataProvider prvDb;
         private readonly ILikeDataProvider likeData;
+        private readonly IProgressDataProvider progressData;
         private readonly ISaveDataProvider saveData;
         private readonly IShareDataProvider shareData;
         private readonly IViewDataProvider viewData;
 
         private Task listener;
 
-        public UserSubscription(SubscriptionList subList, IStatsUserPublicDataProvider pubDb, IStatsUserPrivateDataProvider prvDb, ILikeDataProvider likeData, ISaveDataProvider saveData, IShareDataProvider shareData, IViewDataProvider viewData)
+        public UserSubscription(SubscriptionList subList, IStatsUserPublicDataProvider pubDb, IStatsUserPrivateDataProvider prvDb, ILikeDataProvider likeData, IProgressDataProvider progressData, ISaveDataProvider saveData, IShareDataProvider shareData, IViewDataProvider viewData)
         {
             this.subList = subList;
             this.pubDb = pubDb;
             this.prvDb = prvDb;
             this.likeData = likeData;
+            this.progressData = progressData;
             this.saveData = saveData;
             this.shareData = shareData;
             this.viewData = viewData;
@@ -56,6 +58,7 @@ namespace IT.WebServices.Content.Stats.Services.Subscriptions
 
                 await Task.WhenAll(
                         RebuildLikes(userId, rPub, rPrv),
+                        RebuildProgress(userId, rPub, rPrv),
                         RebuildSaves(userId, rPub, rPrv),
                         RebuildShares(userId, rPub, rPrv),
                         RebuildViews(userId, rPub, rPrv)
@@ -76,6 +79,13 @@ namespace IT.WebServices.Content.Stats.Services.Subscriptions
                 rPrv.Likes.Add(contentId.ToString());
 
             rPub.Likes = (ulong)rPrv.Likes.Count;
+        }
+
+        private async Task RebuildProgress(Guid userId, StatsUserPublicRecord rPub, StatsUserPrivateRecord rPrv)
+        {
+            var records = progressData.GetAllForUser(userId);
+            await foreach (var record in records)
+                rPrv.ProgressRecords.Add(record);
         }
 
         private async Task RebuildSaves(Guid userId, StatsUserPublicRecord rPub, StatsUserPrivateRecord rPrv)

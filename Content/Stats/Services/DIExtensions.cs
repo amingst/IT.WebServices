@@ -11,7 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddStatsClasses(this IServiceCollection services)
         {
             services.AddSingleton<ILikeDataProvider, FileSystemLikeDataProvider>();
-            //services.AddSingleton<IProgressDataProvider, EventDdProgressDataProvider>();
+            services.AddSingleton<IProgressDataProvider, FileSystemProgressDataProvider>();
             services.AddSingleton<ISaveDataProvider, FileSystemSaveDataProvider>();
             services.AddSingleton<IShareDataProvider, FileSystemShareDataProvider>();
             services.AddSingleton<IViewDataProvider, FileSystemViewDataProvider>();
@@ -37,7 +37,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static void MapStatsGrpcServices(this IEndpointRouteBuilder endpoints)
         {
             endpoints.MapGrpcService<LikeService>();
-            //endpoints.MapGrpcService<ProgressService>();
+            endpoints.MapGrpcService<ProgressService>();
             endpoints.MapGrpcService<QueryService>();
             endpoints.MapGrpcService<SaveService>();
             endpoints.MapGrpcService<ShareService>();
