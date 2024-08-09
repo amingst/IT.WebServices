@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using IT.WebServices.Content.Stats.Services.Subscriptions;
+using IT.WebServices.Helpers;
 
 namespace IT.WebServices.Content.Stats.Services.Data
 {
@@ -92,10 +93,8 @@ namespace IT.WebServices.Content.Stats.Services.Data
 
         private DirectoryInfo GetUserDir(Guid userId)
         {
-            var name = userId.ToString();
-
             var dir = dataDir;
-            dir = dir.CreateSubdirectory(name.Substring(0, 2)).CreateSubdirectory(name.Substring(2, 2)).CreateSubdirectory(name);
+            dir = dir.CreateGuidDirectory(userId);
             dir = dir.CreateSubdirectory("progress");
 
             return dir;
@@ -105,10 +104,7 @@ namespace IT.WebServices.Content.Stats.Services.Data
         {
             var dir = GetUserDir(userId);
 
-            var name = contentId.ToString();
-            dir = dir.CreateSubdirectory(name.Substring(0, 2)).CreateSubdirectory(name.Substring(2, 2));
-
-            return new FileInfo(dir.FullName + "/" + name);
+            return dir.CreateGuidFileInfo(contentId);
         }
     }
 }

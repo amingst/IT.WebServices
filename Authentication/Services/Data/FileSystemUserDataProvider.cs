@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using IT.WebServices.Helpers;
 
 namespace IT.WebServices.Authentication.Services.Data
 {
@@ -190,9 +191,7 @@ namespace IT.WebServices.Authentication.Services.Data
 
         private FileInfo GetDataFilePath(Guid userID)
         {
-            var name = userID.ToString();
-            var dir = dataDir.CreateSubdirectory(name.Substring(0, 2)).CreateSubdirectory(name.Substring(2, 2));
-            return new FileInfo(dir.FullName + "/" + name);
+            return dataDir.CreateGuidFileInfo(userID);
         }
     }
 }

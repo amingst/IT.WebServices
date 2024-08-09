@@ -67,13 +67,10 @@ namespace IT.WebServices.Content.Stats.Services.Data
             var fContent = GetContentFilePath(contentId, userId);
             var fUser = GetUserFilePath(userId, contentId);
 
-            await AppendTimestamp(fContent);
-            await AppendTimestamp(fUser);
-
-            //await Task.WhenAll(
-            //        AppendTimestamp(fContent),
-            //        AppendTimestamp(fUser)
-            //    );
+            await Task.WhenAll(
+                    AppendTimestamp(fContent),
+                    AppendTimestamp(fUser)
+                );
         }
 
         private async Task AppendTimestamp(FileInfo fi)
@@ -115,8 +112,7 @@ namespace IT.WebServices.Content.Stats.Services.Data
         private DirectoryInfo GetDir(DirectoryInfo parentDir, Guid id)
         {
             var dir = parentDir;
-            var name = id.ToString();
-            dir = dir.CreateSubdirectory(name.Substring(0, 2)).CreateSubdirectory(name.Substring(2, 2)).CreateSubdirectory(name);
+            dir = dir.CreateGuidDirectory(id);
             dir = dir.CreateSubdirectory(subDirName);
 
             return dir;
@@ -125,19 +121,15 @@ namespace IT.WebServices.Content.Stats.Services.Data
         private FileInfo GetContentFilePath(Guid contentId, Guid userId)
         {
             var dir = GetContentDir(contentId);
-            var name = userId.ToString();
-            dir = dir.CreateSubdirectory(name.Substring(0, 2)).CreateSubdirectory(name.Substring(2, 2));
-
-            return new FileInfo(dir.FullName + "/" + name);
+            
+            return dir.CreateGuidFileInfo(userId);
         }
 
         private FileInfo GetUserFilePath(Guid userId, Guid contentId)
         {
             var dir = GetUserDir(userId);
-            var name = contentId.ToString();
-            dir = dir.CreateSubdirectory(name.Substring(0, 2)).CreateSubdirectory(name.Substring(2, 2));
 
-            return new FileInfo(dir.FullName + "/" + name);
+            return dir.CreateGuidFileInfo(contentId);
         }
     }
 }

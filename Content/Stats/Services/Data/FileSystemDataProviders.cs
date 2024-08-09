@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using IT.WebServices.Helpers;
 
 namespace IT.WebServices.Content.Stats.Services.Data
 {
@@ -91,9 +92,7 @@ namespace IT.WebServices.Content.Stats.Services.Data
 
         private FileInfo GetFilePath(Guid recordId)
         {
-            var name = recordId.ToString();
-            var dir = dataDir.CreateSubdirectory(name.Substring(0, 2)).CreateSubdirectory(name.Substring(2, 2));
-            return new FileInfo(dir.FullName + "/" + name);
+            return dataDir.CreateGuidFileInfo(recordId);
         }
     }
 }

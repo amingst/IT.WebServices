@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using IT.WebServices.Helpers;
 
 namespace IT.WebServices.Content.CMS.Services.Data
 {
@@ -73,8 +74,7 @@ namespace IT.WebServices.Content.CMS.Services.Data
 
         private FileInfo GetContentFilePath(Guid contentId)
         {
-            var name = contentId.ToString();
-            return new FileInfo(contentDir.FullName + "/" + name);
+            return contentDir.CreateGuidFileInfo(contentId);
         }
     }
 }

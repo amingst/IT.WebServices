@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using IT.WebServices.Fragments.Notification;
+using IT.WebServices.Helpers;
 
 namespace IT.WebServices.Notification.Services.Data
 {
@@ -75,7 +76,8 @@ namespace IT.WebServices.Notification.Services.Data
         private FileInfo GetDataFilePath(string tokenHash)
         {
             var name = tokenHash;
-            var dir = dataDir.CreateSubdirectory(name.Substring(0, 2)).CreateSubdirectory(name.Substring(2, 2));
+
+            var dir = dataDir.CreateSubdirectory(name.Substring(0, 2)).CreateSubdirectory(name.Substring(2, 2)).CreateSubdirectory(name.Substring(4, 2));
             return new FileInfo(dir.FullName + "/" + name);
         }
     }

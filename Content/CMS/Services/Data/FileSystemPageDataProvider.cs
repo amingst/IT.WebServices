@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using IT.WebServices.Helpers;
 
 namespace IT.WebServices.Content.CMS.Services.Data
 {
@@ -72,8 +73,7 @@ namespace IT.WebServices.Content.CMS.Services.Data
 
         private FileInfo GetPageFilePath(Guid pageId)
         {
-            var name = pageId.ToString();
-            return new FileInfo(pageDir.FullName + "/" + name);
+            return pageDir.CreateGuidFileInfo(pageId);
         }
     }
 }

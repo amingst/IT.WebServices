@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using IT.WebServices.Helpers;
+using System.ComponentModel.Design;
 
 namespace IT.WebServices.Content.Comment.Services.Data
 {
@@ -145,8 +147,7 @@ namespace IT.WebServices.Content.Comment.Services.Data
 
         private FileInfo GetCommentFilePath(string commentId)
         {
-            var dir = commentDir.CreateSubdirectory(commentId.Substring(0, 2)).CreateSubdirectory(commentId.Substring(2, 2)).CreateSubdirectory(commentId.Substring(4, 2));
-            return new FileInfo(dir.FullName + "/" + commentId);
+            return commentDir.CreateGuidFileInfo(commentId.ToGuid(), 3);
         }
 
         private FileInfo GetContentIndexFilePath(CommentRecord record)
@@ -156,7 +157,7 @@ namespace IT.WebServices.Content.Comment.Services.Data
 
         private DirectoryInfo GetContentIndexDirPath(string contentID)
         {
-            return contentIndexDir.CreateSubdirectory(contentID.Substring(0, 2)).CreateSubdirectory(contentID.Substring(2, 2)).CreateSubdirectory(contentID);
+            return contentIndexDir.CreateGuidDirectory(contentID.ToGuid());
         }
 
         private FileInfo GetContentIndexFilePath(string contentID, string commentId)
@@ -172,7 +173,7 @@ namespace IT.WebServices.Content.Comment.Services.Data
 
         private DirectoryInfo GetParentIndexDirPath(string parentID)
         {
-            return parentIndexDir.CreateSubdirectory(parentID.Substring(0, 2)).CreateSubdirectory(parentID.Substring(2, 2)).CreateSubdirectory(parentID);
+            return parentIndexDir.CreateGuidDirectory(parentID.ToGuid());
         }
 
         private FileInfo GetParentIndexFilePath(string parentID, string commentId)
