@@ -84,7 +84,9 @@ namespace IT.WebServices.Content.Stats.Services
             var record = await uPrvDb.GetById(userToken.Id);
 
             var ret = new GetOwnUserLikesResponse();
-            ret.LikedContentIDs.AddRange(record.Likes);
+
+            if (record != null)
+                ret.LikedContentIDs.AddRange(record.Likes);
 
             return ret;
         }
@@ -138,7 +140,9 @@ namespace IT.WebServices.Content.Stats.Services
             var record = await uPrvDb.GetById(userToken.Id);
 
             var ret = new GetOwnUserSavesResponse();
-            ret.SavedContentIDs.AddRange(record.Saves);
+
+            if (record != null)
+                ret.SavedContentIDs.AddRange(record.Saves);
 
             return ret;
         }

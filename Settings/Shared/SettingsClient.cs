@@ -8,18 +8,12 @@ namespace IT.WebServices.Settings
         private ServiceNameHelper nameHelper;
 
         public SettingsPublicData PublicData { get; private set; }
-        public SettingsPrivateData PrivateData { get; private set; }
-        public SettingsOwnerData OwnerData { get; private set; }
-
-        public uint CurrentSettingsId => PublicData.VersionNum;
 
         public SettingsClient(ServiceNameHelper nameHelper)
         {
             this.nameHelper = nameHelper;
-        }
 
-        public async Task LoadLatest()
-        {
+            LoadLatestDirect().Wait();
         }
 
         public async Task LoadLatestDirect()
@@ -28,13 +22,6 @@ namespace IT.WebServices.Settings
             var res = await client.GetPublicDataAsync(new());
 
             PublicData = res.Public;
-        }
-
-        private void Load(SettingsRecord record)
-        {
-            PublicData = record.Public;
-            PrivateData = record.Private;
-            OwnerData = record.Owner;
         }
     }
 }
