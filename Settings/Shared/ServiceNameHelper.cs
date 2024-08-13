@@ -22,7 +22,7 @@ namespace IT.WebServices.Settings
         public readonly Channel StatsServiceChannel;
         public readonly Channel UserServiceChannel;
 
-        public readonly Task<string> ServiceTokenTask;
+        private readonly Task<string> ServiceTokenTask;
         public readonly Lazy<string> ServiceToken;
 
         public ServiceNameHelper(IConfiguration configuration, ILogger<ServiceNameHelper> logger)
