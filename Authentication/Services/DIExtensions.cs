@@ -1,4 +1,5 @@
-﻿using IT.WebServices.Authentication.Services;
+﻿using IT.WebServices.Authentication;
+using IT.WebServices.Authentication.Services;
 using IT.WebServices.Authentication.Services.Data;
 using IT.WebServices.Authentication.Services.Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -13,6 +14,9 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddAuthenticationClasses(this IServiceCollection services)
         {
             services.AddSingleton<IUserDataProvider, FileSystemUserDataProvider>();
+
+            services.AddScoped<IUserService, UserService>();
+
             services.AddScoped<ClaimsClient>();
             services.AddSingleton<OfflineHelper>();
 

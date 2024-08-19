@@ -6,11 +6,12 @@ using IT.WebServices.Content.Stats.Services.Data;
 using IT.WebServices.Fragments.Content.Stats;
 using System;
 using System.Threading.Tasks;
+using IT.WebServices.Fragments.Settings;
 
 namespace IT.WebServices.Content.Stats.Services
 {
     [AllowAnonymous]
-    public class ViewService : StatsViewInterface.StatsViewInterfaceBase
+    public class ViewService : StatsViewInterface.StatsViewInterfaceBase, IViewService
     {
         private readonly ILogger logger;
         private readonly IViewDataProvider dataProvider;
@@ -21,14 +22,21 @@ namespace IT.WebServices.Content.Stats.Services
             this.dataProvider = dataProvider;
         }
 
-        public override async Task<LogViewContentResponse> LogViewContent(LogViewContentRequest request, ServerCallContext context)
+        public override Task<LogViewContentResponse> LogViewContent(LogViewContentRequest request, ServerCallContext context)
         {
             var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
+            return LogViewContentInternal(request, userToken);
+        }
+
+        public async Task<LogViewContentResponse> LogViewContentInternal(LogViewContentRequest request, ONUser userToken)
+        {
             if (!Guid.TryParse(request.ContentID, out var contentId))
                 return new();
 
-            await dataProvider.LogView(userToken?.Id ?? Guid.Empty, contentId);
+            Guid userId = userToken?.Id ?? Guid.Empty;
+
+            await dataProvider.LogView(userId, contentId);
 
             return new();
         }

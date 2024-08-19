@@ -28,24 +28,24 @@ using static Google.Rpc.Context.AttributeContext.Types;
 namespace IT.WebServices.Authentication.Services
 {
     [Authorize]
-    public class UserService : UserInterface.UserInterfaceBase
+    public class UserService : UserInterface.UserInterfaceBase, IUserService
     {
         private readonly OfflineHelper offlineHelper;
         private readonly ILogger<UserService> logger;
         private readonly SigningCredentials creds;
         private readonly IUserDataProvider dataProvider;
         private readonly ClaimsClient claimsClient;
-        private readonly SettingsClient settingsClient;
+        private readonly ISettingsService settingsService;
         private static readonly HashAlgorithm hasher = SHA256.Create();
         private static readonly RandomNumberGenerator rng = RandomNumberGenerator.Create();
 
-        public UserService(OfflineHelper offlineHelper, ILogger<UserService> logger, IUserDataProvider dataProvider, ClaimsClient claimsClient, SettingsClient settingsClient)
+        public UserService(OfflineHelper offlineHelper, ILogger<UserService> logger, IUserDataProvider dataProvider, ClaimsClient claimsClient, ISettingsService settingsService)
         {
             this.offlineHelper = offlineHelper;
             this.logger = logger;
             this.dataProvider = dataProvider;
             this.claimsClient = claimsClient;
-            this.settingsClient = settingsClient;
+            this.settingsService = settingsService;
 
             creds = new SigningCredentials(JwtExtensions.GetPrivateKey(), SecurityAlgorithms.EcdsaSha256);
 
@@ -80,8 +80,7 @@ namespace IT.WebServices.Authentication.Services
             if (!ValidateTotp(user.Server?.TOTPDevices, request.MFACode))
                 return new AuthenticateUserResponse();
 
-            //var otherClaims = await claimsClient.GetOtherClaims(user.UserIDGuid);
-            var otherClaims = new ClaimRecord[0];
+            var otherClaims = await claimsClient.GetOtherClaims(user.UserIDGuid);
 
             return new AuthenticateUserResponse()
             {
@@ -521,8 +520,10 @@ namespace IT.WebServices.Authentication.Services
 
                 await dataProvider.Save(record);
 
+                var settingsData = await settingsService.GetAdminDataInternal();
+
                 TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
-                SetupCode setupInfo = tfa.GenerateSetupCode(settingsClient.PublicData.Personalization.Title, record.Normal.Public.Data.UserName, key);
+                SetupCode setupInfo = tfa.GenerateSetupCode(settingsData.Public.Personalization.Title, record.Normal.Public.Data.UserName, key);
 
                 return new()
                 {
@@ -579,8 +580,10 @@ namespace IT.WebServices.Authentication.Services
 
                 await dataProvider.Save(record);
 
+                var settingsData = await settingsService.GetAdminDataInternal();
+
                 TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
-                SetupCode setupInfo = tfa.GenerateSetupCode(settingsClient.PublicData.Personalization.Title, record.Normal.Public.Data.UserName, key);
+                SetupCode setupInfo = tfa.GenerateSetupCode(settingsData.Public.Personalization.Title, record.Normal.Public.Data.UserName, key);
 
                 return new()
                 {
@@ -677,12 +680,17 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [AllowAnonymous]
-        public override async Task<GetOtherPublicUserResponse> GetOtherPublicUser(GetOtherPublicUserRequest request, ServerCallContext context)
+        public override Task<GetOtherPublicUserResponse> GetOtherPublicUser(GetOtherPublicUserRequest request, ServerCallContext context)
         {
             if (offlineHelper.IsOffline)
-                return new();
+                return Task.FromResult(new GetOtherPublicUserResponse());
 
-            var record = await dataProvider.GetById(request.UserID.ToGuid());
+            return GetOtherPublicUserInternal(request.UserID.ToGuid());
+        }
+
+        public async Task<GetOtherPublicUserResponse> GetOtherPublicUserInternal(Guid userId)
+        {
+            var record = await dataProvider.GetById(userId);
 
             return new() { Record = record?.Normal.Public };
         }
@@ -767,7 +775,12 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [AllowAnonymous]
-        public async override Task<GetUserIdListResponse> GetUserIdList(GetUserIdListRequest request, ServerCallContext context)
+        public override Task<GetUserIdListResponse> GetUserIdList(GetUserIdListRequest request, ServerCallContext context)
+        {
+            return GetUserIdListInternal();
+        }
+
+        public async Task<GetUserIdListResponse> GetUserIdListInternal()
         {
             var ret = new GetUserIdListResponse();
             try

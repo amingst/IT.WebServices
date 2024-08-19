@@ -20,14 +20,18 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using IT.WebServices.Authentication;
 using IT.WebServices.Fragments.Settings;
+using System.Threading;
 
 namespace IT.WebServices.Settings.Services
 {
-    public class SettingsService : SettingsInterface.SettingsInterfaceBase
+    public class SettingsService : SettingsInterface.SettingsInterfaceBase, ISettingsService
     {
         private readonly OfflineHelper offlineHelper;
         private readonly ILogger<SettingsService> logger;
         private readonly ISettingsDataProvider dataProvider;
+
+        private static bool hasEnsuredStockSettings = false;
+        private static SemaphoreSlim stockSettingsSemaphore = new SemaphoreSlim(1, 1);
 
         public SettingsService(OfflineHelper offlineHelper, ILogger<SettingsService> logger, ISettingsDataProvider dataProvider)
         {
@@ -39,7 +43,12 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER_OR_SERVICE)]
-        public override async Task<GetAdminDataResponse> GetAdminData(GetAdminDataRequest request, ServerCallContext context)
+        public override Task<GetAdminDataResponse> GetAdminData(GetAdminDataRequest request, ServerCallContext context)
+        {
+            return GetAdminDataInternal();
+        }
+
+        public async Task<GetAdminDataResponse> GetAdminDataInternal()
         {
             var record = await dataProvider.Get();
             if (record == null)
@@ -50,6 +59,7 @@ namespace IT.WebServices.Settings.Services
                 Public = record.Public,
                 Private = record.Private,
             };
+
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER_OR_SERVICE)]
@@ -70,7 +80,12 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_OWNER_OR_SERVICE)]
-        public override async Task<GetOwnerDataResponse> GetOwnerData(GetOwnerDataRequest request, ServerCallContext context)
+        public override Task<GetOwnerDataResponse> GetOwnerData(GetOwnerDataRequest request, ServerCallContext context)
+        {
+            return GetOwnerDataInternal();
+        }
+
+        public async Task<GetOwnerDataResponse> GetOwnerDataInternal()
         {
             var record = await dataProvider.Get();
             if (record == null)
@@ -532,120 +547,138 @@ namespace IT.WebServices.Settings.Services
 
         private async Task EnsureStockSettings()
         {
-            if (await dataProvider.Get() != null)
+            if (hasEnsuredStockSettings)
                 return;
 
-            var date = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+            await stockSettingsSemaphore.WaitAsync();
 
-            var record = new SettingsRecord()
+            if (hasEnsuredStockSettings)
+                return;
+
+            hasEnsuredStockSettings = true;
+
+            try
             {
-                Public = new()
+
+                if (await dataProvider.Get() != null)
+                    return;
+
+                var date = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+
+                var record = new SettingsRecord()
                 {
-                    VersionNum = 1,
-                    ModifiedOnUTC = date,
-                    Comments = new()
+                    Public = new()
                     {
-                        AllowLinks = false,
-                        ExplicitModeEnabled = true,
-                        DefaultOrder = Fragments.Comment.CommentOrder.Liked,
-                        DefaultRestriction = new()
+                        VersionNum = 1,
+                        ModifiedOnUTC = date,
+                        Comments = new()
                         {
-                            Minimum = Fragments.Comment.CommentRestrictionMinimumEnum.Subscriber,
+                            AllowLinks = false,
+                            ExplicitModeEnabled = true,
+                            DefaultOrder = Fragments.Comment.CommentOrder.Liked,
+                            DefaultRestriction = new()
+                            {
+                                Minimum = Fragments.Comment.CommentRestrictionMinimumEnum.Subscriber,
+                            },
                         },
-                    },
-                    Personalization = new()
-                    {
-                        Title = "Creator Site",
-                        MetaDescription = "My site description",
-                        DefaultToDarkMode = true,
-                    },
-                    Subscription = new()
-                    {
-                        AllowOther = true,
-                        ParallelEconomy = new()
+                        Personalization = new()
                         {
-                            Enabled = false,
+                            Title = "Creator Site",
+                            MetaDescription = "My site description",
+                            DefaultToDarkMode = true,
                         },
-                        Stripe = new()
+                        Subscription = new()
                         {
-                            Enabled = false,
+                            AllowOther = true,
+                            ParallelEconomy = new()
+                            {
+                                Enabled = false,
+                            },
+                            Stripe = new()
+                            {
+                                Enabled = false,
+                            },
+                            Paypal = new()
+                            {
+                                Enabled = false,
+                            },
+                            Crypto = new()
+                            {
+                                Enabled = false,
+                            },
+                            Fake = new()
+                            {
+                                Enabled = true,
+                            }
                         },
-                        Paypal = new()
+                        CMS = new()
                         {
-                            Enabled = false,
-                        },
-                        Crypto = new()
-                        {
-                            Enabled = false,
-                        },
-                        Fake = new()
-                        {
-                            Enabled = true,
+                            DefaultLayout = Fragments.Content.LayoutEnum.List,
+                            Menu = new()
+                            {
+                                AudioMenuLinkName = "Listen",
+                                PictureMenuLinkName = "Photos",
+                                VideoMenuLinkName = "Watch",
+                                WrittenMenuLinkName = "Read",
+                            },
                         }
                     },
-                    CMS = new()
+                    Private = new()
                     {
-                        DefaultLayout = Fragments.Content.LayoutEnum.List,
-                        Menu = new()
+                        Comments = new() { },
+                        Personalization = new() { },
+                        Subscription = new() { },
+                    },
+                    Owner = new()
+                    {
+                        Comments = new() { },
+                        Personalization = new() { },
+                        Subscription = new()
                         {
-                            AudioMenuLinkName = "Listen",
-                            PictureMenuLinkName = "Photos",
-                            VideoMenuLinkName = "Watch",
-                            WrittenMenuLinkName = "Read",
+                            ParallelEconomy = new(),
+                            Stripe = new(),
+                            Paypal = new(),
                         },
                     }
-                },
-                Private = new()
+                };
+
+                record.Public.Subscription.Tiers.Add(new SubscriptionTier()
                 {
-                    Comments = new() { },
-                    Personalization = new() { },
-                    Subscription = new() { },
-                },
-                Owner = new()
+                    Name = "Basic",
+                    Description = "You're basic bro...",
+                    Color = "orange",
+                    AmountCents = 500,
+                });
+                record.Public.Subscription.Tiers.Add(new SubscriptionTier()
                 {
-                    Comments = new() { },
-                    Personalization = new() { },
-                    Subscription = new()
-                    {
-                        ParallelEconomy = new(),
-                        Stripe = new(),
-                        Paypal = new(),
-                    },
-                }
-            };
+                    Name = "Bronze",
+                    Description = "meh...",
+                    Color = "bronze",
+                    AmountCents = 1000,
+                });
+                record.Public.Subscription.Tiers.Add(new SubscriptionTier()
+                {
+                    Name = "Silver",
+                    Description = "Nice...",
+                    Color = "silver",
+                    AmountCents = 2500,
+                });
+                record.Public.Subscription.Tiers.Add(new SubscriptionTier()
+                {
+                    Name = "Gold",
+                    Description = "You rock...",
+                    Color = "gold",
+                    AmountCents = 5000,
+                });
 
-            record.Public.Subscription.Tiers.Add(new SubscriptionTier()
-            {
-                Name = "Basic",
-                Description = "You're basic bro...",
-                Color = "orange",
-                AmountCents = 500,
-            });
-            record.Public.Subscription.Tiers.Add(new SubscriptionTier()
-            {
-                Name = "Bronze",
-                Description = "meh...",
-                Color = "bronze",
-                AmountCents = 1000,
-            });
-            record.Public.Subscription.Tiers.Add(new SubscriptionTier()
-            {
-                Name = "Silver",
-                Description = "Nice...",
-                Color = "silver",
-                AmountCents = 2500,
-            });
-            record.Public.Subscription.Tiers.Add(new SubscriptionTier()
-            {
-                Name = "Gold",
-                Description = "You rock...",
-                Color = "gold",
-                AmountCents = 5000,
-            });
+                record.Private.Comments.BlackList.AddRange(new[] { "fuck", "shit", "cunt" });
 
-            record.Private.Comments.BlackList.AddRange(new[] { "fuck", "shit", "cunt" });
-
-            await dataProvider.Save(record);
+                await dataProvider.Save(record);
+            }
+            finally
+            {
+                stockSettingsSemaphore.Release();
+            }
         }
     }
 }

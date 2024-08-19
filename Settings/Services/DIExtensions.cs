@@ -1,15 +1,9 @@
-﻿using IT.WebServices.Settings.Services;
+﻿using IT.WebServices.Settings;
+using IT.WebServices.Settings.Services;
 using IT.WebServices.Settings.Services.Data;
 using IT.WebServices.Settings.Services.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -19,6 +13,8 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.AddSingleton<ISettingsDataProvider, FileSettingsDataProvider>();
             services.AddSingleton<OfflineHelper>();
+
+            services.AddScoped<ISettingsService, SettingsService>();
 
             return services;
         }

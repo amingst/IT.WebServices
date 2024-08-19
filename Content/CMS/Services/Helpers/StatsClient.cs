@@ -2,20 +2,20 @@
 using Microsoft.Extensions.Logging;
 using IT.WebServices.Authentication;
 using IT.WebServices.Fragments.Content.Stats;
-using IT.WebServices.Settings;
 using System;
 using System.Threading.Tasks;
+using IT.WebServices.Content.Stats;
 
 namespace IT.WebServices.Content.CMS.Services.Helpers
 {
     public class StatsClient
     {
-        private readonly ServiceNameHelper nameHelper;
+        private readonly IViewService viewService;
         private readonly ILogger logger;
 
-        public StatsClient(ServiceNameHelper nameHelper, ILogger<StatsClient> logger)
+        public StatsClient(IViewService viewService, ILogger<StatsClient> logger)
         {
-            this.nameHelper = nameHelper;
+            this.viewService = viewService;
             this.logger = logger;
         }
 
@@ -23,24 +23,15 @@ namespace IT.WebServices.Content.CMS.Services.Helpers
         {
             try
             {
-                var client = new StatsViewInterface.StatsViewInterfaceClient(nameHelper.StatsServiceChannel);
-                var res = await client.LogViewContentAsync(new LogViewContentRequest()
+                var res = await viewService.LogViewContentInternal(new LogViewContentRequest()
                 {
                     ContentID = contentId.ToString(),
-                }, GetMetadata(user));
+                }, user);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error trying to RecordView");
             }
-        }
-
-        private Metadata GetMetadata(ONUser user)
-        {
-            var data = new Metadata();
-            data.Add("Authorization", "Bearer " + user.JwtToken);
-
-            return data;
         }
     }
 }

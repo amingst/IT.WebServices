@@ -85,7 +85,6 @@ namespace IT.WebServices.Services.Combined
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             services.AddJwtAuthentication();
-            services.AddSettingsHelpers();
 
             services.AddAuthenticationClasses();
             services.AddCMSClasses();

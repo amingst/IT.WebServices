@@ -1,4 +1,5 @@
-﻿using IT.WebServices.Content.Stats.Services;
+﻿using IT.WebServices.Content.Stats;
+using IT.WebServices.Content.Stats.Services;
 using IT.WebServices.Content.Stats.Services.Data;
 using IT.WebServices.Content.Stats.Services.Subscriptions;
 using Microsoft.AspNetCore.Builder;
@@ -20,6 +21,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IStatsContentPrivateDataProvider, FileSystemStatsContentPrivateDataProvider>();
             services.AddSingleton<IStatsUserPublicDataProvider, FileSystemStatsUserPublicDataProvider>();
             services.AddSingleton<IStatsUserPrivateDataProvider, FileSystemStatsUserPrivateDataProvider>();
+
+            services.AddScoped<IViewService, ViewService>();
 
             services.AddSingleton<SubscriptionList>();
             services.AddSingleton<ContentSubscription>();

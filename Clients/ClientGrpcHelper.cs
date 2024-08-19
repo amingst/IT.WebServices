@@ -7,11 +7,11 @@ using IT.WebServices.Fragments.Authentication;
 using System;
 using System.Threading.Tasks;
 
-namespace IT.WebServices.Settings
+namespace IT.WebServices.Clients
 {
-    public class ServiceNameHelper
+    public class ClientGrpcHelper
     {
-        private readonly ILogger<ServiceNameHelper> logger;
+        private readonly ILogger<ClientGrpcHelper> logger;
 
         public readonly GrpcChannel ContentServiceChannel;
         public readonly Channel ChatServiceChannel;
@@ -23,10 +23,9 @@ namespace IT.WebServices.Settings
         public readonly Channel UserServiceChannel;
 
         private readonly Task<string> ServiceTokenTask;
-        private readonly Lazy<string> serviceToken;
-        public string ServiceToken => serviceToken.Value;
+        public readonly Lazy<string> ServiceToken;
 
-        public ServiceNameHelper(IConfiguration configuration, ILogger<ServiceNameHelper> logger)
+        public ClientGrpcHelper(IConfiguration configuration, ILogger<ClientGrpcHelper> logger)
         {
             this.logger = logger;
 
@@ -46,7 +45,7 @@ namespace IT.WebServices.Settings
             StatsServiceChannel = new Channel("localhost", 7001, ChannelCredentials.Insecure);
 
             ServiceTokenTask = GetServiceToken();
-            serviceToken = new Lazy<string>(() => ServiceTokenTask.Result);
+            ServiceToken = new Lazy<string>(() => ServiceTokenTask.Result);
         }
 
         private async Task<string> GetServiceToken()

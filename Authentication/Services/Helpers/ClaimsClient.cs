@@ -16,16 +16,13 @@ namespace IT.WebServices.Authentication.Services.Helpers
         public const string CHANNEL_NAME_PAYMENT = "payment";
 
         private readonly ILogger logger;
-        private readonly ServiceNameHelper nameHelper;
         public readonly ONUser User;
 
-        public ClaimsClient(ServiceNameHelper nameHelper, ONUserHelper userHelper, ILogger<ClaimsClient> logger)
+        public ClaimsClient(ONUserHelper userHelper, ILogger<ClaimsClient> logger)
         {
             this.logger = logger;
 
             User = userHelper.MyUser;
-
-            this.nameHelper = nameHelper;
         }
 
         public async Task<IEnumerable<ClaimRecord>> GetOtherClaims(Guid userId)
@@ -91,10 +88,10 @@ namespace IT.WebServices.Authentication.Services.Helpers
                 switch(name)
                 {
                     case CHANNEL_NAME_CHAT:
-                        channels.Add(nameHelper.ChatServiceChannel);
+                        //channels.Add(settingsService.ChatServiceChannel);
                         break;
                     case CHANNEL_NAME_PAYMENT:
-                        channels.Add(nameHelper.PaymentServiceChannel);
+                        //channels.Add(settingsService.PaymentServiceChannel);
                         break;
                 }
             }

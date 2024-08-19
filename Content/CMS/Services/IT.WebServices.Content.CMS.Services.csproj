@@ -9,9 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Authentication\Shared\IT.WebServices.Authentication.Shared.csproj" />
     <ProjectReference Include="..\..\..\Base\IT.WebServices.Base.csproj" />
-    <ProjectReference Include="..\..\..\Settings\Shared\IT.WebServices.Settings.Shared.csproj" />
   </ItemGroup>
 
 </Project>

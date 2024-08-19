@@ -18,7 +18,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddCommentClasses(this IServiceCollection services)
         {
             services.AddSingleton<ICommentDataProvider, FileSystemCommentDataProvider>();
-            services.AddSingleton<UserDataHelper>();
+            services.AddScoped<UserDataHelper>();
 
             return services;
         }

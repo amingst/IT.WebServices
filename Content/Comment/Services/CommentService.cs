@@ -27,19 +27,19 @@ namespace IT.WebServices.Content.Comment.Services
         private readonly ILogger logger;
         private readonly ICommentDataProvider dataProvider;
         private readonly UserDataHelper userDataHelper;
-        private readonly SettingsClient settings;
+        private readonly ISettingsService settingsService;
         private readonly CommentRestrictionMinimum commentRestrictionMinimum;
 
         private const int MAX_COMMENT_LENGTH = 500;
 
-        public CommentService(ILogger<CommentService> logger, ICommentDataProvider dataProvider, UserDataHelper userDataHelper, SettingsClient settings)
+        public CommentService(ILogger<CommentService> logger, ICommentDataProvider dataProvider, UserDataHelper userDataHelper, ISettingsService settingsService)
         {
             this.logger = logger;
             this.dataProvider = dataProvider;
             this.userDataHelper = userDataHelper;
-            this.settings = settings;
+            this.settingsService = settingsService;
 
-            commentRestrictionMinimum = settings.PublicData.Comments.DefaultRestriction;
+            commentRestrictionMinimum = settingsService.GetAdminDataInternal().Result.Public.Comments.DefaultRestriction;
         }
 
         [Authorize(Roles = ONUser.ROLE_CAN_MODERATE_COMMENT)]
@@ -276,7 +276,7 @@ namespace IT.WebServices.Content.Comment.Services
             {
                 if (string.IsNullOrEmpty(rec.Public.ParentCommentID))
                 {
-                    var converted = ToCommentResponseRecord(rec, user);
+                    var converted = await ToCommentResponseRecord(rec, user);
                     targetList.Add(converted);
                     continue;
                 }
@@ -317,12 +317,12 @@ namespace IT.WebServices.Content.Comment.Services
                 if (rec.Public.DeletedOnUTC != null)
                     continue;
 
-                var converted = ToCommentResponseRecord(rec, user);
+                var converted = await ToCommentResponseRecord(rec, user);
                 targetList.Add(converted);
             }
 
             var res = FilterResults(targetList, request.Order, request.PageSize, request.PageOffset, user);
-            res.Parent = ToCommentResponseRecord(parentRecord, user);
+            res.Parent = await ToCommentResponseRecord(parentRecord, user);
             res.Parent.NumReplies = (uint)res.Records.Count;
 
             return res;
@@ -451,8 +451,10 @@ namespace IT.WebServices.Content.Comment.Services
             return false;
         }
 
-        private CommentResponseRecord ToCommentResponseRecord(CommentRecord r, ONUser user)
+        private async Task<CommentResponseRecord> ToCommentResponseRecord(CommentRecord r, ONUser user)
         {
+            var userRecord = await userDataHelper.GetRecord(r.Public.UserID.ToGuid());
+
             var record = new CommentResponseRecord
             {
                 ContentID = r.Public.ContentID,
@@ -463,8 +465,8 @@ namespace IT.WebServices.Content.Comment.Services
                 PinnedOnUTC = r.Public.PinnedOnUTC,
                 DeletedOnUTC = r.Public.DeletedOnUTC,
                 UserID = r.Public.UserID,
-                UserName = userDataHelper.GetRecord(r.Public.UserID)?.UserName,
-                UserDisplayName = userDataHelper.GetRecord(r.Public.UserID)?.DisplayName,
+                UserName = userRecord?.UserName,
+                UserDisplayName = userRecord?.DisplayName,
                 Likes = r.Public.Data.Likes,
                 LikedByUser = r.Private.Data.LikedByUserIDs.Contains(user.Id.ToString()),
                 NumReplies = 0,
@@ -486,9 +488,12 @@ namespace IT.WebServices.Content.Comment.Services
             return record;
         }
 
-        private List<CommentResponseRecord> ToCommentResponseRecord(IOrderedEnumerable<CommentRecord> recordsIn, ONUser user)
+        private async Task<List<CommentResponseRecord>> ToCommentResponseRecord(IOrderedEnumerable<CommentRecord> recordsIn, ONUser user)
         {
-            var records = recordsIn.Select(r => ToCommentResponseRecord(r, user)).ToList();
+            List<CommentResponseRecord> records = new();
+
+            foreach (var record in recordsIn)
+                records.Add(await ToCommentResponseRecord(record, user));
 
             return records;
         }

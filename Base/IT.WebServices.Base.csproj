@@ -5,4 +5,9 @@
     <RootNamespace>IT.WebServices</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Authentication\Shared\IT.WebServices.Authentication.Shared.csproj" />
+    <ProjectReference Include="..\Fragments\IT.WebServices.Fragments.csproj" />
+  </ItemGroup>
+
 </Project>

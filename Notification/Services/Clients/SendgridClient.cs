@@ -9,24 +9,26 @@ namespace IT.WebServices.Notification.Services.Clients
 {
     public class SendgridClient
     {
-        private readonly SettingsClient settingsClient;
+        private readonly ISettingsService settingsService;
 
-        public SendgridClient(SettingsClient settingsClient)
+        public SendgridClient(ISettingsService settingsService)
         {
-            this.settingsClient = settingsClient;
+            this.settingsService = settingsService;
         }
 
         public async Task<string> SendEmail(SendEmailRequest request)
         {
-            if (settingsClient.OwnerData?.Notification?.Sendgrid == null)
+            var settings = await settingsService.GetOwnerDataInternal();
+
+            if (settings.Owner?.Notification?.Sendgrid == null)
                 return "Email Service Disabled";
 
-            if (!settingsClient.OwnerData.Notification.Sendgrid.Enabled)
+            if (!settings.Owner.Notification.Sendgrid.Enabled)
                 return "Email Service Disabled";
 
-            var apiKey = settingsClient.OwnerData.Notification.Sendgrid.ApiKeySecret;
+            var apiKey = settings.Owner.Notification.Sendgrid.ApiKeySecret;
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress(settingsClient.OwnerData.Notification.Sendgrid.SendFromAddress);
+            var from = new EmailAddress(settings.Owner.Notification.Sendgrid.SendFromAddress);
             var subject = request.Subject;
             var to = new EmailAddress(request.SendToAddress);
             var msg = MailHelper.CreateSingleEmail(from, to, subject, request.BodyPlain, request.BodyHtml);

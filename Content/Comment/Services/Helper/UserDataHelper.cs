@@ -1,48 +1,33 @@
-﻿using IT.WebServices.Fragments.Authentication;
+﻿using IT.WebServices.Authentication;
+using IT.WebServices.Fragments.Authentication;
+using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Settings;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace IT.WebServices.Content.Comment.Services.Helper
 {
     public class UserDataHelper
     {
-        private readonly ServiceNameHelper nameHelper;
-        private Dictionary<string, UserIdRecord> lookup = new();
-        private System.Timers.Timer timer;
+        private readonly IUserService userService;
 
-        public UserDataHelper(ServiceNameHelper nameHelper)
+        public UserDataHelper(IUserService userService)
         {
-            this.nameHelper = nameHelper;
-            timer = new System.Timers.Timer()
+            this.userService = userService;
+        }
+
+        public async Task<UserIdRecord> GetRecord(Guid userId)
+        {
+            var res = await userService.GetOtherPublicUserInternal(userId);
+
+            return new()
             {
-                Interval = 1000 * 60 * 60,
-                AutoReset = true,
-                Enabled = true,
+                UserID = userId.ToString(),
+                DisplayName = res?.Record?.Data?.DisplayName ?? "Unknown",
+                UserName = res?.Record?.Data?.UserName ?? "Unknown",
             };
-
-            Load();
-
-            timer.Elapsed += Timer_Elapsed;
-            timer.Start();
-        }
-
-        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            Load();
-        }
-
-        private void Load()
-        {
-            var client = new UserInterface.UserInterfaceClient(nameHelper.UserServiceChannel);
-            var reply = client.GetUserIdList(new());
-            lookup = reply.Records.ToDictionary(r => r.UserID.ToLower(), r => r);
-        }
-
-        public UserIdRecord GetRecord(string userId)
-        {
-            lookup.TryGetValue(userId.ToLower(), out var record);
-            return record ?? new() { UserID = userId, DisplayName = "Unknown", UserName = "Unknown" };
         }
     }
 }

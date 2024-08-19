@@ -23,7 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<FileSystemAssetDataProvider>();
             services.AddSingleton<FileSystemContentDataProvider>();
             services.AddSingleton<FileSystemPageDataProvider>();
-            services.AddSingleton<StatsClient>();
+            services.AddScoped<StatsClient>();
 
             return services;
         }

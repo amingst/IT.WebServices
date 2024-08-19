@@ -19,13 +19,13 @@ namespace IT.WebServices.Content.CMS.Services
     {
         private readonly ILogger logger;
         private readonly IPageDataProvider dataProvider;
-        //private readonly StatsClient statsClient;
+        private readonly StatsClient statsClient;
 
-        public PageService(ILogger<PageService> logger, IPageDataProvider dataProvider/*, StatsClient statsClient*/)
+        public PageService(ILogger<PageService> logger, IPageDataProvider dataProvider, StatsClient statsClient)
         {
             this.logger = logger;
             this.dataProvider = dataProvider;
-            //this.statsClient = statsClient;
+            this.statsClient = statsClient;
         }
 
         [Authorize(Roles = ONUser.ROLE_CAN_CREATE_CONTENT)]
@@ -236,7 +236,7 @@ namespace IT.WebServices.Content.CMS.Services
                 if (!CanShowPage(rec, user))
                     ClearPublicData(rec.Public.Data);
 
-                //await statsClient.RecordView(pageId, user);
+                await statsClient.RecordView(pageId, user);
 
                 return new() { Record = rec.Public };
             }
