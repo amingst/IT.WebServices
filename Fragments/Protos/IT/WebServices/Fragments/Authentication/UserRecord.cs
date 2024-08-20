@@ -32,12 +32,12 @@ namespace IT.WebServices.Fragments.Authentication
                 UserID = Public.UserID,
                 UserName = Public.Data.UserName,
                 DisplayName = Public.Data.DisplayName,
+                Email = Private.Data.Email,
                 CreatedOnUTC = Public.CreatedOnUTC,
                 ModifiedOnUTC = Public.ModifiedOnUTC,
                 DisabledOnUTC = Public.DisabledOnUTC,
             };
 
-            record.Emails.AddRange(record.Emails);
             record.Roles.AddRange(record.Roles);
 
             return record;

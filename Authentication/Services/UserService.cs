@@ -301,6 +301,7 @@ namespace IT.WebServices.Authentication.Services
                         ModifiedBy = (userToken?.Id ?? newGuid).ToString(),
                         Data = new()
                         {
+                            Email = request.Email
                         },
                     },
                 },
@@ -308,7 +309,6 @@ namespace IT.WebServices.Authentication.Services
                 {
                 }
             };
-            user.Normal.Private.Data.Emails.AddRange(request.Emails);
 
             byte[] salt = RandomNumberGenerator.GetBytes(16);
             user.Server.PasswordSalt = ByteString.CopyFrom(salt);
@@ -326,7 +326,7 @@ namespace IT.WebServices.Authentication.Services
                     Error = CreateUserResponse.Types.CreateUserResponseErrorType.UserNameTaken
                 };
 
-            if (await dataProvider.EmailsExist(user.Normal.Private.Data.Emails.ToArray()))
+            if (await dataProvider.EmailExists(user.Normal.Private.Data.Email))
                 return new CreateUserResponse
                 {
                     Error = CreateUserResponse.Types.CreateUserResponseErrorType.EmailTaken
@@ -835,13 +835,12 @@ namespace IT.WebServices.Authentication.Services
                 }
 
 
-                if (!record.Normal.Private.Data.Emails.SequenceEqual(request.Emails))
+                if (record.Normal.Private.Data.Email != request.Email)
                 {
-                    if (!await dataProvider.ChangeEmailIndex(request.Emails.ToArray(), userId))
+                    if (!await dataProvider.ChangeEmailIndex(request.Email, userId))
                         return new ModifyOtherUserResponse() { Error = "Email address taken" };
 
-                    record.Normal.Private.Data.Emails.Clear();
-                    record.Normal.Private.Data.Emails.AddRange(request.Emails);
+                    record.Normal.Private.Data.Email = request.Email;
                 }
 
                 record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
@@ -897,25 +896,31 @@ namespace IT.WebServices.Authentication.Services
         public override async Task<ModifyOwnUserResponse> ModifyOwnUser(ModifyOwnUserRequest request, ServerCallContext context)
         {
             if (offlineHelper.IsOffline)
-                return new ModifyOwnUserResponse() { Error = "Service Offline" };
+                return new() { Error = "Service Offline" };
 
             try
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new ModifyOwnUserResponse() { Error = "No user token specified" };
+                    return new() { Error = "No user token specified" };
 
                 var record = await dataProvider.GetById(userToken.Id);
                 if (record == null)
-                    return new ModifyOwnUserResponse() { Error = "User not found" };
+                    return new() { Error = "User not found" };
 
                 if (!IsDisplayNameValid(request.DisplayName))
-                    return new ModifyOwnUserResponse() { Error = "Display Name not valid" };
+                    return new() { Error = "Display Name not valid" };
 
                 record.Normal.Public.Data.DisplayName = request.DisplayName;
                 record.Normal.Public.Data.Bio = request.Bio;
-                record.Normal.Private.Data.Emails.Clear();
-                record.Normal.Private.Data.Emails.AddRange(request.Emails);
+
+                if (record.Normal.Private.Data.Email != request.Email)
+                {
+                    if (!await dataProvider.ChangeEmailIndex(request.Email, record.UserIDGuid))
+                        return new() { Error = "Email address taken" };
+
+                    record.Normal.Private.Data.Email = request.Email;
+                }
 
                 record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
@@ -923,42 +928,42 @@ namespace IT.WebServices.Authentication.Services
                 await dataProvider.Save(record);
                 var otherClaims = await claimsClient.GetOtherClaims(userToken.Id);
 
-                return new ModifyOwnUserResponse()
+                return new()
                 {
                     BearerToken = GenerateToken(record.Normal, otherClaims)
                 };
             }
             catch
             {
-                return new ModifyOwnUserResponse() { Error = "Unknown error" };
+                return new() { Error = "Unknown error" };
             }
         }
 
         public override async Task<RenewTokenResponse> RenewToken(RenewTokenRequest request, ServerCallContext context)
         {
             if (offlineHelper.IsOffline)
-                return new RenewTokenResponse();
+                return new();
 
             try
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new RenewTokenResponse();
+                    return new();
 
                 var record = await dataProvider.GetById(userToken.Id);
                 if (record == null)
-                    return new RenewTokenResponse();
+                    return new();
 
                 var otherClaims = await claimsClient.GetOtherClaims(userToken.Id);
 
-                return new RenewTokenResponse()
+                return new()
                 {
                     BearerToken = GenerateToken(record.Normal, otherClaims)
                 };
             }
             catch
             {
-                return new RenewTokenResponse();
+                return new();
             }
         }
 

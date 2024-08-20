@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Authentication\Shared\IT.WebServices.Authentication.Shared.csproj" />
     <ProjectReference Include="..\Fragments\IT.WebServices.Fragments.csproj" />
   </ItemGroup>

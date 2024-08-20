@@ -43,7 +43,7 @@ message UserPrivateRecord {
 }
 
 message UserPrivateData {
-  repeated string Emails = 1; // Private email(s) used for password resets
+  string Email = 1; // Private email used for password resets
   string OldUserID = 51;
 }
 

@@ -2,6 +2,7 @@
 using IT.WebServices.Authentication.Services;
 using IT.WebServices.Authentication.Services.Data;
 using IT.WebServices.Authentication.Services.Helpers;
+using IT.WebServices.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using System.Diagnostics.CodeAnalysis;
@@ -13,11 +14,12 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddAuthenticationClasses(this IServiceCollection services)
         {
-            services.AddSingleton<IUserDataProvider, FileSystemUserDataProvider>();
+            services.AddSingleton<IUserDataProvider, SqlUserDataProvider>();
 
             services.AddScoped<IUserService, UserService>();
 
             services.AddScoped<ClaimsClient>();
+            services.AddSingleton<MySQLHelper>();
             services.AddSingleton<OfflineHelper>();
 
             return services;

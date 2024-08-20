@@ -8,13 +8,12 @@ namespace IT.WebServices.Authentication.Services.Data
 {
     public interface IUserDataProvider
     {
-        Task<bool> ChangeEmailIndex(string[] emails, Guid id);
+        Task<bool> ChangeEmailIndex(string email, Guid id);
         Task<bool> ChangeLoginIndex(string oldLoginName, string newLoginName, Guid id);
         Task<bool> Create(UserRecord user);
         Task<bool> Delete(Guid userId);
         Task<bool> Exists(Guid userId);
         Task<bool> EmailExists(string email);
-        Task<bool> EmailsExist(string[] emails);
         Task<bool> LoginExists(string loginName);
         IAsyncEnumerable<UserRecord> GetAll();
         Guid[] GetAllIds();

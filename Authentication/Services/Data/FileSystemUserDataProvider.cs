@@ -38,27 +38,17 @@ namespace IT.WebServices.Authentication.Services.Data
             {
                 loginIndex.TryAdd(r.Normal.Public.Data.UserName.ToLower(), r.UserIDGuid);
 
-                foreach (var e in r.Normal.Private.Data.Emails)
-                    emailIndex.TryAdd(e.ToLower(), r.UserIDGuid);
+                emailIndex.TryAdd(r.Normal.Private.Data.Email.ToLower(), r.UserIDGuid);
             }
         }
 
-        public Task<bool> ChangeEmailIndex(string[] emails, Guid id)
+        public Task<bool> ChangeEmailIndex(string email, Guid id)
         {
-            foreach (var e in emails)
-            {
-                if (!emailIndex.TryGetValue(e.ToLower(), out var eId)) continue;
-                if (eId == id) continue;
-
-                return Task.FromResult(false);
-            }
-
             var toDel = emailIndex.Where(kv => kv.Value == id).Select(kv => kv.Key).ToArray();
-            foreach (var email in toDel)
-                emailIndex.TryRemove(email, out var dummy);
+            foreach (var e in toDel)
+                emailIndex.TryRemove(e, out var dummy);
 
-            foreach (var email in emails)
-                emailIndex.TryAdd(email.ToLower(), id);
+            emailIndex.TryAdd(email.ToLower(), id);
 
             return Task.FromResult(true);
         }
@@ -103,8 +93,7 @@ namespace IT.WebServices.Authentication.Services.Data
 
             loginIndex.TryRemove(rec.Normal.Public.Data.UserName.ToLower(), out var dummy);
 
-            foreach (var e in rec.Normal.Private.Data.Emails)
-                emailIndex.TryRemove(e.ToLower(), out var dummy2);
+            emailIndex.TryRemove(rec.Normal.Private.Data.Email.ToLower(), out var dummy2);
 
             return true;
         }
@@ -118,15 +107,6 @@ namespace IT.WebServices.Authentication.Services.Data
         public Task<bool> EmailExists(string email)
         {
             return Task.FromResult(emailIndex.TryGetValue(email.ToLower(), out var dummy));
-        }
-
-        public Task<bool> EmailsExist(string[] emails)
-        {
-            foreach (var email in emails)
-                if (EmailExists(email).Result)
-                    return Task.FromResult(true);
-
-            return Task.FromResult(false);
         }
 
         public Task<bool> LoginExists(string loginName)
@@ -180,8 +160,7 @@ namespace IT.WebServices.Authentication.Services.Data
 
             loginIndex.AddOrUpdate(user.Normal.Public.Data.UserName.ToLower(), id, (k, v) => id);
 
-            foreach (var e in user.Normal.Private.Data.Emails)
-                emailIndex.AddOrUpdate(e.ToLower(), id, (k, v) => id);
+            emailIndex.AddOrUpdate(user.Normal.Private.Data.Email, id, (k, v) => id);
         }
 
         private IEnumerable<FileInfo> GetAllDataFiles()
