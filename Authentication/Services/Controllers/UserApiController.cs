@@ -15,12 +15,12 @@ namespace ON.Content.SimpleCMS.Service.Controllers
     public class UserApiController : Controller
     {
         private readonly ILogger logger;
-        private readonly IUserDataProvider dataProvider;
+        private readonly IProfilePicDataProvider picProvider;
 
-        public UserApiController(ILogger<UserApiController> logger, IUserDataProvider dataProvider)
+        public UserApiController(ILogger<UserApiController> logger, IProfilePicDataProvider picProvider)
         {
             this.logger = logger;
-            this.dataProvider = dataProvider;
+            this.picProvider = picProvider;
         }
 
         [HttpGet("{userID}/profileimage")]
@@ -29,14 +29,11 @@ namespace ON.Content.SimpleCMS.Service.Controllers
             if (!Guid.TryParse(userID, out Guid recordId))
                 return Redirect("/api/auth/noprofile.png");
 
-            var rec = await dataProvider.GetById(recordId);
-            if (rec == null)
+            var bytes = await picProvider.GetById(recordId);
+            if (bytes == null)
                 return Redirect("/api/auth/noprofile.png");
 
-            if (rec.Normal.Public.Data.ProfileImagePNG.IsEmpty)
-                return Redirect("/api/auth/noprofile.png");
-
-            return File(rec.Normal.Public.Data.ProfileImagePNG.ToByteArray(), "image/png");
+            return File(bytes, "image/png");
         }
 
         [HttpGet("/api/auth/profileimage")]
@@ -46,14 +43,11 @@ namespace ON.Content.SimpleCMS.Service.Controllers
             if (contentId == Guid.Empty)
                 return Redirect("/api/auth/noprofile.png");
 
-            var rec = await dataProvider.GetById(contentId);
-            if (rec == null)
+            var bytes = await picProvider.GetById(contentId);
+            if (bytes == null)
                 return Redirect("/api/auth/noprofile.png");
 
-            if (rec.Normal.Public.Data.ProfileImagePNG.IsEmpty)
-                return Redirect("/api/auth/noprofile.png");
-
-            return File(rec.Normal.Public.Data.ProfileImagePNG.ToByteArray(), "image/png");
+            return File(bytes, "image/png");
         }
     }
 }

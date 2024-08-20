@@ -14,6 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddAuthenticationClasses(this IServiceCollection services)
         {
+            services.AddSingleton<IProfilePicDataProvider, FileSystemProfilePicDataProvider>();
             services.AddSingleton<IUserDataProvider, SqlUserDataProvider>();
 
             services.AddScoped<IUserService, UserService>();

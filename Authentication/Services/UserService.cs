@@ -33,16 +33,18 @@ namespace IT.WebServices.Authentication.Services
         private readonly OfflineHelper offlineHelper;
         private readonly ILogger<UserService> logger;
         private readonly SigningCredentials creds;
+        private readonly IProfilePicDataProvider picProvider;
         private readonly IUserDataProvider dataProvider;
         private readonly ClaimsClient claimsClient;
         private readonly ISettingsService settingsService;
         private static readonly HashAlgorithm hasher = SHA256.Create();
         private static readonly RandomNumberGenerator rng = RandomNumberGenerator.Create();
 
-        public UserService(OfflineHelper offlineHelper, ILogger<UserService> logger, IUserDataProvider dataProvider, ClaimsClient claimsClient, ISettingsService settingsService)
+        public UserService(OfflineHelper offlineHelper, ILogger<UserService> logger, IProfilePicDataProvider picProvider, IUserDataProvider dataProvider, ClaimsClient claimsClient, ISettingsService settingsService)
         {
             this.offlineHelper = offlineHelper;
             this.logger = logger;
+            this.picProvider = picProvider;
             this.dataProvider = dataProvider;
             this.claimsClient = claimsClient;
             this.settingsService = settingsService;
@@ -164,7 +166,7 @@ namespace IT.WebServices.Authentication.Services
 
                 newImage.Encode(wstream, SKEncodedImageFormat.Png, 50);
 
-                record.Normal.Public.Data.ProfileImagePNG = ByteString.CopyFrom(memStream.ToArray());
+                await picProvider.Save(request.UserID.ToGuid(), memStream.ToArray());
 
                 record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
@@ -249,7 +251,7 @@ namespace IT.WebServices.Authentication.Services
 
                 newImage.Encode(wstream, SKEncodedImageFormat.Png, 50);
 
-                record.Normal.Public.Data.ProfileImagePNG = ByteString.CopyFrom(memStream.ToArray());
+                await picProvider.Save(userToken.Id, memStream.ToArray());
 
                 record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
@@ -674,7 +676,10 @@ namespace IT.WebServices.Authentication.Services
             if (!await AmIReallyAdmin(context))
                 return new();
 
-            var record = await dataProvider.GetById(request.UserID.ToGuid());
+            var id = request.UserID.ToGuid();
+
+            var record = await dataProvider.GetById(id);
+            await AddInProfilePic(record);
 
             return new() { Record = record?.Normal };
         }
@@ -691,6 +696,7 @@ namespace IT.WebServices.Authentication.Services
         public async Task<GetOtherPublicUserResponse> GetOtherPublicUserInternal(Guid userId)
         {
             var record = await dataProvider.GetById(userId);
+            await AddInProfilePic(record);
 
             return new() { Record = record?.Normal.Public };
         }
@@ -702,6 +708,7 @@ namespace IT.WebServices.Authentication.Services
                 return new();
 
             var record = await dataProvider.GetByLogin(request.UserName);
+            await AddInProfilePic(record);
 
             return new() { Record = record?.Normal.Public };
         }
@@ -770,6 +777,7 @@ namespace IT.WebServices.Authentication.Services
                 return new();
 
             var record = await dataProvider.GetById(userToken.Id);
+            await AddInProfilePic(record);
 
             return new() { Record = record?.Normal };
         }
@@ -1121,6 +1129,15 @@ namespace IT.WebServices.Authentication.Services
                 logger.LogError(ex, "Error in VerifyOwnTotp");
                 return new();
             }
+        }
+
+        private async Task AddInProfilePic(UserRecord record)
+        {
+            if (record == null)
+                return;
+
+            var pic = await picProvider.GetById(record.UserIDGuid);
+            record.Normal.Public.Data.ProfileImagePNG = ByteString.CopyFrom(pic);
         }
 
         private async Task<bool> AmIReallyAdmin(ServerCallContext context)
