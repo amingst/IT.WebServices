@@ -1,8 +1,6 @@
-version: '3.1'
-
+version: '3'
 services:
-
-  db:
+  mysql:
     image: mariadb:11.5.2
     restart: always
     ports:
@@ -13,4 +11,4 @@ services:
       options:
         max-size: "10m"
     volumes:
-      - ./tmpdata/mysql:/var/lib/mysql
+      - ${DATA_LOC}/mysql:/var/lib/mysql
