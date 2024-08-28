@@ -1,0 +1,14 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.ECommerce.Shopify;
+
+import "Protos/IT/WebServices/Fragments/ECommerce/Shopify/Product.proto";
+
+service ShopifyInterface {
+	rpc CreateProduct(CreateProductRequest) returns (IT.WebServices.Fragments.ECommerce.Shopify.Product) {}
+}
+
+message CreateProductRequest {
+	IT.WebServices.Fragments.ECommerce.Shopify.Product Product = 1;
+	bool Published = 2;
+}

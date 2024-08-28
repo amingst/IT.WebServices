@@ -43,6 +43,8 @@
     <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsSaveInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsShareInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsViewInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\ECommerce\Shopify\Product.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\ECommerce\Shopify\Shopify.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Notification\NotificationInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Notification\NotificationUserRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Notification\UserNotificationInterface.proto" />
@@ -77,6 +79,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Protobuf Include="Protos\IT\WebServices\Fragments\ECommerce\Shopify\Shopify.proto" GrpcServices="None" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" GrpcServices="None" />
@@ -99,6 +105,8 @@
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\AssetRecord.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Music\MusicInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Music\MusicRecord.proto" GrpcServices="None" />
+	  <Protobuf Include="Protos\IT\WebServices\Fragments\ECommerce\Shopify\Product.proto" GrpcServices="None" />
+	  <Protobuf Include="Protos\IT\WebServices\Fragments\ECommerce\Shopify\Shopify.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Page\PageRecord.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Page\PageInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Stats\StatsSaveInterface.proto" />

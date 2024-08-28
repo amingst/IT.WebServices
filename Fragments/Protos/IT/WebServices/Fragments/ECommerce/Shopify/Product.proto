@@ -1,0 +1,15 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.ECommerce.Shopify;
+
+message ProductImage {
+	string Attachment = 1;
+}
+
+message Product {
+	string Title = 1;
+	string Vendor = 2;
+	string BodyHtml = 3;
+	string ProductType = 4;
+	repeated ProductImage Images = 5;
+}
