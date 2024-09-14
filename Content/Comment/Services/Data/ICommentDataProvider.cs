@@ -16,6 +16,8 @@ namespace IT.WebServices.Content.Comment.Services.Data
         IAsyncEnumerable<CommentRecord> GetAll();
         IAsyncEnumerable<CommentRecord> GetByContentId(Guid contentId);
         IAsyncEnumerable<CommentRecord> GetByParentId(Guid parentId);
+        IAsyncEnumerable<CommentResponseRecord> GetCommentResponseRecordByContentId(Guid contentId, Guid userId);
+        IAsyncEnumerable<CommentResponseRecord> GetCommentResponseRecordByParentId(Guid parentId, Guid userId);
         Task Insert(CommentRecord record);
         Task Update(CommentRecord record);
     }

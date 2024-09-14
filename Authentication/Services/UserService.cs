@@ -1137,7 +1137,8 @@ namespace IT.WebServices.Authentication.Services
                 return;
 
             var pic = await picProvider.GetById(record.UserIDGuid);
-            record.Normal.Public.Data.ProfileImagePNG = ByteString.CopyFrom(pic);
+            if (pic != null)
+                record.Normal.Public.Data.ProfileImagePNG = ByteString.CopyFrom(pic);
         }
 
         private async Task<bool> AmIReallyAdmin(ServerCallContext context)

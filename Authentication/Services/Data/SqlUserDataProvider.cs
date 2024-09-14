@@ -1,5 +1,6 @@
 ﻿using IT.WebServices.Authentication.Services.Helpers;
 using IT.WebServices.Fragments.Authentication;
+using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Helpers;
 using MySql.Data.MySqlClient;
 using System;
@@ -153,9 +154,25 @@ namespace IT.WebServices.Authentication.Services.Data
             }
         }
 
-        public Guid[] GetAllIds()
+        public async Task<Guid[]> GetAllIds()
         {
-            throw new NotImplementedException();
+            List<Guid> ids = new List<Guid>();
+
+            const string query = @"
+                    SELECT
+                        UserID
+                    FROM
+                        Auth_User
+                ";
+
+            using var rdr = await sql.ReturnReader(query);
+
+            while (await rdr.ReadAsync())
+            {
+                ids.Add(rdr.GetString(0).ToGuid());
+            }
+
+            return ids.ToArray();
         }
 
         public async Task<UserRecord> GetByEmail(string email)

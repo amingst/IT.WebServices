@@ -125,6 +125,18 @@ namespace IT.WebServices.Content.Comment.Services.Data
             }
         }
 
+        public async IAsyncEnumerable<CommentResponseRecord> GetCommentResponseRecordByContentId(Guid contentId, Guid userId)
+        {
+            await foreach(var c in GetByContentId(contentId))
+                yield return c.ToCommentResponseRecord(userId);
+        }
+
+        public async IAsyncEnumerable<CommentResponseRecord> GetCommentResponseRecordByParentId(Guid parentId, Guid userId)
+        {
+            await foreach (var c in GetByParentId(parentId))
+                yield return c.ToCommentResponseRecord(userId);
+        }
+
         public async Task Insert(CommentRecord record)
         {
             var fdComment = GetCommentFilePath(record);

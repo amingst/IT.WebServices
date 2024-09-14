@@ -120,9 +120,9 @@ namespace IT.WebServices.Authentication.Services.Data
                 yield return UserRecord.Parser.ParseFrom(await File.ReadAllBytesAsync(fd.FullName));
         }
 
-        public Guid[] GetAllIds()
+        public Task<Guid[]> GetAllIds()
         {
-            return GetAllDataFiles().Select(f => Guid.Parse(f.Name)).ToArray();
+            return Task.FromResult(GetAllDataFiles().Select(f => Guid.Parse(f.Name)).ToArray());
         }
 
         public async Task<UserRecord> GetById(Guid userId)

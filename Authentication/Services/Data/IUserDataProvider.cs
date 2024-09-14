@@ -16,7 +16,7 @@ namespace IT.WebServices.Authentication.Services.Data
         Task<bool> EmailExists(string email);
         Task<bool> LoginExists(string loginName);
         IAsyncEnumerable<UserRecord> GetAll();
-        Guid[] GetAllIds();
+        Task<Guid[]> GetAllIds();
         Task<UserRecord> GetById(Guid userId);
         Task<UserRecord> GetByEmail(string email);
         Task<UserRecord> GetByLogin(string loginName);

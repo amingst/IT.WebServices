@@ -18,7 +18,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddCMSClasses(this IServiceCollection services)
         {
             services.AddSingleton<IAssetDataProvider, MemCachedFileSystemAssetDataProvider>();
-            services.AddSingleton<IContentDataProvider, MemCachedFileSystemContentDataProvider>();
+            services.AddSingleton<IContentDataProvider, SqlContentDataProvider>();
             services.AddSingleton<IPageDataProvider, MemCachedFileSystemPageDataProvider>();
             services.AddSingleton<FileSystemAssetDataProvider>();
             services.AddSingleton<FileSystemContentDataProvider>();
