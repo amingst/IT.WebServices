@@ -14,7 +14,7 @@ using IT.WebServices.Content.Stats.Services.Subscriptions;
 using System.Xml.Linq;
 using IT.WebServices.Helpers;
 
-namespace IT.WebServices.Content.Stats.Services.Data
+namespace IT.WebServices.Content.Stats.Services.Data.FileSystem
 {
     public class FileSystemLikeDataProvider : GenericFileSystemEmptyDataProvider, ILikeDataProvider
     {

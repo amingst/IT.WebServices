@@ -12,7 +12,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using IT.WebServices.Helpers;
 
-namespace IT.WebServices.Content.Stats.Services.Data
+namespace IT.WebServices.Content.Stats.Services.Data.FileSystem
 {
     public class FileSystemStatsContentPublicDataProvider : GenericFileSystemDataProvider<StatsContentPublicRecord>, IStatsContentPublicDataProvider
     {
@@ -79,7 +79,7 @@ namespace IT.WebServices.Content.Stats.Services.Data
         {
             var fd = GetFilePath(recordId);
             if (!fd.Exists)
-                return default(T);
+                return default;
 
             return parser.ParseFrom(await File.ReadAllBytesAsync(fd.FullName));
         }

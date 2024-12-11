@@ -12,7 +12,6 @@ namespace IT.WebServices.Content.Stats.Services.Data
         Task<bool> Delete(Guid userId, Guid contentId);
         Task<bool> Exists(Guid userId, Guid contentId);
         Task<UserProgressRecord> Get(Guid userId, Guid contentId);
-        IAsyncEnumerable<UserProgressRecord> GetAll();
         IAsyncEnumerable<UserProgressRecord> GetAllForUser(Guid userId);
         Task LogProgress(Guid userId, Guid contentId, float progress);
     }

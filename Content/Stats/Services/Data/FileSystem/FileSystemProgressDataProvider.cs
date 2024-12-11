@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using IT.WebServices.Content.Stats.Services.Subscriptions;
 using IT.WebServices.Helpers;
 
-namespace IT.WebServices.Content.Stats.Services.Data
+namespace IT.WebServices.Content.Stats.Services.Data.FileSystem
 {
     public class FileSystemProgressDataProvider : IProgressDataProvider
     {
@@ -51,13 +51,13 @@ namespace IT.WebServices.Content.Stats.Services.Data
             return Task.FromResult(fd.Exists);
         }
 
-        public async IAsyncEnumerable<UserProgressRecord> GetAll()
-        {
-            foreach (var file in dataDir.GetFiles("*", SearchOption.AllDirectories))
-            {
-                yield return parser.ParseFrom(await File.ReadAllBytesAsync(file.FullName));
-            }
-        }
+        //public async IAsyncEnumerable<UserProgressRecord> GetAll()
+        //{
+        //    foreach (var file in dataDir.GetFiles("*", SearchOption.AllDirectories))
+        //    {
+        //        yield return parser.ParseFrom(await File.ReadAllBytesAsync(file.FullName));
+        //    }
+        //}
 
         public async IAsyncEnumerable<UserProgressRecord> GetAllForUser(Guid userId)
         {

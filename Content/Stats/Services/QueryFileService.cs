@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace IT.WebServices.Content.Stats.Services
 {
     [Authorize()]
-    public class QueryService : StatsQueryInterface.StatsQueryInterfaceBase
+    public class QueryFileService : StatsQueryInterface.StatsQueryInterfaceBase
     {
         private readonly ILogger logger;
         private readonly IStatsContentPublicDataProvider cPubDb;
@@ -19,7 +19,7 @@ namespace IT.WebServices.Content.Stats.Services
         private readonly IStatsUserPublicDataProvider uPubDb;
         private readonly IStatsUserPrivateDataProvider uPrvDb;
 
-        public QueryService(ILogger<LikeService> logger, IStatsContentPublicDataProvider cPubDb, IStatsContentPrivateDataProvider cPrvDb, IStatsUserPublicDataProvider uPubDb, IStatsUserPrivateDataProvider uPrvDb)
+        public QueryFileService(ILogger<QueryFileService> logger, IStatsContentPublicDataProvider cPubDb, IStatsContentPrivateDataProvider cPrvDb, IStatsUserPublicDataProvider uPubDb, IStatsUserPrivateDataProvider uPrvDb)
         {
             this.logger = logger;
             this.cPubDb = cPubDb;

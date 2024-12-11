@@ -14,7 +14,7 @@ using IT.WebServices.Content.Stats.Services.Subscriptions;
 using System.Runtime.CompilerServices;
 using IT.WebServices.Helpers;
 
-namespace IT.WebServices.Content.Stats.Services.Data
+namespace IT.WebServices.Content.Stats.Services.Data.FileSystem
 {
     public class FileSystemShareDataProvider : GenericFileSystemTimestampDataProvider, IShareDataProvider
     {
@@ -121,7 +121,7 @@ namespace IT.WebServices.Content.Stats.Services.Data
         private FileInfo GetContentFilePath(Guid contentId, Guid userId)
         {
             var dir = GetContentDir(contentId);
-            
+
             return dir.CreateGuidFileInfo(userId);
         }
 
