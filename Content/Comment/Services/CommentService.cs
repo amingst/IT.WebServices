@@ -468,9 +468,13 @@ namespace IT.WebServices.Content.Comment.Services
                 UserName = userRecord?.UserName,
                 UserDisplayName = userRecord?.DisplayName,
                 Likes = r.Public.Data.Likes,
-                LikedByUser = r.Private.Data.LikedByUserIDs.Contains(user.Id.ToString()),
                 NumReplies = 0,
             };
+
+            if (user != null)
+                if (r.Private.Data.LikedByUserIDs.Contains(user.Id.ToString()))
+                    record.LikedByUser = true;
+
 
             if (record.DeletedOnUTC != null)
             {
