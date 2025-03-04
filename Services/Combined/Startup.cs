@@ -7,6 +7,7 @@ using IT.WebServices.Authentication;
 using IT.WebServices.Models;
 using IT.WebServices.Settings;
 using IT.WebServices.Services.Combined.Models;
+using IT.WebServices.Ecommerce.Services;
 using AuthS = IT.WebServices.Authentication.Services;
 using CmsS = IT.WebServices.Content.CMS.Services;
 using System;
@@ -91,6 +92,7 @@ namespace IT.WebServices.Services.Combined
             services.AddCommentClasses();
             services.AddSettingsClasses();
             services.AddStatsClasses();
+            services.AddEcommerceClasses();
 
             CryptoProviderFactory.DefaultCacheSignatureProviders = false;
 
@@ -124,6 +126,7 @@ namespace IT.WebServices.Services.Combined
                 endpoints.MapCommentGrpcServices();
                 endpoints.MapSettingsGrpcServices();
                 endpoints.MapStatsGrpcServices();
+                endpoints.MapEcommerceGrpcServices();
 
                 //endpoints.MapGrpcReflectionService();
 

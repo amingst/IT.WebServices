@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Ecommerce;
+
+import "google/protobuf/timestamp.proto";
+
+message AddressRecord {
+	string AddressLine1 = 1;
+	string AddressLine2 = 2;
+	string City = 3;
+	string StateOrProvince = 4;
+	string Zip = 5;
+	string Country = 6;
+}
+
+message CustomerRecord {
+	string CustomerId = 1;
+	string FirstName = 2;
+	string LastName = 3;
+	string Email = 4;
+	string PhoneNumber = 5;
+	repeated AddressRecord Addresses = 6;
+}

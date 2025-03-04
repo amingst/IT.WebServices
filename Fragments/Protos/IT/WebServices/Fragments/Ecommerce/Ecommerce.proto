@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Ecommerce;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "Protos/IT/WebServices/Fragments/Ecommerce/Shared.proto";
+
+service EcommerceInterface {
+	rpc GetCustomers (GetCustomersRequest) returns (GetCustomersResponse) {
+		option (google.api.http) = {
+		  get: "/api/ecommerce/{Service}/customers"
+		};
+	};
+}
+
+enum EcommerceServices {
+	Shopify = 0;
+}
+
+message GetCustomersRequest {
+	EcommerceServices Service = 1;
+}
+
+message GetCustomersResponse {
+	repeated CustomerRecord Customers = 1;
+}

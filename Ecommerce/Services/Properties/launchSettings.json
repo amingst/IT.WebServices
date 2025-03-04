@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "IT.WebServices.Ecommerce.Services": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

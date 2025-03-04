@@ -43,6 +43,7 @@
     <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsSaveInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsShareInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\Stats\StatsViewInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Ecommerce\Shared.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Notification\NotificationInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Notification\NotificationUserRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Notification\UserNotificationInterface.proto" />
@@ -99,6 +100,8 @@
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\AssetRecord.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Music\MusicInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Music\MusicRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Ecommerce\Shared.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Ecommerce\Ecommerce.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Page\PageRecord.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Page\PageInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Stats\StatsSaveInterface.proto" />
