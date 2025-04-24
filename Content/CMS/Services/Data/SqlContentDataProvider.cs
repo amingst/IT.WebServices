@@ -179,11 +179,11 @@ namespace IT.WebServices.Content.CMS.Services.Data
                 const string query = @"
                     INSERT INTO CMS_Content
                             (ContentID,  Type,  Title,  Description,  Author,  AuthorID,  URL,  FeaturedImageAssetID,  SubscriptionLevel,  HtmlBody,  AudioAssetID,
-                             IsLiveStream,  IsLive,  OldContentID,  CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  PublishOnUTC,  PublishedBy,
-                             AnnounceOnUTC,  AnnouncedBy,  PinnedOnUTC,  PinnedBy,  DeletedOnUTC,  DeletedBy)
+                             RumbleVideoId,  YoutubeVideoId,  IsLiveStream,  IsLive,  OldContentID,  CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  PublishOnUTC,
+                             PublishedBy,  AnnounceOnUTC,  AnnouncedBy,  PinnedOnUTC,  PinnedBy,  DeletedOnUTC,  DeletedBy)
                     VALUES (@ContentID, @Type, @Title, @Description, @Author, @AuthorID, @URL, @FeaturedImageAssetID, @SubscriptionLevel, @HtmlBody, @AudioAssetID,
-                            @IsLiveStream, @IsLive, @OldContentID, @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @PublishOnUTC, @PublishedBy,
-                            @AnnounceOnUTC, @AnnouncedBy, @PinnedOnUTC, @PinnedBy, @DeletedOnUTC, @DeletedBy)
+                            @RumbleVideoId, @YoutubeVideoId, @IsLiveStream, @IsLive, @OldContentID, @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @PublishOnUTC,
+                            @PublishedBy, @AnnounceOnUTC, @AnnouncedBy, @PinnedOnUTC, @PinnedBy, @DeletedOnUTC, @DeletedBy)
                     ON DUPLICATE KEY UPDATE
                             Type = @Type,
                             Title = @Title,
@@ -195,6 +195,8 @@ namespace IT.WebServices.Content.CMS.Services.Data
                             SubscriptionLevel = @SubscriptionLevel,
                             HtmlBody = @HtmlBody,
                             AudioAssetID = @AudioAssetID,
+                            RumbleVideoId = @RumbleVideoId,
+                            YoutubeVideoId = @YoutubeVideoId,
                             IsLiveStream = @IsLiveStream,
                             IsLive = @IsLive,
                             OldContentID = @OldContentID,
@@ -248,6 +250,8 @@ namespace IT.WebServices.Content.CMS.Services.Data
                         break;
                     case ContentPublicData.ContentDataOneofOneofCase.Video:
                         parameters.Add(new MySqlParameter("HtmlBody", content.Public.Data.Video.HtmlBody));
+                        parameters.Add(new MySqlParameter("RumbleVideoId", content.Public.Data.Video.RumbleVideoId));
+                        parameters.Add(new MySqlParameter("YoutubeVideoId", content.Public.Data.Video.YoutubeVideoId));
                         parameters.Add(new MySqlParameter("IsLiveStream", content.Public.Data.Video.IsLiveStream));
                         parameters.Add(new MySqlParameter("IsLive", content.Public.Data.Video.IsLive));
                         break;

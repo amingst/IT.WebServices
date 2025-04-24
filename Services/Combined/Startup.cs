@@ -37,7 +37,13 @@ namespace IT.WebServices.Services.Combined
                     });
             ;
 
-            //services.AddGrpc();
+            services.AddGrpc(opt =>
+            {
+                opt.EnableDetailedErrors = true;
+                opt.MaxReceiveMessageSize = int.MaxValue;
+                opt.MaxSendMessageSize = int.MaxValue;
+            });
+
             //services.AddGrpcHttpApi();
             //services.AddGrpcReflection();
 

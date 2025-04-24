@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using IT.WebServices.Authentication;
 using IT.WebServices.Content.CMS.Services.Data;
 using IT.WebServices.Fragments.Content;
-using Asset = IT.WebServices.Fragments.Content.Asset;
 using IT.WebServices.Fragments.Generic;
 using System;
 using System.Collections.Generic;
@@ -16,36 +15,36 @@ using IT.WebServices.Crypto;
 namespace IT.WebServices.Content.CMS.Services
 {
     [Authorize(Roles = ONUser.ROLE_CAN_BACKUP)]
-    public class AssetBackupService : Asset.AssetBackupInterface.AssetBackupInterfaceBase
+    public class ContentBackupService : BackupInterface.BackupInterfaceBase
     {
-        private readonly IAssetDataProvider dataProvider;
-        private readonly ILogger logger;
+        private readonly IContentDataProvider dataProvider;
+        private readonly ILogger<ContentBackupService> logger;
 
-        public AssetBackupService(IAssetDataProvider dataProvider, ILogger<AssetBackupService> logger)
+        public ContentBackupService(IContentDataProvider dataProvider, ILogger<ContentBackupService> logger)
         {
             this.dataProvider = dataProvider;
             this.logger = logger;
         }
 
-        public override async Task BackupAllData(Asset.BackupAllDataRequest request, IServerStreamWriter<Asset.BackupAllDataResponse> responseStream, ServerCallContext context)
+        public override async Task BackupAllData(BackupAllDataRequest request, IServerStreamWriter<BackupAllDataResponse> responseStream, ServerCallContext context)
         {
             try
             {
                 var encKey = EcdhHelper.DeriveKeyServer(request.ClientPublicJwk.DecodeJsonWebKey(), out string serverPubKey);
-                await responseStream.WriteAsync(new Asset.BackupAllDataResponse() { ServerPublicJwk = serverPubKey });
+                await responseStream.WriteAsync(new BackupAllDataResponse() { ServerPublicJwk = serverPubKey });
 
                 await foreach (var r in dataProvider.GetAll())
                 {
-                    var dr = new Asset.AssetBackupDataRecord()
+                    var dr = new ContentBackupDataRecord()
                     {
                         Data = r
                     };
 
                     AesHelper.Encrypt(encKey, out var iv, dr.ToByteString().ToByteArray(), out var encData);
 
-                    await responseStream.WriteAsync(new Asset.BackupAllDataResponse()
+                    await responseStream.WriteAsync(new BackupAllDataResponse()
                     {
-                        EncryptedRecord = new Asset.EncryptedAssetBackupDataRecord()
+                        EncryptedRecord = new EncryptedContentBackupDataRecord()
                         {
                             EncryptionIV = ByteString.CopyFrom(iv),
                             Data = ByteString.CopyFrom(encData)
@@ -58,13 +57,25 @@ namespace IT.WebServices.Content.CMS.Services
             }
         }
 
-        public override async Task<Asset.RestoreAllDataResponse> RestoreAllData(IAsyncStreamReader<Asset.RestoreAllDataRequest> requestStream, ServerCallContext context)
+        public override async Task ExportContent(ExportContentRequest request, IServerStreamWriter<ExportContentResponse> responseStream, ServerCallContext context)
         {
-            Asset.RestoreAllDataResponse res = new();
+            try
+            {
+                await foreach (var r in dataProvider.GetAll())
+                    await responseStream.WriteAsync(new ExportContentResponse() { ContentRecord = r.Public });
+            }
+            catch
+            {
+            }
+        }
+
+        public override async Task<RestoreAllDataResponse> RestoreAllData(IAsyncStreamReader<RestoreAllDataRequest> requestStream, ServerCallContext context)
+        {
+            RestoreAllDataResponse res = new RestoreAllDataResponse();
             HashSet<Guid> idsLoaded = new HashSet<Guid>();
 
             await requestStream.MoveNext();
-            if (requestStream.Current.RequestOneofCase != Asset.RestoreAllDataRequest.RequestOneofOneofCase.Mode)
+            if (requestStream.Current.RequestOneofCase != RestoreAllDataRequest.RequestOneofOneofCase.Mode)
                 return res;
 
             var restoreMode = requestStream.Current.Mode;
@@ -73,14 +84,14 @@ namespace IT.WebServices.Content.CMS.Services
             {
                 await foreach (var r in requestStream.ReadAllAsync())
                 {
-                    Guid id = r.Record.Data.AssetIDGuid;
+                    Guid id = r.Record.Data.Public.ContentID.ToGuid();
                     idsLoaded.Add(id);
 
                     try
                     {
                         if (await dataProvider.Exists(id))
                         {
-                            if (restoreMode == Asset.RestoreAllDataRequest.Types.RestoreMode.MissingOnly)
+                            if (restoreMode == RestoreAllDataRequest.Types.RestoreMode.MissingOnly)
                             {
                                 res.NumRecordsSkipped++;
                                 continue;
@@ -98,11 +109,11 @@ namespace IT.WebServices.Content.CMS.Services
                     catch { }
                 }
 
-                if (restoreMode == Asset.RestoreAllDataRequest.Types.RestoreMode.Wipe)
+                if (restoreMode == RestoreAllDataRequest.Types.RestoreMode.Wipe)
                 {
                     await foreach (var r in dataProvider.GetAll())
                     {
-                        Guid id = r.AssetIDGuid;
+                        Guid id = r.Public.ContentID.ToGuid();
                         if (!idsLoaded.Contains(id))
                         {
                             await dataProvider.Delete(id);

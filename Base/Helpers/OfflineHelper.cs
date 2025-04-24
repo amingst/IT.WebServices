@@ -1,10 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Models;
+using  IT.WebServices.Fragments.Generic;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace IT.WebServices.Settings.Services.Helpers
+namespace IT.WebServices.Helpers
 {
     public class OfflineHelper
     {

@@ -12,7 +12,6 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddSettingsClasses(this IServiceCollection services)
         {
             services.AddSingleton<ISettingsDataProvider, FileSettingsDataProvider>();
-            services.AddSingleton<OfflineHelper>();
 
             services.AddScoped<ISettingsService, SettingsService>();
 

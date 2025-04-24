@@ -28,7 +28,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static void MapAuthenticationGrpcServices(this IEndpointRouteBuilder endpoints)
         {
-            //endpoints.MapGrpcService<BackupService>();
+            endpoints.MapGrpcService<BackupService>();
             endpoints.MapGrpcService<ServiceService>();
             endpoints.MapGrpcService<UserService>();
         }

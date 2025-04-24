@@ -104,8 +104,10 @@ namespace IT.WebServices.Content.CMS.Services.Helpers
                     contentRecord.Public.Data.Video = new()
                     {
                         HtmlBody = rdr["HtmlBody"] as string ?? "",
-                        IsLiveStream = (bool)rdr["IsLiveStream"],
-                        IsLive = (bool)rdr["IsLive"],
+                        RumbleVideoId = rdr["RumbleVideoId"] as string ?? "",
+                        YoutubeVideoId = rdr["YoutubeVideoId"] as string ?? "",
+                        IsLiveStream = (ulong)rdr["IsLiveStream"] == 1,
+                        IsLive = (ulong)rdr["IsLive"] == 1,
                     };
                     contentRecord.Private.Data.Video = new()
                     {

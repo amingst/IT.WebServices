@@ -30,9 +30,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static void MapCMSGrpcServices(this IEndpointRouteBuilder endpoints)
         {
-            //endpoints.MapGrpcService<AssetBackupService>();
+            endpoints.MapGrpcService<AssetBackupService>();
             endpoints.MapGrpcService<AssetService>();
-            //endpoints.MapGrpcService<BackupService>();
+            endpoints.MapGrpcService<ContentBackupService>();
             endpoints.MapGrpcService<ContentService>();
             endpoints.MapGrpcService<PageService>();
         }

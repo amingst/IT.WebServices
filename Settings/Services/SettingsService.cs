@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using IT.WebServices.Authentication;
 using IT.WebServices.Fragments.Settings;
 using System.Threading;
+using IT.WebServices.Helpers;
 
 namespace IT.WebServices.Settings.Services
 {

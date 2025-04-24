@@ -16,6 +16,11 @@ namespace IT.WebServices.Settings
             this.settingsClient = settingsClient;
         }
 
+        public ChannelRecord[] GetAll()
+        {
+            return settingsClient.PublicData?.CMS?.Channels?.ToArray();
+        }
+
         public ChannelRecord GetChannelById(string id)
         {
             return settingsClient.PublicData?.CMS?.Channels?.FirstOrDefault(c => c.ChannelId == id);

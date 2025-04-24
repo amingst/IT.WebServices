@@ -25,12 +25,14 @@ namespace IT.WebServices.Authentication.Services.Data
 
         public async Task<bool> Create(UserRecord user)
         {
-            var tasks = new Task<bool>[]
+            var tasks = new List<Task<bool>>()
             {
                 Exists(user.UserIDGuid),
-                EmailExists(user.Normal.Private.Data.Email),
                 LoginExists(user.Normal.Public.Data.UserName),
             };
+
+            if (!string.IsNullOrEmpty(user.Normal.Private.Data.Email))
+                tasks.Add(EmailExists(user.Normal.Private.Data.Email));
 
             await Task.WhenAll(tasks);
 
