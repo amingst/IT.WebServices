@@ -16,6 +16,11 @@ namespace IT.WebServices.Settings
             this.settingsClient = settingsClient;
         }
 
+        public CategoryRecord[] GetAll()
+        {
+            return settingsClient.PublicData?.CMS?.Categories?.ToArray();
+        }
+
         public CategoryRecord GetCategoryById(string id)
         {
             return settingsClient.PublicData?.CMS?.Categories?.FirstOrDefault(c => c.CategoryId == id);
