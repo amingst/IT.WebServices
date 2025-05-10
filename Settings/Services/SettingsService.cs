@@ -546,6 +546,24 @@ namespace IT.WebServices.Settings.Services
             }
         }
 
+        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
+        public override async Task<ModifyIntegrationsPublicDataResponse> ModifyIntegrationsPublicData(ModifyIntegrationsPublicDataRequest, ServerCallContext ctx)
+        {
+            throw new NotImplementedException("TODO");
+        }
+
+        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
+        public override async Task<ModifyIntegrationsPrivateDataResponse> ModifyIntegrationsPrivateData(ModifyIntegrationsPrivateDataRequest, ServerCallContext ctx)
+        {
+            throw new NotImplementedException("TODO");
+        }
+
+        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
+        public override async Task<ModifyIntegrationsOwnerDataResponse> ModifyIntegrationsOwnerData(ModifyIntegrationsOwnerDataRequest, ServerCallContext ctx)
+        {
+            throw new NotImplementedException("TODO");
+        }
+
         private async Task EnsureStockSettings()
         {
             if (hasEnsuredStockSettings)
@@ -622,13 +640,15 @@ namespace IT.WebServices.Settings.Services
                                 VideoMenuLinkName = "Watch",
                                 WrittenMenuLinkName = "Read",
                             },
-                        }
+                        },
+                        Integrations = new() { },
                     },
                     Private = new()
                     {
                         Comments = new() { },
                         Personalization = new() { },
                         Subscription = new() { },
+                        Integrations = new() { },
                     },
                     Owner = new()
                     {
@@ -640,6 +660,7 @@ namespace IT.WebServices.Settings.Services
                             Stripe = new(),
                             Paypal = new(),
                         },
+                        Integrations = new() { },
                     }
                 };
 

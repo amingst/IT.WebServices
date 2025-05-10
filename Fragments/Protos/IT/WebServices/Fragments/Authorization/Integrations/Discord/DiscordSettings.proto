@@ -1,20 +1,20 @@
-syntax = "proto3";
+﻿syntax = "proto3";
 
 package IT.WebServices.Fragments.Authorization.Integrations.Discord;
 
-message DiscordIntegrationPublicRecord {
+message DiscordPublicSettings {
 	string BotName = 1;
 	string Description = 2;
 	repeated string Tags = 3;
 }
 
-message DiscordIntegrationPrivateRecord {
+message DiscordPrivateSettings {
 	string ClientId = 1;
 	string GuildId = 2;
 	string ApplicationId = 3;
 }
 
-message DiscordIntegrationOwnerRecord {
+message DiscordOwnerSettings {
 	bool Enabled = 1;
 	string BotToken = 2;
 	string ClientSecret = 3;

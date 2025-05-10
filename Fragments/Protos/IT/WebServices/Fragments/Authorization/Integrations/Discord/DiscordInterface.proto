@@ -2,8 +2,6 @@
 
 package IT.WebServices.Fragments.Authorization.Integrations.Discord;
 
-import  "Protos/IT/WebServices/Fragments/Authorization/SharedTypes.proto";
-import  "Protos/IT/WebServices/Fragments/Authorization/Integrations/Discord/DiscordIntegration.proto";
 import "google/api/annotations.proto";
 
 service DiscordInterface {

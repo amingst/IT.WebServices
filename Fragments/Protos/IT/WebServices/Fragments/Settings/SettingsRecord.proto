@@ -9,6 +9,7 @@ import "Protos/IT/WebServices/Fragments/Authorization/Payment/Fake/FakePaymentSe
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/ParallelEconomy/ParallelEconomySettings.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeSettings.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalSettings.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Integrations/Discord/DiscordSettings.proto";
 import "Protos/IT/WebServices/Fragments/Content/SharedTypes.proto";
 import "Protos/IT/WebServices/Fragments/Comment/SharedTypes.proto";
 import "Protos/IT/WebServices/Fragments/Notification/NotificationSettings.proto";
@@ -20,6 +21,18 @@ message SettingsRecord {
   SettingsOwnerData Owner = 3;
 }
 
+message IntegrationsPublicRecord {
+	IT.WebServices.Fragments.Authorization.Integrations.Discord.DiscordPublicSettings Discord = 1;
+}
+
+message IntegrationsPrivateRecord {
+	IT.WebServices.Fragments.Authorization.Integrations.Discord.DiscordPrivateSettings Discord = 1;
+}
+
+message IntegrationsOwnerRecord {
+	IT.WebServices.Fragments.Authorization.Integrations.Discord.DiscordOwnerSettings Discord = 1;
+}
+
 message SettingsPublicData {
   uint32 VersionNum = 1;                            // Version of settings
   google.protobuf.Timestamp ModifiedOnUTC = 2;      // UTC timestamp when settings record was last modified
@@ -28,6 +41,7 @@ message SettingsPublicData {
   CommentsPublicRecord Comments = 12;
   CMSPublicRecord CMS = 13;
   NotificationPublicRecord Notification = 14;
+  IntegrationsPublicRecord Integrations = 15;
 }
 
 message SettingsPrivateData {
@@ -37,6 +51,7 @@ message SettingsPrivateData {
   CommentsPrivateRecord Comments = 12;
   CMSPrivateRecord CMS = 13;
   NotificationPrivateRecord Notification = 14;
+  IntegrationsPrivateRecord Integrations = 15;
 }
 
 message SettingsOwnerData {
@@ -45,6 +60,7 @@ message SettingsOwnerData {
   CommentsOwnerRecord Comments = 12;
   CMSOwnerRecord CMS = 13;
   NotificationOwnerRecord Notification = 14;
+  IntegrationsOwnerRecord Integrations = 15;
 }
 
 message PersonalizationPublicRecord {

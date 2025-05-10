@@ -189,6 +189,30 @@ service SettingsInterface {
       body: "*"
     };
   }
+
+  // Modify Integrations Public Data
+  rpc ModifyIntegrationsPublicData (ModifyIntegrationsPublicDataRequest) returns (ModifyIntegrationsPublicDataResponse) {
+      option (google.api.http) = {
+        post: "/api/settings/integrations/public",
+        body: "*"
+      };
+  }
+
+  // Modify Integrations Private Data
+  rpc ModifyIntegrationsPrivateData (ModifyIntegrationsPrivateDataRequest) returns (ModifyIntegrationsPrivateDataResponse) {
+     option (google.api.http) = {
+        post: "/api/settings/integrations/private",
+        body: "*"
+      };
+  }
+
+  // Modify Integrations Owner Data
+  rpc ModifyIntegrationsOwnerData (ModifyIntegrationsOwnerDataRequest) returns (ModifyIntegrationsOwnerDataResponse) {
+    option (google.api.http) = {
+        post: "/api/settings/integrations/owner",
+        body: "*"
+      };
+  }
 }
 
 message GetPublicDataRequest {
@@ -366,5 +390,29 @@ message ModifyNotificationOwnerDataRequest {
 
 message ModifyNotificationOwnerDataResponse {
   ModifyResponseErrorType Error = 1;
+}
+
+message ModifyIntegrationsPublicDataRequest {
+    IntegrationsPublicRecord Data = 1;
+}
+
+message ModifyIntegrationsPublicDataResponse {
+    ModifyResponseErrorType Error = 1;
+}
+
+message ModifyIntegrationsPrivateDataRequest {
+    IntegrationsPrivateRecord Data = 1;
+}
+
+message ModifyIntegrationsPrivateDataResponse {
+    ModifyResponseErrorType Error = 1;
+}
+
+message ModifyIntegrationsOwnerDataRequest {
+    IntegrationsOwnerRecord Data = 1;
+}
+
+message ModifyIntegrationsOwnerDataResponse {
+    ModifyResponseErrorType Error = 1;
 }
 
