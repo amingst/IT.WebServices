@@ -547,19 +547,19 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyIntegrationsPublicDataResponse> ModifyIntegrationsPublicData(ModifyIntegrationsPublicDataRequest, ServerCallContext ctx)
+        public override async Task<ModifyIntegrationsPublicDataResponse> ModifyIntegrationsPublicData(ModifyIntegrationsPublicDataRequest request, ServerCallContext ctx)
         {
             throw new NotImplementedException("TODO");
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyIntegrationsPrivateDataResponse> ModifyIntegrationsPrivateData(ModifyIntegrationsPrivateDataRequest, ServerCallContext ctx)
+        public override async Task<ModifyIntegrationsPrivateDataResponse> ModifyIntegrationsPrivateData(ModifyIntegrationsPrivateDataRequest request, ServerCallContext ctx)
         {
             throw new NotImplementedException("TODO");
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyIntegrationsOwnerDataResponse> ModifyIntegrationsOwnerData(ModifyIntegrationsOwnerDataRequest, ServerCallContext ctx)
+        public override async Task<ModifyIntegrationsOwnerDataResponse> ModifyIntegrationsOwnerData(ModifyIntegrationsOwnerDataRequest request, ServerCallContext ctx)
         {
             throw new NotImplementedException("TODO");
         }

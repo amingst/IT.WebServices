@@ -1,0 +1,15 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Integrations.Discord;
+
+// TODO: Add Discord Permissions Map To Inverted Role For Automatic Role Creation Based On User Subscription
+message InvertedRoleRef {
+	string RoleID =1 ;
+}
+
+// TODO: Add Metadata For OAuth Linked Roles
+message DiscordRole {
+	string DiscordRoleID = 1;
+	string DiscordRoleName = 2;
+	InvertedRoleRef SiteRoleRef = 3;
+}

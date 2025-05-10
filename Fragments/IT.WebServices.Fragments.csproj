@@ -10,6 +10,7 @@
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordInterface.proto" />
 	<None Remove="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordSettings.proto" />
 	<None Remove="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordUserRecord.proto" />
+	<None Remove="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\SharedTypes.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" />
@@ -83,7 +84,8 @@
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
 	<Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordSettings.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordUserRecord.proto" GrpcServices="None" />
-	<Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordInterface.proto" GrpcServices="None" />
+	<Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordInterface.proto"  />
+	<Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\SharedTypes.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakePaymentSettings.proto" GrpcServices="None" />
