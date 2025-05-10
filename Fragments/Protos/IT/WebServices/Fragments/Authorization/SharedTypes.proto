@@ -8,3 +8,7 @@ message SubscriptionTier {
     string Color = 3;
     uint32 AmountCents = 4;
 }
+
+enum IntegrationType {
+	DISCORD = 0;
+}

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Integrations.Discord;
+
+import "google/protobuf/timestamp.proto";
+
+// TODO: Add Discord Permissions Map To Inverted Role For Automatic Role Creation Based On User Subscription
+message InvertedRoleRef {
+	string RoleID =1 ;
+}
+
+// TODO: Add Metadata For OAuth Linked Roles
+message DiscordUserRole {
+	string DiscordRoleID = 1;
+	string DiscordRoleName = 2;
+	InvertedRoleRef SiteRoleRef = 3;
+}
+
+// TODO: Add Token For OAuth Linked Roles In New UserDiscordSettings.proto for Account Links
+message DiscordUserRecord {
+	string UserID = 1;
+	string DiscordUserID = 2;
+	string DiscordUserName = 3;
+	repeated DiscordUserRole DiscordRoles = 4;
+	google.protobuf.Timestamp CreatedOnUTC = 11;   // UTC timestamp when user was created
+	google.protobuf.Timestamp ModifiedOnUTC = 12;  // UTC timestamp when user record was last modified
+}

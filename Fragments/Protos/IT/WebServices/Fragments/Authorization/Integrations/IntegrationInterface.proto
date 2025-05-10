@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Integrations;
+
+import  "Protos/IT/WebServices/Fragments/Authorization/SharedTypes.proto";
+import  "Protos/IT/WebServices/Fragments/Authorization/Integrations/IntegrationRecord.proto";
+import "google/api/annotations.proto";
+
+service IntegrationInterface {
+	rpc GetAllIntegrations (GetAllIntegrationsRequest) returns (GetAllIntegrationsResponse)
+	{
+		option (google.api.http) = {
+			get: "/api/authorization/integrations"
+		};
+	}
+
+	rpc GetIntegration (GetIntegrationRequest) returns (GetIntegrationResponse) 
+	{
+		option (google.api.http) = {
+			get: "/api/authorization/Integrations/{IntegrationID}"
+		};
+	}
+
+	rpc NewIntegration (NewIntegrationRequest) returns (MutateIntegrationResponse)
+	{
+		option (google.api.http) = {
+			post: "/api/authorization/integrations",
+			body: "*"
+		};
+	}
+
+	rpc ModifyIntegration (ModifyIntegrationRequest) returns (MutateIntegrationResponse)
+	{
+		option (google.api.http) = {
+			put: "/api/authorization/integrations/{IntegrationID}",
+			body: "*"
+		};
+	}
+
+	rpc RemoveIntegration (RemoveIntegrationRequest) returns (RemoveIntegrationResponse)
+	{
+		option (google.api.http) = {
+			delete: "/api/Authorization/integrations/{IntegrationID}"
+		};
+	}
+}
+
+message GetAllIntegrationsRequest {}
+
+message GetAllIntegrationsResponse {
+	repeated IntegrationRecord Records = 1;
+}
+
+message GetIntegrationRequest {
+	string IntegrationID = 1;
+}
+
+message GetIntegrationResponse {
+	IntegrationRecord Record = 1;
+}
+
+message MutateIntegrationResponse {
+	bool Success = 1;
+	string Error = 2;
+	IntegrationRecord Data = 3;
+}
+
+message NewIntegrationRequest {
+	IntegrationType Type = 1;
+}
+
+message ModifyIntegrationRequest {
+	string IntegrationID =1 ;
+	IntegrationRecord Data = 2;
+}
+
+message RemoveIntegrationRequest {
+	string IntegrationID = 1;
+}
+
+message RemoveIntegrationResponse {
+		bool Success = 1;
+		string Error = 2;
+}

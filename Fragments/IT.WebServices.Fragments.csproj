@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,6 +7,10 @@
   <ItemGroup>
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\UserInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Integrations\IntegrationInterface.proto" />
+	  <None Remove="Protos\IT\WebServices\Fragments\Authorization\Integrations\IntegrationRecord.proto" />
+	  <None Remove="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordIntegration.proto" />
+	<None Remove="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordUserRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" />
@@ -78,6 +82,10 @@
 
   <ItemGroup>
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Integrations\IntegrationInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Integrations\IntegrationRecord.proto" />
+	<Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordIntegration.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Integrations\Discord\DiscordUserRecord.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakePaymentSettings.proto" GrpcServices="None" />
