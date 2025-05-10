@@ -4,38 +4,4 @@ package IT.WebServices.Fragments.Authorization.Integrations.Discord;
 
 import "google/api/annotations.proto";
 
-service DiscordInterface {
-	rpc EnableDiscord (EnableDisableDiscordRequest) returns (EnableDisableDiscordResponse) {
-		option (google.api.http) = {
-			put: "/api/authorization/integrations/discord/enable",
-			body: "*"
-		};
-	}
-
-	rpc DisableDiscord (EnableDisableDiscordRequest) returns (EnableDisableDiscordResponse) {
-		option (google.api.http) = {
-			put: "/api/authorization/integrations/discord/disable",
-			body: "*"
-		};
-	}
-
-	rpc EditDiscordIntegration (EditDiscordIntegrationRequest) returns (EditDiscordIntegrationResponse) {
-		option (google.api.http) = {
-			put: "/api/authorization/integrations/discord",
-			body: "*"
-		};
-	}
-}
-
-message EnableDisableDiscordRequest {
-	bool Enabled = 1;
-}
-
-message EnableDisableDiscordResponse {
-	bool Success = 1;
-	string Message = 2;
-}
-
-message EditDiscordIntegrationRequest {}
-
-message EditDiscordIntegrationResponse {}
+service DiscordInterface {}
