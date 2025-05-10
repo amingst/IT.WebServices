@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Base", "Base
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Clients", "Clients\IT.WebServices.Clients.csproj", "{271FA74F-BF41-48DB-86B3-97C51D0F8A3C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IT.WebServices.Integrations.Discord.Services", "Integrations\Discord\Services\IT.WebServices.Integrations.Discord.Services.csproj", "{9BE3287E-B7C4-40BB-AE07-A2740976534C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{271FA74F-BF41-48DB-86B3-97C51D0F8A3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{271FA74F-BF41-48DB-86B3-97C51D0F8A3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{271FA74F-BF41-48DB-86B3-97C51D0F8A3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BE3287E-B7C4-40BB-AE07-A2740976534C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BE3287E-B7C4-40BB-AE07-A2740976534C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BE3287E-B7C4-40BB-AE07-A2740976534C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BE3287E-B7C4-40BB-AE07-A2740976534C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
