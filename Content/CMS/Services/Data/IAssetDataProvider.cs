@@ -15,5 +15,6 @@ namespace IT.WebServices.Content.CMS.Services.Data
         Task<bool> Delete(Guid assetId);
         Task<bool> Exists(Guid assetId);
         Task Save(AssetRecord asset);
+        Task<List<AssetListRecord>> GetByAssetTypeAsync(AssetType assetType);
     }
 }

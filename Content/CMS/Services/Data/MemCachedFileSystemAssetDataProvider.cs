@@ -63,5 +63,11 @@ namespace IT.WebServices.Content.CMS.Services.Data
             cache[asset.AssetIDGuid] = asset.ToAssetListRecord();
             return dataProvider.Save(asset);
         }
+
+        public async Task<List<AssetListRecord>> GetByAssetTypeAsync(AssetType assetType)
+        {
+            var found = await dataProvider.GetByAssetTypeAsync(assetType);
+            return found;
+        }
     }
 }

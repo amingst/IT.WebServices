@@ -287,6 +287,21 @@ namespace IT.WebServices.Content.CMS.Services
             return res;
         }
 
+        [AllowAnonymous]
+        public override async Task<SearchAssetResponse> GetImageAssets(GetImageAssetsRequest request, ServerCallContext context)
+        {
+            var res = new SearchAssetResponse();
+            var list = await this.dataProvider.GetByAssetTypeAsync(AssetType.Audio);
+            if (list == null)
+                return new();
+
+            res.Records.AddRange(list.OrderByDescending(r => r.CreatedOnUTC));
+            res.PageTotalItems = (uint)res.Records.Count;
+
+            res.PageOffsetEnd = res.PageOffsetStart + (uint)res.Records.Count;
+            return res;
+        }
+
         private bool IsValid(CreateAssetRequest request)
         {
             if (request == null)
