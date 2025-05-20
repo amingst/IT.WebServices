@@ -288,17 +288,47 @@ namespace IT.WebServices.Content.CMS.Services
         }
 
         [AllowAnonymous]
-        public override async Task<SearchAssetResponse> GetImageAssets(GetImageAssetsRequest request, ServerCallContext context)
+        public override async Task<SearchAssetResponse> GetImageAssets(
+            GetImageAssetsRequest request,
+            ServerCallContext context
+        )
         {
+            var searchQueryBits = Array.Empty<string>();
+
+            if (!string.IsNullOrWhiteSpace(request.Query))
+                searchQueryBits = request
+                    .Query.ToLower()
+                    .Replace("\"", " ")
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .ToArray();
+
             var res = new SearchAssetResponse();
-            var list = await this.dataProvider.GetByAssetTypeAsync(AssetType.Audio);
+            var list = await this.dataProvider.GetByAssetTypeAsync(AssetType.Image);
+
             if (list == null)
-                return new();
+                return res;
 
-            res.Records.AddRange(list.OrderByDescending(r => r.CreatedOnUTC));
-            res.PageTotalItems = (uint)res.Records.Count;
+            var filtered = list.Where(r =>
+                    searchQueryBits.Length == 0 || MeetsQuery(searchQueryBits, r)
+                )
+                .OrderByDescending(r => r.CreatedOnUTC)
+                .ToList();
 
+            res.PageTotalItems = (uint)filtered.Count;
+
+            // Pagination
+            if (request.PageSize > 0)
+            {
+                res.PageOffsetStart = request.PageOffset;
+                filtered = filtered
+                    .Skip((int)request.PageOffset)
+                    .Take((int)request.PageSize)
+                    .ToList();
+            }
+
+            res.Records.AddRange(filtered);
             res.PageOffsetEnd = res.PageOffsetStart + (uint)res.Records.Count;
+
             return res;
         }
 
