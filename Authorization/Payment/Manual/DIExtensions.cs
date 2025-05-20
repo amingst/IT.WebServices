@@ -16,6 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static void MapManualPaymentGrpcServices(this IEndpointRouteBuilder endpoints)
         {
+            endpoints.MapGrpcService<BackupService>();
             endpoints.MapGrpcService<ManualPaymentService>();
         }
     }
