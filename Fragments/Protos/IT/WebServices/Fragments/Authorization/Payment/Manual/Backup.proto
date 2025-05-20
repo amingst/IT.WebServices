@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package IT.WebServices.Fragments.Authorization.Payment.ParallelEconomy;
+package IT.WebServices.Fragments.Authorization.Payment.Manual;
 
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/ParallelEconomy/ParallelEconomySubscriptionRecord.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Manual/ManualSubscriptionRecord.proto";
 
-// Service for ParallelEconomy backup fragment interface
+// Service for Manual backup fragment interface
 service BackupInterface {
   // Export a list of all data.
   rpc BackupAllData (BackupAllDataRequest) returns (stream BackupAllDataResponse) {}
@@ -32,11 +32,11 @@ message EncryptedSubscriptionBackupDataRecord {
 message RestoreAllDataRequest {
   oneof Request_oneof {
     RestoreMode Mode = 1;
-    ParallelEconomyBackupDataRecord Record = 10;
+    ManualBackupDataRecord Record = 10;
   }
 
   enum RestoreMode {
-    Wipe = 0;         // Wipe entire subscription database and restore subscription.  Any new subscription will be deleted.
+    Wipe = 0;         // Wipe entire subscription database and restore subscriptions.  Any new subscriptions will be deleted.
     Overwrite = 1;    // Overwrite all records with corresponding record.  Will not delete new records not in list.
     MissingOnly = 2;  // Only restore missing subscription records.  Will not overwrite subscription records that already exist.
   }
@@ -49,7 +49,7 @@ message RestoreAllDataResponse {
   int32 NumSubscriptionsWiped = 4;
 }
 
-message ParallelEconomyBackupDataRecord {
+message ManualBackupDataRecord {
   bytes ExtraData = 1;   // Generic byte structure to save all application specific data for subscription
-  ParallelEconomyFullSubscriptionRecord SubscriptionRecord = 2; // SubscriptionRecord
+  ManualSubscriptionRecord SubscriptionRecord = 2; // SubscriptionRecord
 }

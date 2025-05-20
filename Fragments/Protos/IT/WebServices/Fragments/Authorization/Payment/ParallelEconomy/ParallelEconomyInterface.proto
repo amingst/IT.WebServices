@@ -37,7 +37,7 @@ message GetOwnSubscriptionRecordResponse {
 }
 
 message NewOwnSubscriptionRequest {
-  string TransactionId = 1;
+  string TransactionID = 1;
 }
   
 message NewOwnSubscriptionResponse {

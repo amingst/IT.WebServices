@@ -4,15 +4,24 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;CS8981</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;CS8981</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\UserInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" />
-    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakeInterface.proto" />
-    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakePaymentSettings.proto" />
-    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakeSubscriptionRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\Backup.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\ManualPaymentInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\ManualPaymentSettings.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\ManualSubscriptionRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomyInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomySettings.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomySubscriptionRecord.proto" />
@@ -22,7 +31,13 @@
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalSettings.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalSubscriptionRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\SharedTypes.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\Backup.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\ProductRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeOneTimeRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeRecords.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeSettings.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeSubscriptionRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\SharedTypes.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Comment\CommentInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Comment\CommentRecord.proto" />
@@ -61,10 +76,6 @@
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinService.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\Backup.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\PlanRecord.proto" />
-    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\Backup.proto" />
-    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\Payments.proto" />
-    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\ProductRecord.proto" />
-    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\SubscriptionRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\Backup.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\Content.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\ContentRecord.proto" />
@@ -80,9 +91,10 @@
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" GrpcServices="None" />
-    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakePaymentSettings.proto" GrpcServices="None" />
-    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakeInterface.proto" />
-    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fake\FakeSubscriptionRecord.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\Backup.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\ManualPaymentSettings.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\ManualPaymentInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\ManualSubscriptionRecord.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomySettings.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\PaymentInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalRecords.proto" />
@@ -90,7 +102,13 @@
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\SharedTypes.proto">
       <GrpcServices>None</GrpcServices>
     </Protobuf>
-    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeSettings.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\Backup.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\ProductRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeOneTimeRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeRecords.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeSettings.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\StripeSubscriptionRecord.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\SharedTypes.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\CommentInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\CommentRecord.proto" GrpcServices="None" />
@@ -130,10 +148,6 @@
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomyInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\PlanRecord.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\ParallelEconomy\ParallelEconomySubscriptionRecord.proto" />
-    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\Backup.proto" />
-    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\Payments.proto" />
-    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\ProductRecord.proto" />
-    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Stripe\SubscriptionRecord.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\Backup.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Claims.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalSubscriptionRecord.proto" GrpcServices="None" />

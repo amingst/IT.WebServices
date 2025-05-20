@@ -3,7 +3,7 @@ syntax = "proto3";
 package IT.WebServices.Fragments.Authorization.Payment.Paypal;
 
 message PaypalNewDetails {
-  string AccountId = 1;
-  string PlanId = 2;
+  string AccountID = 1;
+  string PlanID = 2;
 }
 

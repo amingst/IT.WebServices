@@ -1,20 +1,23 @@
 syntax = "proto3";
 
-package IT.WebServices.Fragments.Authorization.Payment.Paypal;
+package IT.WebServices.Fragments.Authorization.Payment.Stripe;
 
 import "google/protobuf/timestamp.proto";
+
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
 
-message PaypalSubscriptionFullRecord {
-	PaypalSubscriptionRecord Subscription = 1;
-	repeated PaypalPaymentRecord Payments = 2;
+message StripeSubscriptionFullRecord {
+	StripeSubscriptionRecord Subscription = 1;
+	repeated StripePaymentRecord Payments = 2;
 }
 
-message PaypalSubscriptionRecord {
+// User claim's record
+message StripeSubscriptionRecord {
   string UserID = 1; // Guid for the user
   string SubscriptionID = 2; // Guid for the Subscription
-  string PaypalSubscriptionID = 3;
-  SubscriptionStatus Status = 4;
+  string StripeCustomerID = 3; // Id for the Customer with Stripe
+  string StripeSubscriptionID = 4; // Id for the Subscription with Stripe
+  SubscriptionStatus Status = 5;
   uint32 AmountCents = 11;
   uint32 TaxCents = 12;
   uint32 TaxRateThousandPercents = 13; //Tax rate 1.234% = 1234 or taxrate * 100000
@@ -27,11 +30,11 @@ message PaypalSubscriptionRecord {
   google.protobuf.Timestamp ChangedOnUTC = 26;
 }
 
-message PaypalPaymentRecord {
+message StripePaymentRecord {
   string UserID = 1; // Guid for the user
   string SubscriptionID = 2; // Guid for the Subscription
   string PaymentID = 3; // Guid for the Payment
-  string PaypalPaymentID = 4;
+  string StripePaymentID = 4; // Id for the Payment with Stripe
   PaymentStatus Status = 5;
   uint32 AmountCents = 11;
   uint32 TaxCents = 12;
