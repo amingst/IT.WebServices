@@ -8,8 +8,8 @@ message ParallelEconomyPublicSettings {
 }
 
 message ParallelEconomyOwnerSettings {
-  string UserId = 1;
+  string UserID = 1;
   string UserApiKey = 2;
-  string LocationId = 3;
-  string ProductId = 4;
+  string LocationID = 3;
+  string ProductID = 4;
 }

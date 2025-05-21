@@ -1,13 +1,3 @@
-using Google.Protobuf;
-using Grpc.Core;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using IT.WebServices.Settings.Services.Data;
-using IT.WebServices.Settings.Services.Helpers;
-using IT.WebServices.Fragments.Authentication;
-using IT.WebServices.Fragments.Authorization;
-using IT.WebServices.Fragments.Generic;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,11 +7,21 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using IT.WebServices.Authentication;
-using IT.WebServices.Fragments.Settings;
 using System.Threading;
+using System.Threading.Tasks;
+using Google.Protobuf;
+using Grpc.Core;
+using IT.WebServices.Authentication;
+using IT.WebServices.Fragments.Authentication;
+using IT.WebServices.Fragments.Authorization;
+using IT.WebServices.Fragments.Generic;
+using IT.WebServices.Fragments.Settings;
 using IT.WebServices.Helpers;
+using IT.WebServices.Settings.Services.Data;
+using IT.WebServices.Settings.Services.Helpers;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace IT.WebServices.Settings.Services
 {
@@ -34,7 +34,11 @@ namespace IT.WebServices.Settings.Services
         private static bool hasEnsuredStockSettings = false;
         private static SemaphoreSlim stockSettingsSemaphore = new SemaphoreSlim(1, 1);
 
-        public SettingsService(OfflineHelper offlineHelper, ILogger<SettingsService> logger, ISettingsDataProvider dataProvider)
+        public SettingsService(
+            OfflineHelper offlineHelper,
+            ILogger<SettingsService> logger,
+            ISettingsDataProvider dataProvider
+        )
         {
             this.offlineHelper = offlineHelper;
             this.logger = logger;
@@ -44,7 +48,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER_OR_SERVICE)]
-        public override Task<GetAdminDataResponse> GetAdminData(GetAdminDataRequest request, ServerCallContext context)
+        public override Task<GetAdminDataResponse> GetAdminData(
+            GetAdminDataRequest request,
+            ServerCallContext context
+        )
         {
             return GetAdminDataInternal();
         }
@@ -55,16 +62,14 @@ namespace IT.WebServices.Settings.Services
             if (record == null)
                 return new() { };
 
-            return new()
-            {
-                Public = record.Public,
-                Private = record.Private,
-            };
-
+            return new() { Public = record.Public, Private = record.Private };
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER_OR_SERVICE)]
-        public override async Task<GetAdminNewerDataResponse> GetAdminNewerData(GetAdminNewerDataRequest request, ServerCallContext context)
+        public override async Task<GetAdminNewerDataResponse> GetAdminNewerData(
+            GetAdminNewerDataRequest request,
+            ServerCallContext context
+        )
         {
             var record = await dataProvider.Get();
             if (record == null)
@@ -73,15 +78,14 @@ namespace IT.WebServices.Settings.Services
             if (record?.Public?.VersionNum == request.VersionNum)
                 record = null;
 
-            return new()
-            {
-                Public = record?.Public,
-                Private = record?.Private,
-            };
+            return new() { Public = record?.Public, Private = record?.Private };
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_OWNER_OR_SERVICE)]
-        public override Task<GetOwnerDataResponse> GetOwnerData(GetOwnerDataRequest request, ServerCallContext context)
+        public override Task<GetOwnerDataResponse> GetOwnerData(
+            GetOwnerDataRequest request,
+            ServerCallContext context
+        )
         {
             return GetOwnerDataInternal();
         }
@@ -101,7 +105,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_OWNER_OR_SERVICE)]
-        public override async Task<GetOwnerNewerDataResponse> GetOwnerNewerData(GetOwnerNewerDataRequest request, ServerCallContext context)
+        public override async Task<GetOwnerNewerDataResponse> GetOwnerNewerData(
+            GetOwnerNewerDataRequest request,
+            ServerCallContext context
+        )
         {
             var record = await dataProvider.Get();
             if (record == null)
@@ -119,7 +126,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [AllowAnonymous]
-        public override async Task<GetPublicDataResponse> GetPublicData(GetPublicDataRequest request, ServerCallContext context)
+        public override async Task<GetPublicDataResponse> GetPublicData(
+            GetPublicDataRequest request,
+            ServerCallContext context
+        )
         {
             var record = await dataProvider.Get();
             if (record == null)
@@ -129,7 +139,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [AllowAnonymous]
-        public override async Task<GetPublicNewerDataResponse> GetPublicNewerData(GetPublicNewerDataRequest request, ServerCallContext context)
+        public override async Task<GetPublicNewerDataResponse> GetPublicNewerData(
+            GetPublicNewerDataRequest request,
+            ServerCallContext context
+        )
         {
             var record = await dataProvider.Get();
             if (record == null)
@@ -142,7 +155,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_OWNER)]
-        public override async Task<ModifyCMSOwnerDataResponse> ModifyCMSOwnerData(ModifyCMSOwnerDataRequest request, ServerCallContext context)
+        public override async Task<ModifyCMSOwnerDataResponse> ModifyCMSOwnerData(
+            ModifyCMSOwnerDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -155,7 +171,9 @@ namespace IT.WebServices.Settings.Services
                 record.Owner.CMS = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -169,7 +187,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyCMSPrivateDataResponse> ModifyCMSPrivateData(ModifyCMSPrivateDataRequest request, ServerCallContext context)
+        public override async Task<ModifyCMSPrivateDataResponse> ModifyCMSPrivateData(
+            ModifyCMSPrivateDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -182,7 +203,9 @@ namespace IT.WebServices.Settings.Services
                 record.Private.CMS = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -196,7 +219,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyCMSPublicDataResponse> ModifyCMSPublicData(ModifyCMSPublicDataRequest request, ServerCallContext context)
+        public override async Task<ModifyCMSPublicDataResponse> ModifyCMSPublicData(
+            ModifyCMSPublicDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -209,7 +235,9 @@ namespace IT.WebServices.Settings.Services
                 record.Public.CMS = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -223,7 +251,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_OWNER)]
-        public override async Task<ModifyCommentsOwnerDataResponse> ModifyCommentsOwnerData(ModifyCommentsOwnerDataRequest request, ServerCallContext context)
+        public override async Task<ModifyCommentsOwnerDataResponse> ModifyCommentsOwnerData(
+            ModifyCommentsOwnerDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -236,7 +267,9 @@ namespace IT.WebServices.Settings.Services
                 record.Owner.Comments = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -250,7 +283,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyCommentsPrivateDataResponse> ModifyCommentsPrivateData(ModifyCommentsPrivateDataRequest request, ServerCallContext context)
+        public override async Task<ModifyCommentsPrivateDataResponse> ModifyCommentsPrivateData(
+            ModifyCommentsPrivateDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -263,7 +299,9 @@ namespace IT.WebServices.Settings.Services
                 record.Private.Comments = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -277,7 +315,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyCommentsPublicDataResponse> ModifyCommentsPublicData(ModifyCommentsPublicDataRequest request, ServerCallContext context)
+        public override async Task<ModifyCommentsPublicDataResponse> ModifyCommentsPublicData(
+            ModifyCommentsPublicDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -290,7 +331,9 @@ namespace IT.WebServices.Settings.Services
                 record.Public.Comments = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -304,7 +347,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_OWNER)]
-        public override async Task<ModifyNotificationOwnerDataResponse> ModifyNotificationOwnerData(ModifyNotificationOwnerDataRequest request, ServerCallContext context)
+        public override async Task<ModifyNotificationOwnerDataResponse> ModifyNotificationOwnerData(
+            ModifyNotificationOwnerDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -317,7 +363,9 @@ namespace IT.WebServices.Settings.Services
                 record.Owner.Notification = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -331,7 +379,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyNotificationPrivateDataResponse> ModifyNotificationPrivateData(ModifyNotificationPrivateDataRequest request, ServerCallContext context)
+        public override async Task<ModifyNotificationPrivateDataResponse> ModifyNotificationPrivateData(
+            ModifyNotificationPrivateDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -344,7 +395,9 @@ namespace IT.WebServices.Settings.Services
                 record.Private.Notification = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -358,7 +411,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyNotificationPublicDataResponse> ModifyNotificationPublicData(ModifyNotificationPublicDataRequest request, ServerCallContext context)
+        public override async Task<ModifyNotificationPublicDataResponse> ModifyNotificationPublicData(
+            ModifyNotificationPublicDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -371,7 +427,9 @@ namespace IT.WebServices.Settings.Services
                 record.Public.Notification = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -385,7 +443,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_OWNER)]
-        public override async Task<ModifyPersonalizationOwnerDataResponse> ModifyPersonalizationOwnerData(ModifyPersonalizationOwnerDataRequest request, ServerCallContext context)
+        public override async Task<ModifyPersonalizationOwnerDataResponse> ModifyPersonalizationOwnerData(
+            ModifyPersonalizationOwnerDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -398,7 +459,9 @@ namespace IT.WebServices.Settings.Services
                 record.Owner.Personalization = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -412,7 +475,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyPersonalizationPrivateDataResponse> ModifyPersonalizationPrivateData(ModifyPersonalizationPrivateDataRequest request, ServerCallContext context)
+        public override async Task<ModifyPersonalizationPrivateDataResponse> ModifyPersonalizationPrivateData(
+            ModifyPersonalizationPrivateDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -425,7 +491,9 @@ namespace IT.WebServices.Settings.Services
                 record.Private.Personalization = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -439,7 +507,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyPersonalizationPublicDataResponse> ModifyPersonalizationPublicData(ModifyPersonalizationPublicDataRequest request, ServerCallContext context)
+        public override async Task<ModifyPersonalizationPublicDataResponse> ModifyPersonalizationPublicData(
+            ModifyPersonalizationPublicDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -452,7 +523,9 @@ namespace IT.WebServices.Settings.Services
                 record.Public.Personalization = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -466,7 +539,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_OWNER)]
-        public override async Task<ModifySubscriptionOwnerDataResponse> ModifySubscriptionOwnerData(ModifySubscriptionOwnerDataRequest request, ServerCallContext context)
+        public override async Task<ModifySubscriptionOwnerDataResponse> ModifySubscriptionOwnerData(
+            ModifySubscriptionOwnerDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -479,7 +555,9 @@ namespace IT.WebServices.Settings.Services
                 record.Owner.Subscription = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -493,7 +571,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifySubscriptionPrivateDataResponse> ModifySubscriptionPrivateData(ModifySubscriptionPrivateDataRequest request, ServerCallContext context)
+        public override async Task<ModifySubscriptionPrivateDataResponse> ModifySubscriptionPrivateData(
+            ModifySubscriptionPrivateDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -506,7 +587,9 @@ namespace IT.WebServices.Settings.Services
                 record.Private.Subscription = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -520,7 +603,10 @@ namespace IT.WebServices.Settings.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifySubscriptionPublicDataResponse> ModifySubscriptionPublicData(ModifySubscriptionPublicDataRequest request, ServerCallContext context)
+        public override async Task<ModifySubscriptionPublicDataResponse> ModifySubscriptionPublicData(
+            ModifySubscriptionPublicDataRequest request,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -533,7 +619,9 @@ namespace IT.WebServices.Settings.Services
                 record.Public.Subscription = request.Data;
 
                 record.Public.VersionNum++;
-                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
                 record.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -560,7 +648,6 @@ namespace IT.WebServices.Settings.Services
 
             try
             {
-
                 if (await dataProvider.Get() != null)
                     return;
 
@@ -579,7 +666,10 @@ namespace IT.WebServices.Settings.Services
                             DefaultOrder = Fragments.Comment.CommentOrder.Liked,
                             DefaultRestriction = new()
                             {
-                                Minimum = Fragments.Comment.CommentRestrictionMinimumEnum.Subscriber,
+                                Minimum = Fragments
+                                    .Comment
+                                    .CommentRestrictionMinimumEnum
+                                    .Subscriber,
                             },
                         },
                         Personalization = new()
@@ -591,26 +681,15 @@ namespace IT.WebServices.Settings.Services
                         Subscription = new()
                         {
                             AllowOther = true,
-                            ParallelEconomy = new()
-                            {
-                                Enabled = false,
-                            },
-                            Stripe = new()
-                            {
-                                Enabled = false,
-                            },
-                            Paypal = new()
-                            {
-                                Enabled = false,
-                            },
-                            Crypto = new()
-                            {
-                                Enabled = false,
-                            },
-                            Fake = new()
-                            {
-                                Enabled = true,
-                            }
+                            ParallelEconomy = new() { Enabled = false },
+                            Stripe = new() { Enabled = false },
+                            Paypal = new() { Enabled = false },
+                            Crypto = new() { Enabled = false },
+                            //,
+                            //Fake = new()
+                            //{
+                            //    Enabled = true,
+                            //}
                         },
                         CMS = new()
                         {
@@ -622,7 +701,7 @@ namespace IT.WebServices.Settings.Services
                                 VideoMenuLinkName = "Watch",
                                 WrittenMenuLinkName = "Read",
                             },
-                        }
+                        },
                     },
                     Private = new()
                     {
@@ -640,37 +719,45 @@ namespace IT.WebServices.Settings.Services
                             Stripe = new(),
                             Paypal = new(),
                         },
-                    }
+                    },
                 };
 
-                record.Public.Subscription.Tiers.Add(new SubscriptionTier()
-                {
-                    Name = "Basic",
-                    Description = "You're basic bro...",
-                    Color = "orange",
-                    AmountCents = 500,
-                });
-                record.Public.Subscription.Tiers.Add(new SubscriptionTier()
-                {
-                    Name = "Bronze",
-                    Description = "meh...",
-                    Color = "bronze",
-                    AmountCents = 1000,
-                });
-                record.Public.Subscription.Tiers.Add(new SubscriptionTier()
-                {
-                    Name = "Silver",
-                    Description = "Nice...",
-                    Color = "silver",
-                    AmountCents = 2500,
-                });
-                record.Public.Subscription.Tiers.Add(new SubscriptionTier()
-                {
-                    Name = "Gold",
-                    Description = "You rock...",
-                    Color = "gold",
-                    AmountCents = 5000,
-                });
+                record.Public.Subscription.Tiers.Add(
+                    new SubscriptionTier()
+                    {
+                        Name = "Basic",
+                        Description = "You're basic bro...",
+                        Color = "orange",
+                        AmountCents = 500,
+                    }
+                );
+                record.Public.Subscription.Tiers.Add(
+                    new SubscriptionTier()
+                    {
+                        Name = "Bronze",
+                        Description = "meh...",
+                        Color = "bronze",
+                        AmountCents = 1000,
+                    }
+                );
+                record.Public.Subscription.Tiers.Add(
+                    new SubscriptionTier()
+                    {
+                        Name = "Silver",
+                        Description = "Nice...",
+                        Color = "silver",
+                        AmountCents = 2500,
+                    }
+                );
+                record.Public.Subscription.Tiers.Add(
+                    new SubscriptionTier()
+                    {
+                        Name = "Gold",
+                        Description = "You rock...",
+                        Color = "gold",
+                        AmountCents = 5000,
+                    }
+                );
 
                 record.Private.Comments.BlackList.AddRange(new[] { "fuck", "shit", "cunt" });
 
