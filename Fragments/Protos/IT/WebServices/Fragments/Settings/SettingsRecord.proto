@@ -5,7 +5,7 @@ package IT.WebServices.Fragments.Settings;
 import "google/protobuf/timestamp.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/SharedTypes.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Crypto/CryptoSettings.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/Fake/FakePaymentSettings.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Manual/ManualPaymentSettings.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/ParallelEconomy/ParallelEconomySettings.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeSettings.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalSettings.proto";
@@ -66,7 +66,7 @@ message SubscriptionPublicRecord {
   bool AllowOther = 2;
   bool MinimumAllowed = 3;
   bool MaximumAllowed = 4;
-  IT.WebServices.Fragments.Authorization.Payment.Fake.FakePaymentPublicSettings Fake = 11;
+  IT.WebServices.Fragments.Authorization.Payment.Manual.ManualPaymentPublicSettings Manual = 11;
   IT.WebServices.Fragments.Authorization.Payment.ParallelEconomy.ParallelEconomyPublicSettings ParallelEconomy = 12;
   IT.WebServices.Fragments.Authorization.Payment.Crypto.CryptoPublicSettings Crypto = 13;
   IT.WebServices.Fragments.Authorization.Payment.Stripe.StripePublicSettings Stripe = 14;
