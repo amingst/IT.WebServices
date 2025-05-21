@@ -13,11 +13,11 @@ using System.Threading.Tasks;
 
 namespace IT.WebServices.Authorization.Payment.Manual.Data
 {
-    internal class SqlManualDataProvider : ISubscriptionRecordProvider
+    internal class SqlSubscriptionRecordProvider : ISubscriptionRecordProvider
     {
         public readonly MySQLHelper sql;
 
-        public SqlManualDataProvider(MySQLHelper sql)
+        public SqlSubscriptionRecordProvider(MySQLHelper sql)
         {
             this.sql = sql;
         }
@@ -61,6 +61,33 @@ namespace IT.WebServices.Authorization.Payment.Manual.Data
                     FROM
                         Payment_Manual_Subscription
                 ";
+
+            using var rdr = await sql.ReturnReader(query);
+
+            while (await rdr.ReadAsync())
+            {
+                var record = rdr.ParseManualSubscriptionRecord();
+
+                if (record != null)
+                    yield return record;
+            }
+        }
+
+        public async IAsyncEnumerable<ManualSubscriptionRecord> GetAllByUserId(Guid userId)
+        {
+            const string query = @"
+                    SELECT
+                        *
+                    FROM
+                        Payment_Manual_Subscription
+                    WHERE
+                        UserID = @UserID;
+                ";
+
+            var parameters = new MySqlParameter[]
+            {
+                    new MySqlParameter("UserID", userId.ToString())
+            };
 
             using var rdr = await sql.ReturnReader(query);
 
@@ -134,38 +161,10 @@ namespace IT.WebServices.Authorization.Payment.Manual.Data
             }
         }
 
-        public async IAsyncEnumerable<ManualSubscriptionRecord> GetByUserId(Guid userId)
-        {
-            const string query = @"
-                    SELECT
-                        *
-                    FROM
-                        Payment_Manual_Subscription
-                    WHERE
-                        UserID = @UserID;
-                ";
-
-            var parameters = new MySqlParameter[]
-            {
-                    new MySqlParameter("UserID", userId.ToString())
-            };
-
-            using var rdr = await sql.ReturnReader(query);
-
-            while (await rdr.ReadAsync())
-            {
-                var record = rdr.ParseManualSubscriptionRecord();
-
-                if (record != null)
-                    yield return record;
-            }
-        }
-
         public Task Save(ManualSubscriptionRecord record)
         {
             return InsertOrUpdate(record);
         }
-
 
         private async Task InsertOrUpdate(ManualSubscriptionRecord record)
         {
@@ -174,16 +173,16 @@ namespace IT.WebServices.Authorization.Payment.Manual.Data
                 const string query = @"
                     INSERT INTO Payment_Manual_Subscription
                             (ManualSubscriptionID,  UserID,  AmountCents,
-                             CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  CancelledOnUTC,  CancelledBy)
+                             CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  CanceledOnUTC,  CanceledBy)
                     VALUES (@ManualSubscriptionID, @UserID, @AmountCents,
-                            @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @CancelledOnUTC, @CancelledBy)
+                            @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @CanceledOnUTC, @CanceledBy)
                     ON DUPLICATE KEY UPDATE
                             UserID = @UserID,
                             AmountCents = @AmountCents,
                             ModifiedOnUTC = @ModifiedOnUTC,
                             ModifiedBy = @ModifiedBy,
-                            CancelledOnUTC = @CancelledOnUTC,
-                            CancelledBy = @CancelledBy
+                            CanceledOnUTC = @CanceledOnUTC,
+                            CanceledBy = @CanceledBy
                 ";
 
                 var parameters = new List<MySqlParameter>()
@@ -195,8 +194,8 @@ namespace IT.WebServices.Authorization.Payment.Manual.Data
                     new MySqlParameter("CreatedBy", record.CreatedBy),
                     new MySqlParameter("ModifiedOnUTC", record.ModifiedOnUTC?.ToDateTime()),
                     new MySqlParameter("ModifiedBy", record.ModifiedBy.Length == 36 ? record.ModifiedBy : null),
-                    new MySqlParameter("CancelledOnUTC", record.CancelledOnUTC?.ToDateTime()),
-                    new MySqlParameter("CancelledBy", record.CancelledBy.Length == 36 ? record.CancelledBy : null)
+                    new MySqlParameter("CanceledOnUTC", record.CanceledOnUTC?.ToDateTime()),
+                    new MySqlParameter("CanceledBy", record.CanceledBy.Length == 36 ? record.CanceledBy : null)
                 };
 
                 await sql.RunCmd(query, parameters.ToArray());

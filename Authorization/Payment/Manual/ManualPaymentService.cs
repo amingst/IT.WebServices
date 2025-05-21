@@ -46,8 +46,8 @@ namespace IT.WebServices.Authorization.Payment.Manual
                 if (record == null)
                     return new() { Error = "Record not found" };
 
-                record.CancelledBy = userToken.Id.ToString();
-                record.CancelledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.CanceledBy = userToken.Id.ToString();
+                record.CanceledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
 
                 await subscriptionProvider.Save(record);
 
@@ -79,8 +79,8 @@ namespace IT.WebServices.Authorization.Payment.Manual
                 if (record == null)
                     return new() { Error = "Record not found" };
 
-                record.CancelledBy = userToken.Id.ToString();
-                record.CancelledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.CanceledBy = userToken.Id.ToString();
+                record.CanceledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
 
                 await subscriptionProvider.Save(record);
 
@@ -108,7 +108,7 @@ namespace IT.WebServices.Authorization.Payment.Manual
                 if (userId == Guid.Empty)
                     return new();
 
-                var res = subscriptionProvider.GetByUserId(userId);
+                var res = subscriptionProvider.GetAllByUserId(userId);
 
                 var ret = new ManualGetOtherSubscriptionRecordsResponse();
                 await foreach (var record in res)
@@ -153,7 +153,6 @@ namespace IT.WebServices.Authorization.Payment.Manual
             return new();
         }
 
-        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
         public override async Task<ManualGetOwnSubscriptionRecordsResponse> ManualGetOwnSubscriptionRecords(ManualGetOwnSubscriptionRecordsRequest request, ServerCallContext context)
         {
             try
@@ -162,7 +161,7 @@ namespace IT.WebServices.Authorization.Payment.Manual
                 if (userToken == null)
                     return new();
 
-                var res = subscriptionProvider.GetByUserId(userToken.Id);
+                var res = subscriptionProvider.GetAllByUserId(userToken.Id);
 
                 var ret = new ManualGetOwnSubscriptionRecordsResponse();
                 await foreach (var record in res)

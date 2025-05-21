@@ -595,10 +595,10 @@ namespace IT.WebServices.Settings.Services
                             {
                                 Enabled = false,
                             },
-                            Stripe = new()
-                            {
-                                Enabled = false,
-                            },
+                            //Stripe = new()
+                            //{
+                            //    Enabled = false,
+                            //},
                             Paypal = new()
                             {
                                 Enabled = false,
@@ -607,7 +607,7 @@ namespace IT.WebServices.Settings.Services
                             {
                                 Enabled = false,
                             },
-                            Fake = new()
+                            Manual = new()
                             {
                                 Enabled = true,
                             }
@@ -637,7 +637,7 @@ namespace IT.WebServices.Settings.Services
                         Subscription = new()
                         {
                             ParallelEconomy = new(),
-                            Stripe = new(),
+                            //Stripe = new(),
                             Paypal = new(),
                         },
                     }

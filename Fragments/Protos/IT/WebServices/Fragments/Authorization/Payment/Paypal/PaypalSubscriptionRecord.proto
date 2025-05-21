@@ -6,39 +6,46 @@ import "google/protobuf/timestamp.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
 
 message PaypalSubscriptionFullRecord {
-	PaypalSubscriptionRecord Subscription = 1;
-	repeated PaypalPaymentRecord Payments = 2;
+  PaypalSubscriptionRecord SubscriptionRecord = 1;
+  repeated PaypalPaymentRecord Payments = 2;
+
+  google.protobuf.Timestamp LastPaidUTC = 11;
+  google.protobuf.Timestamp PaidThruUTC = 12;
+  google.protobuf.Timestamp RenewsOnUTC = 13;
 }
 
 message PaypalSubscriptionRecord {
   string UserID = 1; // Guid for the user
   string SubscriptionID = 2; // Guid for the Subscription
-  string PaypalSubscriptionID = 3;
-  SubscriptionStatus Status = 4;
+  string StripeCustomerID = 3; // Id for the Customer with Paypal
+  string StripeSubscriptionID = 4; // Id for the Subscription with Paypal
+  SubscriptionStatus Status = 5;
   uint32 AmountCents = 11;
   uint32 TaxCents = 12;
   uint32 TaxRateThousandPercents = 13; //Tax rate 1.234% = 1234 or taxrate * 100000
   uint32 TotalCents = 14;
   google.protobuf.Timestamp CreatedOnUTC = 21;
-  google.protobuf.Timestamp LastPaidUTC = 22;
-  google.protobuf.Timestamp PaidThruUTC = 23;
-  google.protobuf.Timestamp RenewsOnUTC = 24;
-  google.protobuf.Timestamp CanceledOnUTC = 25;
-  google.protobuf.Timestamp ChangedOnUTC = 26;
+  google.protobuf.Timestamp ModifiedOnUTC = 22;
+  google.protobuf.Timestamp CanceledOnUTC = 23;
+  string CreatedBy = 31;
+  string ModifiedBy = 32;
+  string CanceledBy = 33;
 }
 
 message PaypalPaymentRecord {
   string UserID = 1; // Guid for the user
   string SubscriptionID = 2; // Guid for the Subscription
   string PaymentID = 3; // Guid for the Payment
-  string PaypalPaymentID = 4;
+  string PaypalPaymentID = 4; // Id for the Payment with Paypal
   PaymentStatus Status = 5;
   uint32 AmountCents = 11;
   uint32 TaxCents = 12;
   uint32 TaxRateThousandPercents = 13; //Tax rate 1.234% = 1234 or taxrate * 100000
   uint32 TotalCents = 14;
   google.protobuf.Timestamp CreatedOnUTC = 21;
-  google.protobuf.Timestamp PaidOnUTC = 22;
-  google.protobuf.Timestamp PaidThruUTC = 23;
-  google.protobuf.Timestamp ChangedOnUTC = 24;
+  google.protobuf.Timestamp ModifiedOnUTC = 22;
+  google.protobuf.Timestamp PaidOnUTC = 23;
+  google.protobuf.Timestamp PaidThruUTC = 24;
+  string CreatedBy = 31;
+  string ModifiedBy = 32;
 }

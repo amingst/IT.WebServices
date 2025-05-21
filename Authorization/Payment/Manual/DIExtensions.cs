@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddManualPaymentClasses(this IServiceCollection services)
         {
-            services.AddSingleton<ISubscriptionRecordProvider, SqlManualDataProvider>();
+            services.AddSingleton<ISubscriptionRecordProvider, SqlSubscriptionRecordProvider>();
 
             return services;
         }
