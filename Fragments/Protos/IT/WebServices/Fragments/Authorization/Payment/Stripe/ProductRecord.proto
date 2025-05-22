@@ -3,8 +3,8 @@
 package IT.WebServices.Fragments.Authorization.Payment.Stripe;
 
 message ProductRecord {
-	string ProductId = 1;
-	string PriceId = 2;
+	string ProductID = 1;
+	string PriceID = 2;
 	string CheckoutUrl = 3;
 	string Name = 4;
 	int32 Price = 5;

@@ -9,9 +9,9 @@ namespace IT.WebServices.Fragments.Authorization.Payment.ParallelEconomy
     }
     public sealed partial class ParallelEconomyOwnerSettings : pb::IMessage<ParallelEconomyOwnerSettings>
     {
-        public bool IsValid => !string.IsNullOrWhiteSpace(UserId)
+        public bool IsValid => !string.IsNullOrWhiteSpace(UserID)
                             && !string.IsNullOrWhiteSpace(UserApiKey)
-                            && !string.IsNullOrWhiteSpace(LocationId)
-                            && !string.IsNullOrWhiteSpace(ProductId);
+                            && !string.IsNullOrWhiteSpace(LocationID)
+                            && !string.IsNullOrWhiteSpace(ProductID);
     }
 }

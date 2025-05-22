@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Payment.Manual;
+
+import "google/api/annotations.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Manual/ManualSubscriptionRecord.proto";
+
+service ManualPaymentInterface {
+  rpc ManualCancelOtherSubscription (ManualCancelOtherSubscriptionRequest) returns (ManualCancelOtherSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/manual/admin/subscription/{UserID}/{SubscriptionID}/cancel"
+      body: "*"
+    };
+  }
+
+  rpc ManualCancelOwnSubscription (ManualCancelOwnSubscriptionRequest) returns (ManualCancelOwnSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/manual/subscription/{SubscriptionID}/cancel"
+      body: "*"
+    };
+  }
+
+  rpc ManualGetOtherSubscriptionRecords (ManualGetOtherSubscriptionRecordsRequest) returns (ManualGetOtherSubscriptionRecordsResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/manual/admin/subscription/{UserID}"
+    };
+  }
+
+  rpc ManualGetOtherSubscriptionRecord (ManualGetOtherSubscriptionRecordRequest) returns (ManualGetOtherSubscriptionRecordResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/manual/admin/subscription/{UserID}/{SubscriptionID}"
+    };
+  }
+
+  rpc ManualGetOwnSubscriptionRecords (ManualGetOwnSubscriptionRecordsRequest) returns (ManualGetOwnSubscriptionRecordsResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/manual/subscription"
+    };
+  }
+
+  rpc ManualGetOwnSubscriptionRecord (ManualGetOwnSubscriptionRecordRequest) returns (ManualGetOwnSubscriptionRecordResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/manual/subscription/{SubscriptionID}"
+    };
+  }
+
+  rpc ManualNewOtherSubscription (ManualNewOtherSubscriptionRequest) returns (ManualNewOtherSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/manual/admin/subscription/new"
+      body: "*"
+    };
+  }
+
+  rpc ManualNewOwnSubscription (ManualNewOwnSubscriptionRequest) returns (ManualNewOwnSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/manual/subscription/new"
+      body: "*"
+    };
+  }
+}
+
+message ManualCancelOtherSubscriptionRequest {
+  string UserID = 1;
+  string SubscriptionID = 2;
+  string Reason = 11;
+}
+  
+message ManualCancelOtherSubscriptionResponse {
+  ManualSubscriptionRecord Record = 1;
+  string Error = 2;
+}
+
+message ManualCancelOwnSubscriptionRequest {
+  string SubscriptionID = 1;
+  string Reason = 11;
+}
+  
+message ManualCancelOwnSubscriptionResponse {
+  ManualSubscriptionRecord Record = 1;
+  string Error = 2;
+}
+
+message ManualGetOtherSubscriptionRecordsRequest {
+  string UserID = 1;
+}
+
+message ManualGetOtherSubscriptionRecordsResponse {
+  repeated ManualSubscriptionRecord Records = 1;
+}
+
+message ManualGetOtherSubscriptionRecordRequest {
+  string UserID = 1;
+  string SubscriptionID = 2;
+}
+
+message ManualGetOtherSubscriptionRecordResponse {
+  ManualSubscriptionRecord Record = 1;
+}
+
+message ManualGetOwnSubscriptionRecordsRequest {
+}
+
+message ManualGetOwnSubscriptionRecordsResponse {
+  repeated ManualSubscriptionRecord Records = 1;
+}
+
+message ManualGetOwnSubscriptionRecordRequest {
+  string SubscriptionID = 1;
+}
+
+message ManualGetOwnSubscriptionRecordResponse {
+  ManualSubscriptionRecord Record = 1;
+}
+
+message ManualNewOtherSubscriptionRequest {
+  string UserID = 1;
+  uint32 AmountCents = 2;
+}
+
+message ManualNewOtherSubscriptionResponse {
+  ManualSubscriptionRecord Record = 1;
+  string Error = 2;
+}
+
+message ManualNewOwnSubscriptionRequest {
+  uint32 AmountCents = 1;
+}
+
+message ManualNewOwnSubscriptionResponse {
+  ManualSubscriptionRecord Record = 1;
+  string Error = 2;
+}

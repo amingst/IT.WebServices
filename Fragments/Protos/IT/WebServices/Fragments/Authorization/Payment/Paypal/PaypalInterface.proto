@@ -48,7 +48,7 @@ message PaypalGetOwnSubscriptionRecordsResponse {
 }
 
 message PaypalNewOwnSubscriptionRequest {
-  string PaypalSubscriptionId = 1;
+  string PaypalSubscriptionID = 1;
 }
   
 message PaypalNewOwnSubscriptionResponse {

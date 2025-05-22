@@ -5,30 +5,47 @@ package IT.WebServices.Fragments.Authorization.Payment.ParallelEconomy;
 import "google/protobuf/timestamp.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
 
-// User claim's record
+message ParallelEconomySubscriptionFullRecord {
+  ParallelEconomySubscriptionRecord SubscriptionRecord = 1;
+  repeated ParallelEconomyPaymentRecord Payments = 2;
+
+  google.protobuf.Timestamp LastPaidUTC = 11;
+  google.protobuf.Timestamp PaidThruUTC = 12;
+  google.protobuf.Timestamp RenewsOnUTC = 13;
+}
+
 message ParallelEconomySubscriptionRecord {
   string UserID = 1; // Guid for the user
   string SubscriptionID = 2; // Guid for the Subscription
-  string ParallelEconomySubscriptionId = 3;
-  uint32 AmountCents = 4;
+  string ParallelEconomyCustomerID = 3; // Id for the Customer with PE
+  string ParallelEconomySubscriptionID = 4; // Id for the Subscription with PE
   SubscriptionStatus Status = 5;
-  google.protobuf.Timestamp CreatedOnUTC = 11;
-  google.protobuf.Timestamp LastPaidUTC = 12;
-  google.protobuf.Timestamp PaidThruUTC = 13;
-  google.protobuf.Timestamp RenewsOnUTC = 14;
-  google.protobuf.Timestamp CanceledOnUTC = 15;
-  google.protobuf.Timestamp ChangedOnUTC = 16;
+  uint32 AmountCents = 11;
+  uint32 TaxCents = 12;
+  uint32 TaxRateThousandPercents = 13; //Tax rate 1.234% = 1234 or taxrate * 100000
+  uint32 TotalCents = 14;
+  google.protobuf.Timestamp CreatedOnUTC = 21;
+  google.protobuf.Timestamp ModifiedOnUTC = 22;
+  google.protobuf.Timestamp CanceledOnUTC = 23;
+  string CreatedBy = 31;
+  string ModifiedBy = 32;
+  string CanceledBy = 33;
 }
 
-message PaypalPaymentRecord {
+message ParallelEconomyPaymentRecord {
   string UserID = 1; // Guid for the user
   string SubscriptionID = 2; // Guid for the Subscription
   string PaymentID = 3; // Guid for the Payment
-  string ParallelEconomyPaymentID = 4;
-  uint32 AmountCents = 5;
-  PaymentStatus Status = 6;
-  google.protobuf.Timestamp CreatedOnUTC = 11;
-  google.protobuf.Timestamp PaidOnUTC = 12;
-  google.protobuf.Timestamp PaidThruUTC = 13;
-  google.protobuf.Timestamp ChangedOnUTC = 14;
+  string ParallelEconomyPaymentID = 4; // Id for the Payment with PE
+  PaymentStatus Status = 5;
+  uint32 AmountCents = 11;
+  uint32 TaxCents = 12;
+  uint32 TaxRateThousandPercents = 13; //Tax rate 1.234% = 1234 or taxrate * 100000
+  uint32 TotalCents = 14;
+  google.protobuf.Timestamp CreatedOnUTC = 21;
+  google.protobuf.Timestamp ModifiedOnUTC = 22;
+  google.protobuf.Timestamp PaidOnUTC = 23;
+  google.protobuf.Timestamp PaidThruUTC = 24;
+  string CreatedBy = 31;
+  string ModifiedBy = 32;
 }

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package IT.WebServices.Fragments.Authorization.Payment.Stripe;
 
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/SubscriptionRecord.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeSubscriptionRecord.proto";
 
 // Service for Stripe backup fragment interface
 service BackupInterface {
@@ -20,11 +20,11 @@ message BackupAllDataRequest {
 message BackupAllDataResponse {
   oneof Response_oneof {
     string ServerPublicJwk = 1;
-    EncryptedUserBackupDataRecord EncryptedRecord = 10;
+    EncryptedSubscriptionBackupDataRecord EncryptedRecord = 10;
   }
 }
 
-message EncryptedUserBackupDataRecord {
+message EncryptedSubscriptionBackupDataRecord {
   bytes EncryptionIV = 1;
   bytes Data = 10;
 }
@@ -32,24 +32,24 @@ message EncryptedUserBackupDataRecord {
 message RestoreAllDataRequest {
   oneof Request_oneof {
     RestoreMode Mode = 1;
-    UserBackupDataRecord Record = 10;
+    StripeBackupDataRecord Record = 10;
   }
 
   enum RestoreMode {
-    Wipe = 0;         // Wipe entire user database and restore users.  Any new users will be deleted.
+    Wipe = 0;         // Wipe entire subscription database and restore subscription.  Any new subscription will be deleted.
     Overwrite = 1;    // Overwrite all records with corresponding record.  Will not delete new records not in list.
-    MissingOnly = 2;  // Only restore missing user records.  Will not overwrite user records that already exist.
+    MissingOnly = 2;  // Only restore missing subscription records.  Will not overwrite subscription records that already exist.
   }
 }
 
 message RestoreAllDataResponse {
-  int32 NumUsersRestored = 1;
-  int32 NumUsersSkipped = 2;
-  int32 NumUsersOverwriten = 3;
-  int32 NumUsersWiped = 4;
+  int32 NumSubscriptionsRestored = 1;
+  int32 NumSubscriptionsSkipped = 2;
+  int32 NumSubscriptionsOverwriten = 3;
+  int32 NumSubscriptionsWiped = 4;
 }
 
-message UserBackupDataRecord {
+message StripeBackupDataRecord {
   bytes ExtraData = 1;   // Generic byte structure to save all application specific data for user
-  SubscriptionRecord SubscriptionRecord = 2; // SubscriptionRecord
+  StripeSubscriptionFullRecord SubscriptionRecord = 2; // SubscriptionRecord
 }

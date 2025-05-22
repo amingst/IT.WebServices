@@ -6,14 +6,30 @@ import "Protos/IT/WebServices/Fragments/Authorization/Payment/ParallelEconomy/Pl
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/ParallelEconomy/ParallelEconomySubscriptionRecord.proto";
 
 service ParallelEconomyInterface {
+  rpc CancelOtherSubscription (CancelOtherSubscriptionRequest) returns (CancelOtherSubscriptionResponse) {}
   rpc CancelOwnSubscription (CancelOwnSubscriptionRequest) returns (CancelOwnSubscriptionResponse) {}
   rpc GetAccountDetails (GetAccountDetailsRequest) returns (GetAccountDetailsResponse) {}
+  rpc GetOtherSubscriptionRecords (GetOtherSubscriptionRecordsRequest) returns (GetOtherSubscriptionRecordsResponse) {}
+  rpc GetOtherSubscriptionRecord (GetOtherSubscriptionRecordRequest) returns (GetOtherSubscriptionRecordResponse) {}
+  rpc GetOwnSubscriptionRecords (GetOwnSubscriptionRecordsRequest) returns (GetOwnSubscriptionRecordsResponse) {}
   rpc GetOwnSubscriptionRecord (GetOwnSubscriptionRecordRequest) returns (GetOwnSubscriptionRecordResponse) {}
   rpc NewOwnSubscription (NewOwnSubscriptionRequest) returns (NewOwnSubscriptionResponse) {}
 }
   
+message CancelOtherSubscriptionRequest {
+  string UserID = 1;
+  string SubscriptionID = 2;
+  string Reason = 11;
+}
+  
+message CancelOtherSubscriptionResponse {
+  ParallelEconomySubscriptionRecord Record = 1;
+  string Error = 2;
+}
+
 message CancelOwnSubscriptionRequest {
-  string Reason = 1;
+  string SubscriptionID = 1;
+  string Reason = 11;
 }
   
 message CancelOwnSubscriptionResponse {
@@ -28,18 +44,43 @@ message GetAccountDetailsResponse {
   PlanList Plans = 1;
   bool IsTest = 2;
 }
-  
-message GetOwnSubscriptionRecordRequest {
+
+message GetOtherSubscriptionRecordsRequest {
+  string UserID = 1;
 }
-  
+
+message GetOtherSubscriptionRecordsResponse {
+  repeated ParallelEconomySubscriptionRecord Records = 1;
+}
+
+message GetOtherSubscriptionRecordRequest {
+  string UserID = 1;
+  string SubscriptionID = 2;
+}
+
+message GetOtherSubscriptionRecordResponse {
+  ParallelEconomySubscriptionRecord Record = 1;
+}
+
+message GetOwnSubscriptionRecordsRequest {
+}
+
+message GetOwnSubscriptionRecordsResponse {
+  repeated ParallelEconomySubscriptionRecord Records = 1;
+}
+
+message GetOwnSubscriptionRecordRequest {
+  string SubscriptionID = 1;
+}
+
 message GetOwnSubscriptionRecordResponse {
   ParallelEconomySubscriptionRecord Record = 1;
 }
 
 message NewOwnSubscriptionRequest {
-  string TransactionId = 1;
+  string TransactionID = 1;
 }
-  
+
 message NewOwnSubscriptionResponse {
   ParallelEconomySubscriptionRecord Record = 1;
   string Error = 2;
