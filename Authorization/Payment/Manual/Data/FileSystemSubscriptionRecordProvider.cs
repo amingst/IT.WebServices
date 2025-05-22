@@ -43,6 +43,17 @@ namespace IT.WebServices.Authorization.Payment.Manual.Data
             }
         }
 
+        public async IAsyncEnumerable<ManualSubscriptionRecord> GetAllByUserId(Guid userId)
+        {
+            var dir = GetDataDirPath(userId);
+
+            foreach (var fi in dir.GetFiles())
+            {
+                var last = (await File.ReadAllLinesAsync(fi.FullName)).Last();
+                yield return ManualSubscriptionRecord.Parser.ParseFrom(Convert.FromBase64String(last));
+            }
+        }
+
 #pragma warning disable CS1998
         public async IAsyncEnumerable<(Guid userId, Guid subId)> GetAllSubscriptionIds()
 #pragma warning restore CS1998
@@ -68,17 +79,6 @@ namespace IT.WebServices.Authorization.Payment.Manual.Data
             var last = (await File.ReadAllLinesAsync(fi.FullName)).Last();
 
             return ManualSubscriptionRecord.Parser.ParseFrom(Convert.FromBase64String(last));
-        }
-
-        public async IAsyncEnumerable<ManualSubscriptionRecord> GetByUserId(Guid userId)
-        {
-            var dir = GetDataDirPath(userId);
-
-            foreach (var fi in dir.GetFiles())
-            {
-                var last = (await File.ReadAllLinesAsync(fi.FullName)).Last();
-                yield return ManualSubscriptionRecord.Parser.ParseFrom(Convert.FromBase64String(last));
-            }
         }
 
         public async Task Save(ManualSubscriptionRecord rec)

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Base\IT.WebServices.Base.csproj" />
+    <ProjectReference Include="..\..\..\..\Settings\Shared\IT.WebServices.Settings.Shared.csproj" />
+    <ProjectReference Include="..\Nugets\FortisAPI.Standard\FortisAPI.Standard.csproj" />
+  </ItemGroup>
+
+</Project>

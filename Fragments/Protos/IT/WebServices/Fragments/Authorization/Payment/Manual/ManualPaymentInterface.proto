@@ -70,7 +70,7 @@ service ManualPaymentInterface {
 message ManualCancelOtherSubscriptionRequest {
   string UserID = 1;
   string SubscriptionID = 2;
-  string Reason = 3;
+  string Reason = 11;
 }
   
 message ManualCancelOtherSubscriptionResponse {
@@ -80,7 +80,7 @@ message ManualCancelOtherSubscriptionResponse {
 
 message ManualCancelOwnSubscriptionRequest {
   string SubscriptionID = 1;
-  string Reason = 2;
+  string Reason = 11;
 }
   
 message ManualCancelOwnSubscriptionResponse {

@@ -17,8 +17,8 @@ namespace IT.WebServices.Authorization.Payment.Manual.Helpers
                 UserID = rdr["UserID"] as string,
                 AmountCents = (uint)rdr["AmountCents"],
                 CreatedBy = rdr["CreatedBy"] as string ?? "",
-                CancelledBy = rdr["CancelledBy"] as string ?? "",
                 ModifiedBy = rdr["ModifiedBy"] as string ?? "",
+                CanceledBy = rdr["CanceledBy"] as string ?? "",
             };
 
             DateTime d;
@@ -28,16 +28,16 @@ namespace IT.WebServices.Authorization.Payment.Manual.Helpers
                 record.CreatedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
             }
 
-            if (!(rdr["CancelledOnUTC"] is DBNull))
-            {
-                d = DateTime.SpecifyKind((DateTime)rdr["CancelledOnUTC"], DateTimeKind.Utc);
-                record.CancelledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
-            }
-
-            if (!(rdr["ChangedOnUTC"] is DBNull))
+            if (!(rdr["ModifiedOnUTC"] is DBNull))
             {
                 d = DateTime.SpecifyKind((DateTime)rdr["ModifiedOnUTC"], DateTimeKind.Utc);
                 record.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
+            }
+
+            if (!(rdr["CanceledOnUTC"] is DBNull))
+            {
+                d = DateTime.SpecifyKind((DateTime)rdr["CanceledOnUTC"], DateTimeKind.Utc);
+                record.CanceledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
             }
 
             return record;

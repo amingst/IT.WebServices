@@ -4,8 +4,6 @@ package IT.WebServices.Fragments.Authorization.Payment.Manual;
 
 import "google/protobuf/timestamp.proto";
 
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
-
 // User claim's record
 message ManualSubscriptionRecord {
   string UserID = 1; // Guid for the user
@@ -13,8 +11,8 @@ message ManualSubscriptionRecord {
   uint32 AmountCents = 11;
   google.protobuf.Timestamp CreatedOnUTC = 21;
   google.protobuf.Timestamp ModifiedOnUTC = 22;
-  google.protobuf.Timestamp CancelledOnUTC = 23;
+  google.protobuf.Timestamp CanceledOnUTC = 23;
   string CreatedBy = 31;
   string ModifiedBy = 32;
-  string CancelledBy = 33;
+  string CanceledBy = 33;
 }

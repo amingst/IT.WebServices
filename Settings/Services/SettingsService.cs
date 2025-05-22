@@ -681,15 +681,26 @@ namespace IT.WebServices.Settings.Services
                         Subscription = new()
                         {
                             AllowOther = true,
-                            ParallelEconomy = new() { Enabled = false },
-                            Stripe = new() { Enabled = false },
-                            Paypal = new() { Enabled = false },
-                            Crypto = new() { Enabled = false },
-                            //,
-                            //Fake = new()
+                            ParallelEconomy = new()
+                            {
+                                Enabled = false,
+                            },
+                            //Stripe = new()
                             //{
-                            //    Enabled = true,
-                            //}
+                            //    Enabled = false,
+                            //},
+                            Paypal = new()
+                            {
+                                Enabled = false,
+                            },
+                            Crypto = new()
+                            {
+                                Enabled = false,
+                            },
+                            Manual = new()
+                            {
+                                Enabled = true,
+                            }
                         },
                         CMS = new()
                         {
@@ -716,7 +727,7 @@ namespace IT.WebServices.Settings.Services
                         Subscription = new()
                         {
                             ParallelEconomy = new(),
-                            Stripe = new(),
+                            //Stripe = new(),
                             Paypal = new(),
                         },
                     },
