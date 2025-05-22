@@ -1,15 +1,13 @@
 ﻿using Grpc.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Payment.ParallelEconomy.Clients;
 using IT.WebServices.Authorization.Payment.ParallelEconomy.Data;
 using IT.WebServices.Fragments.Authorization.Payment.ParallelEconomy;
 using IT.WebServices.Fragments.Generic;
 using Microsoft.AspNetCore.Authorization;
-using IT.WebServices.Models;
-using IT.WebServices.Clients.Settings;
 using IT.WebServices.Helpers;
+using IT.WebServices.Settings;
 
 namespace IT.WebServices.Authorization.Payment.ParallelEconomy
 {

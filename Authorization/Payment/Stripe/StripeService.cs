@@ -2,11 +2,11 @@
 using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Payment.Stripe.Clients;
 using IT.WebServices.Authorization.Payment.Stripe.Data;
-using IT.WebServices.Clients.Settings;
 using IT.WebServices.Fragments.Authorization.Payment;
 using IT.WebServices.Fragments.Authorization.Payment.Stripe;
 using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Helpers;
+using IT.WebServices.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 

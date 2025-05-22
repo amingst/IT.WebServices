@@ -118,7 +118,7 @@ namespace IT.WebServices.Authorization.Payment.ParallelEconomy.Data
                     new MySqlParameter("PEInternalSubscriptionID", subId.ToString()),
             };
 
-            using var rdr = await sql.ReturnReader(query);
+            using var rdr = await sql.ReturnReader(query, parameters);
 
             while (await rdr.ReadAsync())
             {
@@ -145,7 +145,7 @@ namespace IT.WebServices.Authorization.Payment.ParallelEconomy.Data
                     new MySqlParameter("UserID", userId.ToString())
             };
 
-            using var rdr = await sql.ReturnReader(query);
+            using var rdr = await sql.ReturnReader(query, parameters);
 
             while (await rdr.ReadAsync())
             {

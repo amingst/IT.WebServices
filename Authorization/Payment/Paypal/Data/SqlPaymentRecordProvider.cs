@@ -1,6 +1,6 @@
-﻿using IT.WebServices.Authorization.Payment.Stripe.Helpers;
+﻿using IT.WebServices.Authorization.Payment.Paypal.Helpers;
 using IT.WebServices.Fragments.Authentication;
-using IT.WebServices.Fragments.Authorization.Payment.Stripe;
+using IT.WebServices.Fragments.Authorization.Payment.Paypal;
 using IT.WebServices.Fragments.Content;
 using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Helpers;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace IT.WebServices.Authorization.Payment.Stripe.Data
+namespace IT.WebServices.Authorization.Payment.Paypal.Data
 {
     internal class SqlPaymentRecordProvider : IPaymentRecordProvider
     {
@@ -28,18 +28,18 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
             {
                 const string query = @"
                     DELETE FROM
-                        Payment_Stripe_Payment
+                        Payment_Paypal_Payment
                     WHERE
                         UserID = @UserID
-                        AND StripeInternalSubscriptionID = @StripeInternalSubscriptionID
-                        AND StripeInternalPaymentID = @StripeInternalPaymentID;
+                        AND PaypalInternalSubscriptionID = @PaypalInternalSubscriptionID
+                        AND PaypalInternalPaymentID = @PaypalInternalPaymentID;
                 ";
 
                 var parameters = new MySqlParameter[]
                 {
                     new MySqlParameter("UserID", userId.ToString()),
-                    new MySqlParameter("StripeInternalSubscriptionID", subId.ToString()),
-                    new MySqlParameter("StripeInternalPaymentID", paymentId.ToString()),
+                    new MySqlParameter("PaypalInternalSubscriptionID", subId.ToString()),
+                    new MySqlParameter("PaypalInternalPaymentID", paymentId.ToString()),
                 };
 
                 await sql.RunCmd(query, parameters);
@@ -55,16 +55,16 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
             {
                 const string query = @"
                     DELETE FROM
-                        Payment_Stripe_Payment
+                        Payment_Paypal_Payment
                     WHERE
                         UserID = @UserID
-                        AND StripeInternalSubscriptionID = @StripeInternalSubscriptionID;
+                        AND PaypalInternalSubscriptionID = @PaypalInternalSubscriptionID;
                 ";
 
                 var parameters = new MySqlParameter[]
                 {
                     new MySqlParameter("UserID", userId.ToString()),
-                    new MySqlParameter("StripeInternalSubscriptionID", subId.ToString()),
+                    new MySqlParameter("PaypalInternalSubscriptionID", subId.ToString()),
                 };
 
                 await sql.RunCmd(query, parameters);
@@ -80,62 +80,62 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
             return rec != null;
         }
 
-        public async IAsyncEnumerable<StripePaymentRecord> GetAll()
+        public async IAsyncEnumerable<PaypalPaymentRecord> GetAll()
         {
             const string query = @"
                     SELECT
                         *
                     FROM
-                        Payment_Stripe_Payment
+                        Payment_Paypal_Payment
                 ";
 
             using var rdr = await sql.ReturnReader(query);
 
             while (await rdr.ReadAsync())
             {
-                var record = rdr.ParseStripePaymentRecord();
+                var record = rdr.ParsePaypalPaymentRecord();
 
                 if (record != null)
                     yield return record;
             }
         }
 
-        public async IAsyncEnumerable<StripePaymentRecord> GetAllBySubscriptionId(Guid userId, Guid subId)
+        public async IAsyncEnumerable<PaypalPaymentRecord> GetAllBySubscriptionId(Guid userId, Guid subId)
         {
             const string query = @"
                     SELECT
                         *
                     FROM
-                        Payment_Stripe_Payment
+                        Payment_Paypal_Payment
                     WHERE
                         UserID = @UserID
-                        AND StripeInternalSubscriptionID = @StripeInternalSubscriptionID;
+                        AND PaypalInternalSubscriptionID = @PaypalInternalSubscriptionID;
                 ";
 
             var parameters = new MySqlParameter[]
             {
                     new MySqlParameter("UserID", userId.ToString()),
-                    new MySqlParameter("StripeInternalSubscriptionID", subId.ToString()),
+                    new MySqlParameter("PaypalInternalSubscriptionID", subId.ToString()),
             };
 
             using var rdr = await sql.ReturnReader(query, parameters);
 
             while (await rdr.ReadAsync())
             {
-                var record = rdr.ParseStripePaymentRecord();
+                var record = rdr.ParsePaypalPaymentRecord();
 
                 if (record != null)
                     yield return record;
             }
         }
 
-        public async IAsyncEnumerable<StripePaymentRecord> GetAllByUserId(Guid userId)
+        public async IAsyncEnumerable<PaypalPaymentRecord> GetAllByUserId(Guid userId)
         {
             const string query = @"
                     SELECT
                         *
                     FROM
-                        Payment_Stripe_Payment
+                        Payment_Paypal_Payment
                     WHERE
                         UserID = @UserID;
                 ";
@@ -149,7 +149,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
 
             while (await rdr.ReadAsync())
             {
-                var record = rdr.ParseStripePaymentRecord();
+                var record = rdr.ParsePaypalPaymentRecord();
 
                 if (record != null)
                     yield return record;
@@ -161,10 +161,10 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
             const string query = @"
                     SELECT
                         UserID,
-                        StripeInternalSubscriptionID,
-                        StripeInternalPaymentID
+                        PaypalInternalSubscriptionID,
+                        PaypalInternalPaymentID
                     FROM
-                        Payment_Stripe_Payment
+                        Payment_Paypal_Payment
                 ";
 
             using var rdr = await sql.ReturnReader(query);
@@ -172,8 +172,8 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
             while (await rdr.ReadAsync())
             {
                 var userId = (rdr["UserID"] as string ?? "").ToGuid();
-                var subId = (rdr["StripeInternalSubscriptionID"] as string ?? "").ToGuid();
-                var paymentId = (rdr["StripeInternalPaymentID"] as string ?? "").ToGuid();
+                var subId = (rdr["PaypalInternalSubscriptionID"] as string ?? "").ToGuid();
+                var paymentId = (rdr["PaypalInternalPaymentID"] as string ?? "").ToGuid();
 
                 if (userId == Guid.Empty) continue;
                 if (subId == Guid.Empty) continue;
@@ -183,7 +183,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
             }
         }
 
-        public async Task<StripePaymentRecord?> GetById(Guid userId, Guid subId, Guid paymentId)
+        public async Task<PaypalPaymentRecord?> GetById(Guid userId, Guid subId, Guid paymentId)
         {
             try
             {
@@ -191,25 +191,25 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
                     SELECT
                         *
                     FROM
-                        Payment_Stripe_Payment
+                        Payment_Paypal_Payment
                     WHERE
                         UserID = @UserID
-                        AND StripeInternalSubscriptionID = @StripeInternalSubscriptionID
-                        AND StripeInternalPaymentID = @StripeInternalPaymentID;
+                        AND PaypalInternalSubscriptionID = @PaypalInternalSubscriptionID
+                        AND PaypalInternalPaymentID = @PaypalInternalPaymentID;
                 ";
 
                 var parameters = new MySqlParameter[]
                 {
                     new MySqlParameter("UserID", userId.ToString()),
-                    new MySqlParameter("StripeInternalSubscriptionID", subId.ToString()),
-                    new MySqlParameter("StripeInternalPaymentID", paymentId.ToString()),
+                    new MySqlParameter("PaypalInternalSubscriptionID", subId.ToString()),
+                    new MySqlParameter("PaypalInternalPaymentID", paymentId.ToString()),
                 };
 
                 using var rdr = await sql.ReturnReader(query, parameters);
 
                 if (await rdr.ReadAsync())
                 {
-                    var record = rdr.ParseStripePaymentRecord();
+                    var record = rdr.ParsePaypalPaymentRecord();
 
                     return record;
                 }
@@ -222,33 +222,33 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
             }
         }
 
-        public Task Save(StripePaymentRecord record)
+        public Task Save(PaypalPaymentRecord record)
         {
             return InsertOrUpdate(record);
         }
 
-        public async Task SaveAll(IEnumerable<StripePaymentRecord> payments)
+        public async Task SaveAll(IEnumerable<PaypalPaymentRecord> payments)
         {
             foreach (var p in payments)
                 await Save(p);
         }
 
-        private async Task InsertOrUpdate(StripePaymentRecord record)
+        private async Task InsertOrUpdate(PaypalPaymentRecord record)
         {
             try
             {
                 const string query = @"
-                    INSERT INTO Payment_Stripe_Payment
-                            (StripeInternalPaymentID,  StripeInternalSubscriptionID,  UserID,  StripePaymentID,  Status,
+                    INSERT INTO Payment_Paypal_Payment
+                            (PaypalInternalPaymentID,  PaypalInternalSubscriptionID,  UserID,  PaypalPaymentID,  Status,
                              AmountCents,  TaxCents,  TaxRateThousandPercents,  TotalCents,
                              CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  PaidOnUTC,  PaidThruUTC)
-                    VALUES (@StripeInternalPaymentID, @StripeInternalSubscriptionID, @UserID, @StripePaymentID, @Status,
+                    VALUES (@PaypalInternalPaymentID, @PaypalInternalSubscriptionID, @UserID, @PaypalPaymentID, @Status,
                             @AmountCents, @TaxCents, @TaxRateThousandPercents, @TotalCents,
                             @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @PaidOnUTC, @PaidThruUTC)
                     ON DUPLICATE KEY UPDATE
-                            StripeInternalSubscriptionID = @StripeInternalSubscriptionID,
+                            PaypalInternalSubscriptionID = @PaypalInternalSubscriptionID,
                             UserID = @UserID,
-                            StripePaymentID = @StripePaymentID,
+                            PaypalPaymentID = @PaypalPaymentID,
                             Status = @Status,
                             AmountCents = @AmountCents,
                             TaxCents = @TaxCents,
@@ -262,10 +262,10 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
 
                 var parameters = new List<MySqlParameter>()
                 {
-                    new MySqlParameter("StripeInternalPaymentID", record.PaymentID),
-                    new MySqlParameter("StripeInternalSubscriptionID", record.SubscriptionID),
+                    new MySqlParameter("PaypalInternalPaymentID", record.PaymentID),
+                    new MySqlParameter("PaypalInternalSubscriptionID", record.SubscriptionID),
                     new MySqlParameter("UserID", record.UserID),
-                    new MySqlParameter("StripePaymentID", record.StripePaymentID),
+                    new MySqlParameter("PaypalPaymentID", record.PaypalPaymentID),
                     new MySqlParameter("Status", record.Status),
                     new MySqlParameter("AmountCents", record.AmountCents),
                     new MySqlParameter("TaxCents", record.TaxCents),

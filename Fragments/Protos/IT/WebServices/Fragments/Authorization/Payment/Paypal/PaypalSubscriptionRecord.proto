@@ -17,8 +17,8 @@ message PaypalSubscriptionFullRecord {
 message PaypalSubscriptionRecord {
   string UserID = 1; // Guid for the user
   string SubscriptionID = 2; // Guid for the Subscription
-  string StripeCustomerID = 3; // Id for the Customer with Paypal
-  string StripeSubscriptionID = 4; // Id for the Subscription with Paypal
+  string PaypalCustomerID = 3; // Id for the Customer with Paypal
+  string PaypalSubscriptionID = 4; // Id for the Subscription with Paypal
   SubscriptionStatus Status = 5;
   uint32 AmountCents = 11;
   uint32 TaxCents = 12;

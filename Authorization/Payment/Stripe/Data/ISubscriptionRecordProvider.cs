@@ -1,9 +1,4 @@
-﻿using IT.WebServices.Fragments.Authorization;
-using IT.WebServices.Fragments.Authorization.Payment.Stripe;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using IT.WebServices.Fragments.Authorization.Payment.Stripe;
 
 namespace IT.WebServices.Authorization.Payment.Stripe.Data
 {

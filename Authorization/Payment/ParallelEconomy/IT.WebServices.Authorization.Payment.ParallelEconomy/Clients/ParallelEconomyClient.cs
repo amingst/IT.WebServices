@@ -4,7 +4,7 @@ using FortisAPI.Standard.Models;
 using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Payment.ParallelEconomy.Clients.Models;
 using IT.WebServices.Fragments.Authorization.Payment.Paypal;
-using IT.WebServices.Clients.Settings;
+using IT.WebServices.Settings;
 
 namespace IT.WebServices.Authorization.Payment.ParallelEconomy.Clients
 {

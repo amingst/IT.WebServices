@@ -5,8 +5,8 @@ using IT.WebServices.Fragments.Authorization;
 using IT.WebServices.Fragments.Authorization.Payment.Stripe;
 using Stripe;
 using IT.WebServices.Models;
-using IT.WebServices.Clients.Settings;
 using IT.WebServices.Authentication;
+using IT.WebServices.Settings;
 
 namespace IT.WebServices.Authorization.Payment.Stripe.Clients
 {

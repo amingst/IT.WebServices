@@ -29,6 +29,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Base", "Base
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Clients", "Clients\IT.WebServices.Clients.csproj", "{271FA74F-BF41-48DB-86B3-97C51D0F8A3C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Authorization.Payment.Manual", "Authorization\Payment\Manual\IT.WebServices.Authorization.Payment.Manual.csproj", "{015019DF-DF89-476C-B505-BB82E2D82E0B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Authorization.Payment.Stripe", "Authorization\Payment\Stripe\IT.WebServices.Authorization.Payment.Stripe.csproj", "{92CE3AF1-9F08-4AB0-8526-A6F9819CD211}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Authorization.Payment.Paypal", "Authorization\Payment\Paypal\IT.WebServices.Authorization.Payment.Paypal.csproj", "{E98397BD-DDBF-41C1-B466-145987829267}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Payments", "Payments", "{D37AF415-7FED-4A29-B656-090408A69CF4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FortisAPI.Standard", "Authorization\Payment\ParallelEconomy\Nugets\FortisAPI.Standard\FortisAPI.Standard.csproj", "{7BB9F2EA-84C6-407D-BCD7-BC7690FA2CB2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Authorization.Payment.ParallelEconomy", "Authorization\Payment\ParallelEconomy\IT.WebServices.Authorization.Payment.ParallelEconomy\IT.WebServices.Authorization.Payment.ParallelEconomy.csproj", "{B66A6BDC-5C75-4A11-BB9C-EA1C88E96013}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Authorization.Payment.Combined", "Authorization\Payment\Combined\IT.WebServices.Authorization.Payment.Combined.csproj", "{16FF5FB6-787A-4EA4-A5E3-6761BDE9851D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,9 +101,41 @@ Global
 		{271FA74F-BF41-48DB-86B3-97C51D0F8A3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{271FA74F-BF41-48DB-86B3-97C51D0F8A3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{271FA74F-BF41-48DB-86B3-97C51D0F8A3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{015019DF-DF89-476C-B505-BB82E2D82E0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{015019DF-DF89-476C-B505-BB82E2D82E0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{015019DF-DF89-476C-B505-BB82E2D82E0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{015019DF-DF89-476C-B505-BB82E2D82E0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92CE3AF1-9F08-4AB0-8526-A6F9819CD211}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92CE3AF1-9F08-4AB0-8526-A6F9819CD211}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92CE3AF1-9F08-4AB0-8526-A6F9819CD211}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92CE3AF1-9F08-4AB0-8526-A6F9819CD211}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E98397BD-DDBF-41C1-B466-145987829267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E98397BD-DDBF-41C1-B466-145987829267}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E98397BD-DDBF-41C1-B466-145987829267}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E98397BD-DDBF-41C1-B466-145987829267}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BB9F2EA-84C6-407D-BCD7-BC7690FA2CB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BB9F2EA-84C6-407D-BCD7-BC7690FA2CB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BB9F2EA-84C6-407D-BCD7-BC7690FA2CB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BB9F2EA-84C6-407D-BCD7-BC7690FA2CB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B66A6BDC-5C75-4A11-BB9C-EA1C88E96013}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B66A6BDC-5C75-4A11-BB9C-EA1C88E96013}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B66A6BDC-5C75-4A11-BB9C-EA1C88E96013}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B66A6BDC-5C75-4A11-BB9C-EA1C88E96013}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16FF5FB6-787A-4EA4-A5E3-6761BDE9851D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16FF5FB6-787A-4EA4-A5E3-6761BDE9851D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16FF5FB6-787A-4EA4-A5E3-6761BDE9851D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16FF5FB6-787A-4EA4-A5E3-6761BDE9851D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{015019DF-DF89-476C-B505-BB82E2D82E0B} = {D37AF415-7FED-4A29-B656-090408A69CF4}
+		{92CE3AF1-9F08-4AB0-8526-A6F9819CD211} = {D37AF415-7FED-4A29-B656-090408A69CF4}
+		{E98397BD-DDBF-41C1-B466-145987829267} = {D37AF415-7FED-4A29-B656-090408A69CF4}
+		{7BB9F2EA-84C6-407D-BCD7-BC7690FA2CB2} = {D37AF415-7FED-4A29-B656-090408A69CF4}
+		{B66A6BDC-5C75-4A11-BB9C-EA1C88E96013} = {D37AF415-7FED-4A29-B656-090408A69CF4}
+		{16FF5FB6-787A-4EA4-A5E3-6761BDE9851D} = {D37AF415-7FED-4A29-B656-090408A69CF4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F6A9A1C2-965B-46B4-829F-34719F799E83}

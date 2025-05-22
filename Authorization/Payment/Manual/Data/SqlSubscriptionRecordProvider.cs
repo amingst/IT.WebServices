@@ -89,7 +89,7 @@ namespace IT.WebServices.Authorization.Payment.Manual.Data
                     new MySqlParameter("UserID", userId.ToString())
             };
 
-            using var rdr = await sql.ReturnReader(query);
+            using var rdr = await sql.ReturnReader(query, parameters);
 
             while (await rdr.ReadAsync())
             {

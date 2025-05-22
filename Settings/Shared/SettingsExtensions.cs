@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using IT.WebServices.Settings;
 
-namespace IT.WebServices.Settings
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class SettingsExtensions
     {

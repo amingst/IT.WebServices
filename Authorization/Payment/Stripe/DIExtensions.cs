@@ -1,6 +1,7 @@
 ﻿using IT.WebServices.Authorization.Payment.Stripe;
 using IT.WebServices.Authorization.Payment.Stripe.Clients;
 using IT.WebServices.Authorization.Payment.Stripe.Data;
+using IT.WebServices.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
@@ -10,6 +11,10 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddStripeClasses(this IServiceCollection services)
         {
+            services.AddSettingsHelpers();
+
+            services.AddSingleton<MySQLHelper>();
+
             services.AddSingleton<StripeClient>();
             services.AddSingleton<IOneTimeRecordProvider, FileSystemOneTimeRecordProvider>();
             services.AddSingleton<IPaymentRecordProvider, SqlPaymentRecordProvider>();

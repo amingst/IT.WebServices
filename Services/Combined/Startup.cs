@@ -98,6 +98,8 @@ namespace IT.WebServices.Services.Combined
             services.AddSettingsClasses();
             services.AddStatsClasses();
 
+            services.AddPaymentClasses();
+
             CryptoProviderFactory.DefaultCacheSignatureProviders = false;
 
             Console.WriteLine("*** Loading pubkey: (" + JwtExtensions.GetPublicKey() + ")  ***");
@@ -130,6 +132,8 @@ namespace IT.WebServices.Services.Combined
                 endpoints.MapCommentGrpcServices();
                 endpoints.MapSettingsGrpcServices();
                 endpoints.MapStatsGrpcServices();
+
+                endpoints.MapPaymentGrpcServices();
 
                 //endpoints.MapGrpcReflectionService();
 

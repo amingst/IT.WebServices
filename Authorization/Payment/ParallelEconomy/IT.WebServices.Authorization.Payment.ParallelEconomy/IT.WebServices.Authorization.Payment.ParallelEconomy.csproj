@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Base\IT.WebServices.Base.csproj" />
-    <ProjectReference Include="..\..\..\..\Clients\IT.WebServices.Clients.csproj" />
+    <ProjectReference Include="..\..\..\..\Settings\Shared\IT.WebServices.Settings.Shared.csproj" />
     <ProjectReference Include="..\Nugets\FortisAPI.Standard\FortisAPI.Standard.csproj" />
   </ItemGroup>
 
