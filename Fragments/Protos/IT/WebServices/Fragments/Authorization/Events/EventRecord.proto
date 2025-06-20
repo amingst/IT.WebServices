@@ -1,0 +1,71 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Events;
+
+// import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
+import "google/protobuf/timestamp.proto";
+
+enum EventErrorType {
+	NoError = 0;
+	Unknown = 1;
+	InsufficientPermissions = 2;
+	NotFound = 3;
+	NullRequestData = 4;
+}
+
+message EventError {
+	EventErrorType Type = 1;
+	string Message = 2;
+}
+
+enum EventType {
+	Live = 0;
+	Virtual = 1;
+}
+
+enum AccessType {
+	AllAccess = 0;
+	Members = 1;
+}
+
+message EventLocationData {
+	string VenueName = 1;
+	string VenueStreetAddress = 2;
+	string SecondaryVenueStreetAddress = 3;
+	string VenueCity = 4;
+	string VenueStateOrProvince = 5;
+	string VenuePostalCode = 6;
+	string VenueCountry = 7;
+}
+
+message EventAccessData {
+	AccessType Access = 1;
+	uint32 MinimumLevel = 2;
+}
+
+message EventPublicRecord {
+	string Title = 1;
+	string Description = 2;
+	EventType Type = 3;
+	EventAccessData AccessData = 4;
+	EventLocationData LocationData = 5;
+	google.protobuf.Timestamp StartDate = 6;
+	google.protobuf.Timestamp EndDate = 7;
+	google.protobuf.Timestamp CreatedOnUTC = 20;
+	google.protobuf.Timestamp ModifiedOnUTC = 21;
+	google.protobuf.Timestamp AnnounceOnUTC = 22;
+	google.protobuf.Timestamp DeletedOnUTC = 23;
+}
+
+message EventPrivateRecord {
+	string CreatedById = 1;
+	string ModifiedById = 2;
+	string AnnouncedById = 3;
+	string DeletedById = 4;
+}
+
+message EventRecord {
+	string EventId = 1;
+	EventPublicRecord Public = 2;
+	EventPrivateRecord Private = 3;
+}

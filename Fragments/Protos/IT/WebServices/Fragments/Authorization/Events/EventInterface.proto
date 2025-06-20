@@ -1,0 +1,221 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Events;
+import "google/api/annotations.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Events/EventRecord.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
+
+service EventInterface {
+	rpc GetEventById (GetEventByIdRequest) returns (GetEventByIdResponse) {
+		option (google.api.http) = {
+			get: "/api/events/{EventId}"
+		};
+	}
+
+	rpc GetEvents (GetEventsRequest) returns (GetEventsResponse) {
+		option (google.api.http) = {
+			get: "/api/events"
+		};
+	}
+
+	rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse) {
+		option (google.api.http) = {
+			post: "/api/events",
+			body: "*"
+		};
+	}
+
+	rpc ModifyEvent (ModifyEventRequest) returns (ModifyEventResponse) {
+		option (google.api.http) = {
+			put: "/api/events/{EventId}",
+			body: "*"
+		};
+	}
+
+	rpc AnnounceEvent (AnnounceEventRequest) returns (AnnounceEventResponse) {
+		option (google.api.http) = {
+			post: "/api/events/{EventId}/announce",
+			body: "*"
+		};
+	}
+
+	rpc UnAnnounceEvent (UnAnnounceEventRequest) returns (UnAnnounceEventResponse) {
+		option (google.api.http) = {
+			post: "/api/events/{EventId}/unannounce",
+			body: "*"
+		};
+	}
+
+	rpc DeleteEvent (DeleteEventRequest) returns (DeleteEventResponse) {
+		option (google.api.http) = {
+			post: "/api/events/{EventId}/delete",
+			body: "*"
+		};
+	}
+
+	rpc UnDeleteEvent (UnDeleteEventRequest) returns (UnDeleteEventResponse) {
+		option (google.api.http) = {
+			post: "/api/events/{EventId}/undelete",
+			body: "*"
+		};
+	}
+
+	rpc CreateTicket (CreateTicketRequest) returns (CreateTicketResponse) {
+		option (google.api.http) = {
+			post: "/api/events/tickets",
+			body: "*"
+		};
+	}
+
+	rpc GetTicket (GetTicketRequest) returns (GetTicketResponse) {
+		option (google.api.http) = {
+			get: "/api/events/tickets/{TicketId}"
+		};
+	}
+
+	rpc GetTicketsByEvent (GetTicketsByEventRequest) returns (GetTicketsByEventResponse) {
+		option (google.api.http) = {
+			get: "/api/events/{EventId}/tickets"
+		};
+	}
+
+	rpc GetTickets (GetTicketsRequest) returns (GetTicketsResposne) {
+		option (google.api.http) = {
+			get: "/api/events/tickets"
+		};
+	}
+}
+
+message GetEventByIdRequest {
+	string EventId = 1;
+}
+
+message GetEventByIdResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+	EventRecord Record = 3;
+}
+
+message GetEventsRequest {
+	repeated EventType EventTypes = 1;
+}
+
+message GetEventsResponse {
+	repeated EventRecord Records = 1;
+	uint32 PageOffsetStart = 11;
+	uint32 PageOffsetEnd = 12;
+	uint32 PageTotalItems = 13;
+}
+
+message CreateEventRequest {
+	string Title = 1;
+	string Description = 2;
+	EventType Type = 3;
+	EventAccessData AccessData = 4;
+	EventLocationData LocationData = 5;
+	google.protobuf.Timestamp StartDate = 6;
+	google.protobuf.Timestamp EndDate = 7;
+}
+
+message CreateEventResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+	EventRecord Record = 3;
+}
+
+message ModifyEventRequest {
+	string EventId = 1;
+	string Description = 2;
+	EventType Type = 3;
+	EventAccessData AccessData = 4;
+	EventLocationData LocationData = 5;
+	google.protobuf.Timestamp StartDate = 6;
+	google.protobuf.Timestamp EndDate = 7;
+}
+
+message ModifyEventResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+}
+
+message AnnounceEventRequest {
+	string EventId = 1;
+}
+
+message AnnounceEventResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+}
+
+message UnAnnounceEventRequest {
+	string EventId = 1;
+}
+
+message UnAnnounceEventResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+}
+
+message DeleteEventRequest {
+	string EventId = 1;
+}
+
+message DeleteEventResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+}
+
+message UnDeleteEventRequest {
+	string EventId = 1;
+}
+
+message UnDeleteEventResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+}
+
+message CreateTicketRequest {
+	string EventId = 1;
+	string TicketName = 2;
+	uint32 Price = 3;
+	uint32 MaxAttendees = 3;
+	uint32 MaxPerUser = 4;
+	google.protobuf.Timestamp SaleStartOnUTC = 4;
+	google.protobuf.Timestamp SaleEndOnUTC = 5;
+}
+
+message CreateTicketResponse {
+	EventErrorType Error = 1;
+	string Message = 2;
+	EventTicketRecord Record = 3;
+}
+
+message GetTicketRequest {
+	string TicketId = 1;
+}
+
+message GetTicketResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+	EventTicketListRecord Record = 3;
+}
+
+message GetTicketsByEventRequest {
+	string EventId = 1;
+}
+
+message GetTicketsByEventResponse {
+	repeated EventTicketListRecord Records = 1;
+	uint32 PageOffsetStart = 11;
+	uint32 PageOffsetEnd = 12;
+	uint32 PageTotalItems = 13;
+}
+
+message GetTicketsRequest {}
+
+message GetTicketsResposne {
+	repeated EventTicketListRecord Records = 1;
+	uint32 PageOffsetStart = 11;
+	uint32 PageOffsetEnd = 12;
+	uint32 PageTotalItems = 13;
+}
