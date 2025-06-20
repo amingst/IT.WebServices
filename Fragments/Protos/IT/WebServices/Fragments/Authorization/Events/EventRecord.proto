@@ -2,7 +2,6 @@
 
 package IT.WebServices.Fragments.Authorization.Events;
 
-// import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
 import "google/protobuf/timestamp.proto";
 
 enum EventErrorType {
@@ -68,4 +67,32 @@ message EventRecord {
 	string EventId = 1;
 	EventPublicRecord Public = 2;
 	EventPrivateRecord Private = 3;
+}
+
+message EventTicketPublicRecord {
+	string TicketName = 1;
+	string EventId = 2;
+	uint32 Price = 3;
+	uint32 MaxAttendees = 4;
+	uint32 MaxPerUser = 5;
+}
+
+message EventTicketPrivateRecord {
+	google.protobuf.Timestamp SaleStartOnUTC = 1;
+	google.protobuf.Timestamp SaleEndOnUTC = 2;
+	uint32 QuantityAvailible = 3;
+}
+
+message EventTicketRecord {
+	string TicketId = 1;
+	EventTicketPublicRecord Public = 2;
+	EventTicketPrivateRecord Private = 3;
+}
+
+message EventTicketListRecord {
+	string TicketId = 1;
+	string TicketName = 2;
+	uint32 Price = 3;
+	uint32 MaxAttendees = 4;
+	uint32 MaxPerUser = 5;
 }

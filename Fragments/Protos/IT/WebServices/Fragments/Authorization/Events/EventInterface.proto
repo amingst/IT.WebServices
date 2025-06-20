@@ -3,7 +3,7 @@
 package IT.WebServices.Fragments.Authorization.Events;
 import "google/api/annotations.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Events/EventRecord.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
+import "google/protobuf/timestamp.proto";
 
 service EventInterface {
 	rpc GetEventById (GetEventByIdRequest) returns (GetEventByIdResponse) {
@@ -178,10 +178,10 @@ message CreateTicketRequest {
 	string EventId = 1;
 	string TicketName = 2;
 	uint32 Price = 3;
-	uint32 MaxAttendees = 3;
-	uint32 MaxPerUser = 4;
-	google.protobuf.Timestamp SaleStartOnUTC = 4;
-	google.protobuf.Timestamp SaleEndOnUTC = 5;
+	uint32 MaxAttendees = 4;
+	uint32 MaxPerUser = 5;
+	google.protobuf.Timestamp SaleStartOnUTC = 6;
+	google.protobuf.Timestamp SaleEndOnUTC = 7;
 }
 
 message CreateTicketResponse {
