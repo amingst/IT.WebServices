@@ -12,6 +12,7 @@ import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalSetti
 import "Protos/IT/WebServices/Fragments/Content/SharedTypes.proto";
 import "Protos/IT/WebServices/Fragments/Comment/SharedTypes.proto";
 import "Protos/IT/WebServices/Fragments/Notification/NotificationSettings.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Events/EventsSettings.proto";
 
 // User authentication data
 message SettingsRecord {
@@ -28,6 +29,7 @@ message SettingsPublicData {
   CommentsPublicRecord Comments = 12;
   CMSPublicRecord CMS = 13;
   NotificationPublicRecord Notification = 14;
+  EventsPublicRecord Events = 15;
 }
 
 message SettingsPrivateData {
@@ -37,6 +39,7 @@ message SettingsPrivateData {
   CommentsPrivateRecord Comments = 12;
   CMSPrivateRecord CMS = 13;
   NotificationPrivateRecord Notification = 14;
+  EventsPrivateRecord Events = 15;
 }
 
 message SettingsOwnerData {
@@ -45,6 +48,7 @@ message SettingsOwnerData {
   CommentsOwnerRecord Comments = 12;
   CMSOwnerRecord CMS = 13;
   NotificationOwnerRecord Notification = 14;
+  EventsOwnerRecord Events = 15;
 }
 
 message PersonalizationPublicRecord {
@@ -145,4 +149,19 @@ message CMSPublicMenuRecord {
   string PictureMenuLinkName = 2;
   string VideoMenuLinkName = 3;
   string WrittenMenuLinkName = 4;
+}
+
+message EventsPublicRecord {
+	IT.WebServices.Fragments.Authorization.Events.ManualEventsPublicSettings Manual = 1;
+	IT.WebServices.Fragments.Authorization.Events.EventbriteEventsPublicSettings Eventbrite = 2;
+}
+
+message EventsPrivateRecord {
+	IT.WebServices.Fragments.Authorization.Events.ManualEventsPrivateSettings Manual = 1;
+	IT.WebServices.Fragments.Authorization.Events.EventbriteEventsPrivateSettings Eventbrite = 2;
+}
+
+message EventsOwnerRecord {
+	IT.WebServices.Fragments.Authorization.Events.ManualEventsOwnerSettings Manual = 1;
+	IT.WebServices.Fragments.Authorization.Events.EventbriteEventsOwnerSettings Eventbrite = 2;
 }

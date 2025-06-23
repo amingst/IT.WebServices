@@ -35,6 +35,8 @@ message EventLocationData {
 	string VenueStateOrProvince = 5;
 	string VenuePostalCode = 6;
 	string VenueCountry = 7;
+	string Latitude = 8;
+	string Longitude = 9;
 }
 
 message EventAccessData {
@@ -48,12 +50,12 @@ message EventPublicRecord {
 	EventType Type = 3;
 	EventAccessData AccessData = 4;
 	EventLocationData LocationData = 5;
-	google.protobuf.Timestamp StartDate = 6;
-	google.protobuf.Timestamp EndDate = 7;
+	uint32 MaxAttendees = 6;
+	google.protobuf.Timestamp StartDate = 7;
+	google.protobuf.Timestamp EndDate = 8;
 	google.protobuf.Timestamp CreatedOnUTC = 20;
 	google.protobuf.Timestamp ModifiedOnUTC = 21;
-	google.protobuf.Timestamp AnnounceOnUTC = 22;
-	google.protobuf.Timestamp DeletedOnUTC = 23;
+	google.protobuf.Timestamp DeletedOnUTC = 22;
 }
 
 message EventPrivateRecord {
@@ -95,4 +97,21 @@ message EventTicketListRecord {
 	uint32 Price = 3;
 	uint32 MaxAttendees = 4;
 	uint32 MaxPerUser = 5;
+}
+
+message EventRSVPRecord {
+	string EventRSVPId = 1;
+	string EventId = 2;
+	string TicketId = 3;
+	string UserId = 4;
+	uint32 TotalPriceCents = 5;
+	uint32 AmountReserved = 6;
+
+	google.protobuf.Timestamp CreatedOnUTC = 11;
+	string CreatedById = 12;
+	google.protobuf.Timestamp ModifiedOnUTC = 13;
+	string ModifiedById = 14;
+	google.protobuf.Timestamp CancelledOnUTC = 15;
+	string CancelledById = 16;
+	string CancelledReason = 17;
 }
