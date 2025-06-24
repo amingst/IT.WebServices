@@ -9,10 +9,10 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Helpers
         {
             var record = new PaypalSubscriptionRecord()
             {
-                SubscriptionID = rdr["PaypalInternalSubscriptionID"] as string,
-                UserID = rdr["UserID"] as string,
-                PaypalCustomerID = rdr["PaypalCustomerID"] as string,
-                PaypalSubscriptionID = rdr["PaypalSubscriptionID"] as string,
+                SubscriptionID = rdr["PaypalInternalSubscriptionID"] as string ?? "",
+                UserID = rdr["UserID"] as string ?? "",
+                PaypalCustomerID = rdr["PaypalCustomerID"] as string ?? "",
+                PaypalSubscriptionID = rdr["PaypalSubscriptionID"] as string ?? "",
                 Status = (Fragments.Authorization.Payment.SubscriptionStatus)(byte)rdr["Status"],
                 AmountCents = (uint)rdr["AmountCents"],
                 TaxCents = (uint)rdr["TaxCents"],

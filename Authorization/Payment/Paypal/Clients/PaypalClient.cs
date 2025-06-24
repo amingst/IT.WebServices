@@ -1,6 +1,9 @@
 ﻿using IT.WebServices.Authorization.Payment.Paypal.Clients.Models;
 using IT.WebServices.Fragments.Authorization.Payment.Paypal;
+using IT.WebServices.Fragments.Settings;
+using IT.WebServices.Helpers;
 using IT.WebServices.Settings;
+using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
@@ -10,7 +13,7 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Clients
 {
     public class PaypalClient
     {
-        private readonly SettingsClient settingsClient;
+        private readonly SettingsHelper settings;
 
         private readonly Dictionary<uint, PlanRecordModel> CachedPlans = new();
 
@@ -21,14 +24,14 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Clients
 
         private object syncObject = new();
 
-        public PaypalClient(SettingsClient settingsClient)
+        public PaypalClient(SettingsHelper settings)
         {
-            this.settingsClient = settingsClient;
+            this.settings = settings;
         }
 
-        public bool IsEnabled => (settingsClient.PublicData?.Subscription?.Paypal?.Enabled ?? false)
-                              && (settingsClient.PublicData?.Subscription?.Paypal?.IsValid ?? false)
-                              && (settingsClient.OwnerData?.Subscription?.Paypal?.IsValid ?? false);
+        public bool IsEnabled => (settings.Public?.Subscription?.Paypal?.Enabled ?? false)
+                              && (settings.Public?.Subscription?.Paypal?.IsValid ?? false)
+                              && (settings.Owner?.Subscription?.Paypal?.IsValid ?? false);
 
         public async Task<PaypalNewDetails?> GetNewDetails(uint amountCents)
         {
@@ -41,7 +44,7 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Clients
 
             return new()
             {
-                AccountID = settingsClient.PublicData.Subscription.Paypal.ClientID,
+                AccountID = settings.Public.Subscription.Paypal.ClientID,
                 PlanID = plan.id,
             };
         }
@@ -150,6 +153,41 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Clients
             return false;
         }
 
+        internal async Task<List<T>> GetAllPages<T>(string url) where T : BasePaginated
+        {
+            List<T> list = new List<T>();
+
+            var client = await GetClient();
+            if (client == null) return list;
+
+            while (true)
+            {
+                CancellationTokenSource timeout = new CancellationTokenSource();
+                timeout.CancelAfter(30000);
+
+                var httpRes = await client.GetAsync(url, timeout.Token);
+
+                var str = await httpRes.Content.ReadAsStringAsync();
+                if (!httpRes.IsSuccessStatusCode)
+                    break;
+
+                var res = JsonSerializer.Deserialize<T>(str);
+                if (res == null)
+                    break;
+
+                list.Add(res);
+
+                var next = res?.links?.FirstOrDefault(l => l.rel == "next");
+                if (next?.href == null)
+                    break;
+
+                url = next.href;
+                await Task.Delay(100);
+            }
+
+            return list;
+        }
+
         internal async Task<SubscriptionModel?> GetSubscription(string subscriptionId)
         {
             try
@@ -168,6 +206,71 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Clients
             catch { }
 
             return null;
+        }
+
+        internal async Task<List<TransactionInfoModel>> GetTransactionsByDate(DateTimeOffset from, DateTimeOffset to)
+        {
+            try
+            {
+                var query = "start_date=" + from.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                query += "&end_date=" + to.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                query += "&page_size=500";
+                query += "&transaction_type=T0002";
+
+                var res = await GetAllPages<TransactionsHistoryModel>("/v1/reporting/transactions?" + query);
+
+                return res?.SelectMany(l => l.transaction_details)
+                               ?.Where(t => t?.transaction_info != null)
+                               ?.Select(t => t.transaction_info!)
+                               ?.Where(t => t?.paypal_reference_id_type == "SUB" || t?.paypal_reference_id_type == "RP")
+                               ?.ToList() ?? new();
+            }
+            catch { }
+
+            return new();
+        }
+
+        internal async IAsyncEnumerator<TransactionInfoModel> GetTransactionsByDateSegmented(DateTimeOffset from, DateTimeOffset to, CancellationToken token)
+        {
+            var monthFrom = from;
+
+            while (monthFrom <= to)
+            {
+                token.ThrowIfCancellationRequested();
+
+                var monthTo = monthFrom.AddMonths(1);
+                if (monthTo > to)
+                    monthTo = to;
+
+                var list = await GetTransactionsByDate(monthFrom, monthTo);
+                foreach (var t in list)
+                    yield return t;
+
+                monthFrom = monthTo;
+            }
+        }
+
+        internal async Task<TransactionsModel> GetTransactionsForSubscription(string subscriptionId)
+        {
+            try
+            {
+                CancellationTokenSource timeout = new CancellationTokenSource();
+                timeout.CancelAfter(30000);
+                var client = await GetClient();
+                if (client == null)
+                    return new();
+
+                string time = "?start_time=2018-01-01T00:00:00.000Z&end_time=" + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+
+                var httpRes = await client.GetAsync("/v1/billing/subscriptions/" + subscriptionId + "/transactions" + time, timeout.Token);
+
+                var str = await httpRes.Content.ReadAsStringAsync();
+                if (httpRes.IsSuccessStatusCode)
+                    return JsonSerializer.Deserialize<TransactionsModel>(str) ?? new();
+            }
+            catch { }
+
+            return new();
         }
 
         private async Task<PlanRecordModel?> GetPlanFromPaypal(string planId)
@@ -222,14 +325,12 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Clients
 
         private async Task<HttpClient?> GetClient()
         {
-            var settings = settingsClient.OwnerData.Subscription.Paypal;
-
             var token = await GetBearerToken();
             if (token == null)
                 return null;
 
             HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(settingsClient.PublicData.Subscription.Paypal.Url);
+            client.BaseAddress = new Uri(settings.Public.Subscription.Paypal.Url);
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/json"));
             client.DefaultRequestHeaders.AcceptLanguage.Add(StringWithQualityHeaderValue.Parse("en_US"));
@@ -264,8 +365,8 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Clients
         {
             try
             {
-                var pub = settingsClient.PublicData.Subscription.Paypal;
-                var own = settingsClient.OwnerData.Subscription.Paypal;
+                var pub = settings.Public.Subscription.Paypal;
+                var own = settings.Owner.Subscription.Paypal;
 
                 CancellationTokenSource timeout = new CancellationTokenSource();
                 timeout.CancelAfter(3000);

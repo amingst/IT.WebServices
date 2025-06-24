@@ -10,6 +10,7 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Data
         IAsyncEnumerable<PaypalSubscriptionRecord> GetAllByUserId(Guid userId);
         IAsyncEnumerable<(Guid userId, Guid subId)> GetAllSubscriptionIds();
         Task<PaypalSubscriptionRecord?> GetById(Guid userId, Guid subscriptionId);
+        Task<PaypalSubscriptionRecord?> GetByPaypalId(string paypalSubscriptionId);
         Task Save(PaypalSubscriptionRecord record);
     }
 }

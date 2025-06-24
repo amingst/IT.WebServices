@@ -75,6 +75,11 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Data
             return ReadLastOfFile(fi);
         }
 
+        public Task<PaypalSubscriptionRecord?> GetByPaypalId(string paypalSubscriptionId)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task Save(PaypalSubscriptionRecord rec)
         {
             var id = Guid.Parse(rec.UserID);

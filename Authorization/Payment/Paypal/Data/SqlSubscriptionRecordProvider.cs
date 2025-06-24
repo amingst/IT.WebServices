@@ -161,6 +161,41 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Data
             }
         }
 
+        public async Task<PaypalSubscriptionRecord?> GetByPaypalId(string paypalSubscriptionId)
+        {
+            try
+            {
+                const string query = @"
+                    SELECT
+                        *
+                    FROM
+                        Payment_Paypal_Subscription
+                    WHERE
+                        PaypalSubscriptionID = @PaypalSubscriptionID
+                ";
+
+                var parameters = new MySqlParameter[]
+                {
+                    new MySqlParameter("PaypalSubscriptionID", paypalSubscriptionId),
+                };
+
+                using var rdr = await sql.ReturnReader(query, parameters);
+
+                if (await rdr.ReadAsync())
+                {
+                    var record = rdr.ParsePaypalSubscriptionRecord();
+
+                    return record;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public Task Save(PaypalSubscriptionRecord record)
         {
             return InsertOrUpdate(record);
