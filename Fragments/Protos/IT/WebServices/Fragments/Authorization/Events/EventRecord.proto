@@ -27,6 +27,39 @@ enum AccessType {
 	Members = 1;
 }
 
+enum RecurrenceFrequency {
+	REPEAT_NONE = 0;
+	REPEAT_DAILY = 1;
+	REPEAT_WEEKLY = 2;
+	REPEATE_MONTHLY = 3;
+	REPEAT_YEARLY = 4;
+}
+
+// Defines The Rules For Repeating Events
+message EventRecurrenceRule {
+	// TODO: Refactor To Fragments/Shared.proto or equivalent
+	enum WeekdayEnum {
+		Sunday = 0;
+		Monday = 1;
+		Tuesday = 2;
+		Wednesday = 3;
+		Thursday = 4;
+		Friday = 5;
+		Saturday = 6;
+	}
+
+	RecurrenceFrequency Frequency = 1;					// Frequency of Events Scheduled
+	uint32 Interval = 2;												// Units of {RecurrenceFrequency} Between Events
+	repeated WeekdayEnum ByWeekday = 3;          // For Rules That Contain Day Offsets (e.g., Repeat Every Sunday And Thursday)
+
+	oneof EndCondition {
+		uint32 Count = 4;													// How Many Instances To Schedule
+		google.protobuf.Timestamp RepeatUntilUTC = 5;  // Timestamp of When to Stop Repeating Event
+	}
+
+	optional google.protobuf.Timestamp ExcludeDatesUTC = 6; // Days To Not Schedule An Event For (e.g., Holidays)
+}
+
 message EventLocationData {
 	string VenueName = 1;
 	string VenueStreetAddress = 2;
@@ -51,11 +84,28 @@ message EventPublicRecord {
 	EventAccessData AccessData = 4;
 	EventLocationData LocationData = 5;
 	uint32 MaxAttendees = 6;
-	google.protobuf.Timestamp StartDate = 7;
-	google.protobuf.Timestamp EndDate = 8;
+	optional EventRecurrenceRule Recurrence = 7;
+	google.protobuf.Timestamp StartDate = 8;
+	google.protobuf.Timestamp EndDate = 9;
 	google.protobuf.Timestamp CreatedOnUTC = 20;
 	google.protobuf.Timestamp ModifiedOnUTC = 21;
 	google.protobuf.Timestamp DeletedOnUTC = 22;
+	google.protobuf.Timestamp PublishedOnUTC = 23;
+	google.protobuf.Timestamp CanceledOnUTC = 24;
+}
+
+// Controls Visibility Of Event Location To Users
+message EventLocationSettings {
+	bool ShowLocationBeforeEvent = 1;											// Whether Or Not Attendees See The Location Before The Day Of The Event
+	google.protobuf.Timestamp ShowLocationOnUTC = 2;				// Date To Allow Attendees To See Location Data
+}
+
+message EventSettings {
+	bool ShowStartDate = 1;
+	bool ShowEndDate = 2;
+	bool ShowMaxAttendees = 3;
+
+	EventLocationSettings LocationSettings = 30;
 }
 
 message EventPrivateRecord {
@@ -63,6 +113,9 @@ message EventPrivateRecord {
 	string ModifiedById = 2;
 	string AnnouncedById = 3;
 	string DeletedById = 4;
+	string PublishedById = 5;
+	string CanceledById = 6;
+	EventSettings EventSettings = 7;
 }
 
 message EventRecord {
@@ -114,4 +167,12 @@ message EventRSVPRecord {
 	google.protobuf.Timestamp CancelledOnUTC = 15;
 	string CancelledById = 16;
 	string CancelledReason = 17;
+}
+
+message EventInstance {
+	string InstanceId = 1;
+	string ParentEventId = 2;
+	google.protobuf.Timestamp StartDate = 3;
+	google.protobuf.Timestamp EndDate = 4;
+	bool IsCancelled = 5;
 }

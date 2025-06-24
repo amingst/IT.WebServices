@@ -95,6 +95,25 @@ service EventInterface {
 			get: "/api/events/reservations/{EventRSVPId}"
 		};
 	}
+
+	rpc GetInstancesForEvent (GetInstancesForEventRequest) returns (GetInstancesForEventResponse) {
+		option (google.api.http) = {
+			get: "/api/events/{EventId}/instances"
+		};
+	}
+
+	rpc GetInstanceById (GetInstanceByIdRequest) returns (GetInstanceByIdResponse) {
+		option (google.api.http) = {
+			get: "/api/events/instances/{InstanceId}"
+		};
+	}
+
+	rpc CancelEventInstance (CancelEventInstanceRequest) returns (CancelEventInstanceResponse) {
+		option (google.api.http) = {
+			put: "/api/events/instances/{InstanceId}/cancel",
+			body: "*"
+		};
+	}
 }
 
 message GetEventByIdRequest {
@@ -256,4 +275,33 @@ message GetRSVPByIdResponse {
 	EventErrorType ErrorType = 1;
 	string Message = 2;
 	EventRSVPRecord Record = 3;
+}
+
+message GetInstancesForEventRequest {
+	string EventId = 1;
+}
+
+message GetInstancesForEventResponse {
+	repeated EventInstance Instances = 1;
+	uint32 PageOffsetStart = 2;
+	uint32 PageOffsetEnd = 3;
+	uint32 PageTotalItems = 4;
+}
+
+message GetInstanceByIdRequest {
+	string InstanceId = 1;
+}
+
+message GetInstanceByIdResponse {
+	EventInstance Instance = 1;
+}
+
+message CancelEventInstanceRequest {
+	string InstanceId = 1;
+	string Reason = 2;
+}
+
+message CancelEventInstanceResponse {
+	bool Success = 1;
+	string Error = 2;
 }

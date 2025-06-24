@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IT.WebServices.Fragments.Generic;
+using static IT.WebServices.Fragments.Authorization.Events.EventRecurrenceRule.Types;
 using pb = global::Google.Protobuf;
 
 namespace IT.WebServices.Fragments.Authorization.Events
@@ -15,6 +16,12 @@ namespace IT.WebServices.Fragments.Authorization.Events
             get => this.EventId.ToGuid();
             set => this.EventId = value.ToString();
         }
+
+        public bool IsRecurring =>
+            this.Public?.StartDate != null &&
+            this.Public?.EndDate != null &&
+            this.Public.Recurrence != null &&
+            this.Public.Recurrence.Frequency != RecurrenceFrequency.RepeatNone;
     }
 
     public sealed partial class EventTicketRecord : pb::IMessage<EventTicketRecord>
