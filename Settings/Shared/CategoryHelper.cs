@@ -30,5 +30,10 @@ namespace IT.WebServices.Settings
         {
             return settingsClient.PublicData?.CMS?.Categories?.FirstOrDefault(c => c.UrlStub == slug);
         }
+
+        public CategoryRecord[] GetAll()
+        {
+            return settingsClient.PublicData.CMS?.Categories?.ToArray();
+        }
     }
 }
