@@ -13,7 +13,7 @@ namespace IT.WebServices.Authorization.Events.Manual.Extensions
 {
     public static class DIExtensions
     {
-        public static IServiceCollection AddManualEventsClasses(this IServiceCollection services)
+        public static IServiceCollection AddEventsClasses(this IServiceCollection services)
         {
             services.AddSingleton<IEventDataProvider, FileSystemEventDataProvider>();
             services.AddSingleton<ITicketDataProvider, FileSystemTicketDataProvider>();
@@ -21,9 +21,9 @@ namespace IT.WebServices.Authorization.Events.Manual.Extensions
             return services;
         }
 
-        public static void MapManualEventsGrpcServices(this IEndpointRouteBuilder endpoints)
+        public static void MapEventsGrpcServices(this IEndpointRouteBuilder endpoints)
         {
-            endpoints.MapGrpcService<ManualEventsService>();
+            endpoints.MapGrpcService<EventsService>();
         }
     }
 }

@@ -12,16 +12,16 @@ using Microsoft.Extensions.Logging;
 
 namespace IT.WebServices.Authorization.Events.Manual.Services
 {
-    public class ManualEventsService : EventInterface.EventInterfaceBase
+    public class EventsService : EventInterface.EventInterfaceBase
     {
-        private readonly ILogger<ManualEventsService> _logger;
+        private readonly ILogger<EventsService> _logger;
         private readonly IEventDataProvider _eventProvider;
         private readonly ITicketDataProvider _ticketProvider;
         private readonly IRSVPDataProvider _rsvpProvider;
         private readonly ONUserHelper _userHelper;
 
-        public ManualEventsService(
-            ILogger<ManualEventsService> logger,
+        public EventsService(
+            ILogger<EventsService> logger,
             IEventDataProvider eventProvider,
             ITicketDataProvider ticketProvider,
             IRSVPDataProvider rsvpProvider,

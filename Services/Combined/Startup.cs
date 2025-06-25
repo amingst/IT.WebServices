@@ -99,7 +99,7 @@ namespace IT.WebServices.Services.Combined
             services.AddCommentClasses();
             services.AddSettingsClasses();
             services.AddStatsClasses();
-            services.AddManualEventsClasses();
+            services.AddEventsClasses();
             services.AddPaymentClasses();
 
             CryptoProviderFactory.DefaultCacheSignatureProviders = false;
@@ -138,7 +138,7 @@ namespace IT.WebServices.Services.Combined
                 endpoints.MapCommentGrpcServices();
                 endpoints.MapSettingsGrpcServices();
                 endpoints.MapStatsGrpcServices();
-                endpoints.MapManualEventsGrpcServices();
+                endpoints.MapEventsGrpcServices();
 
                 endpoints.MapPaymentGrpcServices();
 
