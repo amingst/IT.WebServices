@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IT.WebServices.Fragments;
 using IT.WebServices.Fragments.Authorization.Events;
 
 namespace IT.WebServices.Authorization.Events.Extensions
@@ -15,12 +16,29 @@ namespace IT.WebServices.Authorization.Events.Extensions
             var eventRecord = new EventRecord()
             {
                 EventId = rdr["EventID"] as string,
-                Public = new()
+                Public = new EventPublicRecord()
                 {
                     Title = rdr["Title"] as string ?? "",
                     Description = rdr["Description"] as string ?? "",
-                    AccessData = new() { MinimumLevel = (uint)(int)rdr["MinimumAccessLevel"] },
-                    LocationData = new()
+                    Type = Enum.TryParse<EventType>(rdr["EventType"]?.ToString(), out var eventType)
+                        ? eventType
+                        : EventType.Live, // Default fallback
+                    MaxAttendees =
+                        rdr["MaxAttendees"] is DBNull ? 0 : Convert.ToUInt32(rdr["MaxAttendees"]),
+                    AccessData = new EventAccessData
+                    {
+                        MinimumLevel =
+                            rdr["MinimumAccessLevel"] is DBNull
+                                ? 0
+                                : Convert.ToUInt32(rdr["MinimumAccessLevel"]),
+                        Access = Enum.TryParse<AccessType>(
+                            rdr["AccessType"]?.ToString(),
+                            out var accessType
+                        )
+                            ? accessType
+                            : AccessType.AllAccess,
+                    },
+                    LocationData = new EventLocationData()
                     {
                         VenueName = rdr["VenueName"] as string ?? "",
                         VenueStreetAddress = rdr["VenueStreetAddress"] as string ?? "",
@@ -30,20 +48,47 @@ namespace IT.WebServices.Authorization.Events.Extensions
                         VenueStateOrProvince = rdr["VenueStateOrProvince"] as string ?? "",
                         VenuePostalCode = rdr["VenuePostalCode"] as string ?? "",
                         VenueCountry = rdr["VenueCountry"] as string ?? "",
+                        Latitude = rdr["Latitude"] as string ?? "",
+                        Longitude = rdr["Longitude"] as string ?? "",
                     },
+                    Recurrence = null, // We'll handle this next
+                    StartDate = null,
+                    EndDate = null,
+                    LifecycleMetadata = new LifecycleMetadataPublic(),
                 },
-                Private = new()
+                Private = new EventPrivateRecord()
                 {
-                    LifecycleMetadata = new()
+                    LifecycleMetadata = new LifecycleMetadataPrivate()
                     {
                         CreatedById = rdr["CreatedById"] as string ?? "",
                         ModifiedById = rdr["ModifiedById"] as string ?? "",
                         DeletedById = rdr["DeletedById"] as string ?? "",
                     },
+                    EventSettings = new EventSettings()
+                    {
+                        ShowStartDate =
+                            rdr["ShowStartDate"] is DBNull ? false : (bool)rdr["ShowStartDate"],
+                        ShowEndDate =
+                            rdr["ShowEndDate"] is DBNull ? false : (bool)rdr["ShowEndDate"],
+                        ShowMaxAttendees =
+                            rdr["ShowMaxAttendees"] is DBNull
+                                ? false
+                                : (bool)rdr["ShowMaxAttendees"],
+                        LocationSettings = new EventLocationSettings()
+                        {
+                            ShowLocationBeforeEvent =
+                                rdr["ShowLocationBeforeEvent"] is DBNull
+                                    ? false
+                                    : (bool)rdr["ShowLocationBeforeEvent"],
+                            ShowLocationOnUTC = null, // parse below if exists
+                        },
+                    },
                 },
             };
 
             DateTime d;
+
+            // Parse timestamps safely:
             if (!(rdr["CreatedOnUTC"] is DBNull))
             {
                 d = DateTime.SpecifyKind((DateTime)rdr["CreatedOnUTC"], DateTimeKind.Utc);
@@ -64,12 +109,60 @@ namespace IT.WebServices.Authorization.Events.Extensions
                 eventRecord.Public.StartDate =
                     Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
             }
+
             if (!(rdr["EndDate"] is DBNull))
             {
                 d = DateTime.SpecifyKind((DateTime)rdr["EndDate"], DateTimeKind.Utc);
                 eventRecord.Public.EndDate = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
                     d
                 );
+            }
+
+            if (!(rdr["ShowLocationOnUTC"] is DBNull))
+            {
+                d = DateTime.SpecifyKind((DateTime)rdr["ShowLocationOnUTC"], DateTimeKind.Utc);
+                eventRecord.Private.EventSettings.LocationSettings.ShowLocationOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
+            }
+
+            // Parse recurrence rule if present (assuming JSON or separate fields for frequency, interval, etc.)
+            // If stored as JSON or separate columns, deserialize or map accordingly:
+            var freqObj = rdr["RecurrenceFrequency"];
+            if (freqObj != DBNull.Value)
+            {
+                var recurrence = new EventRecurrenceRule();
+
+                recurrence.Frequency = Enum.TryParse<RecurrenceFrequency>(
+                    freqObj.ToString(),
+                    out var freq
+                )
+                    ? freq
+                    : RecurrenceFrequency.RepeatNone;
+
+                recurrence.Interval =
+                    rdr["RecurrenceInterval"] is DBNull
+                        ? 1
+                        : Convert.ToUInt32(rdr["RecurrenceInterval"]);
+
+                // Parse ByWeekday, Count, RepeatUntilUTC, ExcludeDatesUTC similarly
+                // Example for Count:
+                if (rdr["RecurrenceCount"] is not DBNull)
+                    recurrence.Count = Convert.ToUInt32(rdr["RecurrenceCount"]);
+
+                if (!(rdr["RecurrenceRepeatUntilUTC"] is DBNull))
+                {
+                    d = DateTime.SpecifyKind(
+                        (DateTime)rdr["RecurrenceRepeatUntilUTC"],
+                        DateTimeKind.Utc
+                    );
+                    recurrence.RepeatUntilUTC =
+                        Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
+                }
+
+                // ByWeekday and ExcludeDatesUTC parsing depends on how you store them (e.g., JSON string or CSV)
+                // You may need to parse them here
+
+                eventRecord.Public.Recurrence = recurrence;
             }
 
             return eventRecord;

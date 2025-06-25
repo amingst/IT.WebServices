@@ -61,9 +61,26 @@ namespace IT.WebServices.Authorization.Events.Data
         public async IAsyncEnumerable<EventRecord> GetAll()
         {
             foreach (var fd in GetAllDataFiles())
-                yield return EventRecord.Parser.ParseFrom(
-                    await File.ReadAllBytesAsync(fd.FullName)
-                );
+            {
+                EventRecord record = null;
+                try
+                {
+                    var bytes = await File.ReadAllBytesAsync(fd.FullName);
+                    record = EventRecord.Parser.ParseFrom(bytes);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to parse EventRecord from file {FileName}",
+                        fd.FullName
+                    );
+                    continue; // skip this corrupted or incompatible file
+                }
+
+                if (record != null)
+                    yield return record;
+            }
         }
 
         public async Task<EventRecord> GetById(Guid eventId)
