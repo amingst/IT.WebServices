@@ -1,7 +1,7 @@
 ﻿syntax = "proto3";
 
 package IT.WebServices.Fragments.Authorization.Events;
-
+import "Protos/IT/WebServices/Fragments/CommonTypes.proto";
 import "google/protobuf/timestamp.proto";
 
 enum EventErrorType {
@@ -37,17 +37,6 @@ enum RecurrenceFrequency {
 
 // Defines The Rules For Repeating Events
 message EventRecurrenceRule {
-	// TODO: Refactor To Fragments/Shared.proto or equivalent
-	enum WeekdayEnum {
-		Sunday = 0;
-		Monday = 1;
-		Tuesday = 2;
-		Wednesday = 3;
-		Thursday = 4;
-		Friday = 5;
-		Saturday = 6;
-	}
-
 	RecurrenceFrequency Frequency = 1;					// Frequency of Events Scheduled
 	uint32 Interval = 2;												// Units of {RecurrenceFrequency} Between Events
 	repeated WeekdayEnum ByWeekday = 3;          // For Rules That Contain Day Offsets (e.g., Repeat Every Sunday And Thursday)
@@ -87,11 +76,7 @@ message EventPublicRecord {
 	optional EventRecurrenceRule Recurrence = 7;
 	google.protobuf.Timestamp StartDate = 8;
 	google.protobuf.Timestamp EndDate = 9;
-	google.protobuf.Timestamp CreatedOnUTC = 20;
-	google.protobuf.Timestamp ModifiedOnUTC = 21;
-	google.protobuf.Timestamp DeletedOnUTC = 22;
-	google.protobuf.Timestamp PublishedOnUTC = 23;
-	google.protobuf.Timestamp CanceledOnUTC = 24;
+	LifecycleMetadataPublic LifecycleMetadata = 10;
 }
 
 // Controls Visibility Of Event Location To Users
@@ -109,13 +94,8 @@ message EventSettings {
 }
 
 message EventPrivateRecord {
-	string CreatedById = 1;
-	string ModifiedById = 2;
-	string AnnouncedById = 3;
-	string DeletedById = 4;
-	string PublishedById = 5;
-	string CanceledById = 6;
-	EventSettings EventSettings = 7;
+	LifecycleMetadataPrivate LifecycleMetadata = 1;
+	EventSettings EventSettings = 2;
 }
 
 message EventRecord {

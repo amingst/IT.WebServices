@@ -55,14 +55,16 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
                     LocationData = request.LocationData,
                     StartDate = request.StartDate,
                     EndDate = request.EndDate,
-                    CreatedOnUTC = now,
-                    ModifiedOnUTC = now,
+                    LifecycleMetadata = new() { CreatedOnUTC = now, ModifiedOnUTC = now },
                     MaxAttendees = request.MaxAttendees,
                 },
                 Private = new()
                 {
-                    CreatedById = (userToken?.Id ?? newGuid).ToString(),
-                    ModifiedById = (userToken?.Id ?? newGuid).ToString(),
+                    LifecycleMetadata = new()
+                    {
+                        CreatedById = (userToken?.Id ?? newGuid).ToString(),
+                        ModifiedById = (userToken?.Id ?? newGuid).ToString(),
+                    },
                 },
             };
 
@@ -155,8 +157,8 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
             found.Public.StartDate = request.StartDate;
             found.Public.EndDate = request.EndDate;
             found.Public.MaxAttendees = request.MaxAttendees;
-            found.Public.ModifiedOnUTC = now;
-            found.Private.ModifiedById = (userToken?.Id).ToString();
+            found.Public.LifecycleMetadata.ModifiedOnUTC = now;
+            found.Private.LifecycleMetadata.ModifiedById = (userToken?.Id).ToString();
 
             await _eventProvider.Save(found);
             return new ModifyEventResponse()

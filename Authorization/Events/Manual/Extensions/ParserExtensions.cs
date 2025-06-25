@@ -34,9 +34,12 @@ namespace IT.WebServices.Authorization.Events.Manual.Extensions
                 },
                 Private = new()
                 {
-                    CreatedById = rdr["CreatedById"] as string ?? "",
-                    ModifiedById = rdr["ModifiedById"] as string ?? "",
-                    DeletedById = rdr["DeletedById"] as string ?? "",
+                    LifecycleMetadata = new()
+                    {
+                        CreatedById = rdr["CreatedById"] as string ?? "",
+                        ModifiedById = rdr["ModifiedById"] as string ?? "",
+                        DeletedById = rdr["DeletedById"] as string ?? "",
+                    },
                 },
             };
 
@@ -44,14 +47,14 @@ namespace IT.WebServices.Authorization.Events.Manual.Extensions
             if (!(rdr["CreatedOnUTC"] is DBNull))
             {
                 d = DateTime.SpecifyKind((DateTime)rdr["CreatedOnUTC"], DateTimeKind.Utc);
-                eventRecord.Public.CreatedOnUTC =
+                eventRecord.Public.LifecycleMetadata.CreatedOnUTC =
                     Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
             }
 
             if (!(rdr["ModifiedOnUTC"] is DBNull))
             {
                 d = DateTime.SpecifyKind((DateTime)rdr["ModifiedOnUTC"], DateTimeKind.Utc);
-                eventRecord.Public.ModifiedOnUTC =
+                eventRecord.Public.LifecycleMetadata.ModifiedOnUTC =
                     Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
             }
 

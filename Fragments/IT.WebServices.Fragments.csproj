@@ -41,6 +41,7 @@
     <None Remove="Protos\IT\WebServices\Fragments\Comment\CommentInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Comment\CommentRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Comment\SharedTypes.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\CommonTypes.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\AssetBackup.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\AssetInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\AssetRecord.proto" />
@@ -114,6 +115,7 @@
     <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\CommentInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\CommentRecord.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\SharedTypes.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\CommonTypes.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\AssetBackup.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\AssetRecord.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Music\MusicInterface.proto" />
