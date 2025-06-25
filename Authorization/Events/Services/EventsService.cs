@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IT.WebServices.Authentication;
-using IT.WebServices.Authorization.Events.Manual.Data;
-using IT.WebServices.Authorization.Events.Manual.Helpers;
+using IT.WebServices.Authorization.Events.Data;
+using IT.WebServices.Authorization.Events.Helpers;
 using IT.WebServices.Fragments.Authorization.Events;
 using IT.WebServices.Helpers;
 using Microsoft.Extensions.Logging;
 using Org.BouncyCastle.Utilities;
 
-namespace IT.WebServices.Authorization.Events.Manual.Services
+namespace IT.WebServices.Authorization.Events.Services
 {
     public class EventsService : EventInterface.EventInterfaceBase
     {
@@ -507,6 +507,7 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
         )
         {
             var res = new GetInstancesForEventResponse();
+
             if (!Guid.TryParse(request.EventId, out var eventId) || eventId == Guid.Empty)
                 return res;
 
@@ -514,8 +515,18 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
             if (foundEvent is null)
                 return res;
 
+            // Pagination parameters from the request (assuming zero-based index for start)
+            var pageOffsetStart = (int)request.PageOffsetStart;
+            var pageOffsetEnd = (int)request.PageOffsetEnd;
+
             if (!foundEvent.IsRecurring)
             {
+                if (pageOffsetStart > 0)
+                {
+                    // If start offset is beyond available single instance, return empty
+                    return res;
+                }
+
                 res.Instances.Add(
                     new EventInstance
                     {
@@ -525,7 +536,10 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
                         IsCancelled = foundEvent.Public.LifecycleMetadata?.CanceledOnUTC != null,
                     }
                 );
+
                 res.PageTotalItems = 1;
+                res.PageOffsetStart = 0;
+                res.PageOffsetEnd = 0;
                 return res;
             }
 
@@ -550,8 +564,27 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
                 }
             }
 
-            res.Instances.AddRange(generatedInstances.Values.OrderBy(i => i.StartDate));
-            res.PageTotalItems = (uint)generatedInstances.Count;
+            var allInstancesOrdered = generatedInstances.Values.OrderBy(i => i.StartDate).ToList();
+            var totalCount = allInstancesOrdered.Count;
+
+            // Clamp offsets
+            if (pageOffsetStart < 0)
+                pageOffsetStart = 0;
+
+            if (pageOffsetEnd < pageOffsetStart || pageOffsetEnd >= totalCount)
+                pageOffsetEnd = totalCount - 1;
+
+            var countToTake = (pageOffsetEnd - pageOffsetStart) + 1;
+            if (countToTake < 0)
+                countToTake = 0;
+
+            var pagedInstances = allInstancesOrdered.Skip(pageOffsetStart).Take(countToTake);
+
+            res.Instances.AddRange(pagedInstances);
+            res.PageTotalItems = (uint)totalCount;
+            res.PageOffsetStart = (uint)pageOffsetStart;
+            res.PageOffsetEnd = (uint)(pageOffsetStart + pagedInstances.Count() - 1);
+
             return res;
         }
 

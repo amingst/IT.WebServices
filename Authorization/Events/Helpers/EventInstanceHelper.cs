@@ -4,7 +4,7 @@ using System.Linq;
 using Google.Protobuf.WellKnownTypes;
 using IT.WebServices.Fragments.Authorization.Events;
 
-namespace IT.WebServices.Authorization.Events.Manual.Helpers
+namespace IT.WebServices.Authorization.Events.Helpers
 {
     public static class EventInstanceHelper
     {

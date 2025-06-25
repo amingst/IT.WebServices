@@ -9,7 +9,7 @@ using IT.WebServices.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace IT.WebServices.Authorization.Events.Manual.Data
+namespace IT.WebServices.Authorization.Events.Data
 {
     public class FileSystemEventRSVPDataProvider : IRSVPDataProvider
     {

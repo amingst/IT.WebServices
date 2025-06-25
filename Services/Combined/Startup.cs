@@ -1,6 +1,6 @@
 ﻿using System;
 using IT.WebServices.Authentication;
-using IT.WebServices.Authorization.Events.Manual.Extensions;
+using IT.WebServices.Authorization.Events.Extensions;
 using IT.WebServices.Models;
 using IT.WebServices.Services.Combined.Models;
 using IT.WebServices.Settings;

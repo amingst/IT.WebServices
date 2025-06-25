@@ -274,6 +274,10 @@ message GetRSVPByIdResponse {
 
 message GetInstancesForEventRequest {
 	string EventId = 1;
+	bool IncludeCanceled = 2;
+	uint32 PageOffsetStart = 11;
+	uint32 PageOffsetEnd = 12;
+	uint32 PageTotalItems = 13;
 }
 
 message GetInstancesForEventResponse {

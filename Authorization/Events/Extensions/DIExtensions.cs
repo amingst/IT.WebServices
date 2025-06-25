@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using IT.WebServices.Authorization.Events.Manual.Data;
-using IT.WebServices.Authorization.Events.Manual.Services;
+using IT.WebServices.Authorization.Events.Data;
+using IT.WebServices.Authorization.Events.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IT.WebServices.Authorization.Events.Manual.Extensions
+namespace IT.WebServices.Authorization.Events.Extensions
 {
     public static class DIExtensions
     {

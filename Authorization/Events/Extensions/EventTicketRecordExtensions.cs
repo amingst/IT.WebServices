@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IT.WebServices.Fragments.Authorization.Events;
 
-namespace IT.WebServices.Authorization.Events.Manual.Extensions
+namespace IT.WebServices.Authorization.Events.Extensions
 {
     public static class EventTicketRecordExtensions
     {

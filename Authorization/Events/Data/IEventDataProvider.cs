@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IT.WebServices.Fragments.Authorization.Events;
 
-namespace IT.WebServices.Authorization.Events.Manual.Data
+namespace IT.WebServices.Authorization.Events.Data
 {
     public interface IEventDataProvider
     {
