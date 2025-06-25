@@ -46,7 +46,7 @@ message EventRecurrenceRule {
 		google.protobuf.Timestamp RepeatUntilUTC = 5;  // Timestamp of When to Stop Repeating Event
 	}
 
-	optional google.protobuf.Timestamp ExcludeDatesUTC = 6; // Days To Not Schedule An Event For (e.g., Holidays)
+	repeated google.protobuf.Timestamp ExcludeDatesUTC = 6; // Days To Not Schedule An Event For (e.g., Holidays)
 }
 
 message EventLocationData {
