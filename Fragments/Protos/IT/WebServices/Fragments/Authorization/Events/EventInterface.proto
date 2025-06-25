@@ -102,15 +102,9 @@ service EventInterface {
 		};
 	}
 
-	rpc GetInstanceById (GetInstanceByIdRequest) returns (GetInstanceByIdResponse) {
+	rpc OverrideEventInstance (OverrideEventInstanceRequest) returns (OverrideEventInstanceResponse) {
 		option (google.api.http) = {
-			get: "/api/events/instances/{InstanceId}"
-		};
-	}
-
-	rpc CancelEventInstance (CancelEventInstanceRequest) returns (CancelEventInstanceResponse) {
-		option (google.api.http) = {
-			put: "/api/events/instances/{InstanceId}/cancel",
+			post: "/api/events/{EventId}/instances/{InstanceId}/override_instance",
 			body: "*"
 		};
 	}
@@ -146,6 +140,7 @@ message CreateEventRequest {
 	uint32 MaxAttendees = 6;
 	google.protobuf.Timestamp StartDate = 7;
 	google.protobuf.Timestamp EndDate = 8;
+	optional EventRecurrenceRule RecurrenceRule = 9;
 }
 
 message CreateEventResponse {
@@ -288,20 +283,13 @@ message GetInstancesForEventResponse {
 	uint32 PageTotalItems = 4;
 }
 
-message GetInstanceByIdRequest {
-	string InstanceId = 1;
+message OverrideEventInstanceRequest {
+	string EventId = 1;
+	string InstanceId = 2;
+	EventInstanceOverride OverrideData = 3;
 }
 
-message GetInstanceByIdResponse {
-	EventInstance Instance = 1;
-}
-
-message CancelEventInstanceRequest {
-	string InstanceId = 1;
-	string Reason = 2;
-}
-
-message CancelEventInstanceResponse {
+message OverrideEventInstanceResponse {
 	bool Success = 1;
 	string Error = 2;
 }

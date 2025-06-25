@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Events.Manual.Data;
+using IT.WebServices.Authorization.Events.Manual.Helpers;
 using IT.WebServices.Fragments.Authorization.Events;
 using IT.WebServices.Helpers;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.Utilities;
 
 namespace IT.WebServices.Authorization.Events.Manual.Services
 {
@@ -18,6 +21,7 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
         private readonly IEventDataProvider _eventProvider;
         private readonly ITicketDataProvider _ticketProvider;
         private readonly IRSVPDataProvider _rsvpProvider;
+        private readonly IEventInstanceOverrideDataProvider _eventInstanceOverrideProvider;
         private readonly ONUserHelper _userHelper;
 
         public EventsService(
@@ -25,6 +29,7 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
             IEventDataProvider eventProvider,
             ITicketDataProvider ticketProvider,
             IRSVPDataProvider rsvpProvider,
+            IEventInstanceOverrideDataProvider eventInstanceOverrideProvider,
             ONUserHelper userHelper
         )
         {
@@ -32,6 +37,7 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
             _eventProvider = eventProvider;
             _ticketProvider = ticketProvider;
             _rsvpProvider = rsvpProvider;
+            _eventInstanceOverrideProvider = eventInstanceOverrideProvider;
             _userHelper = userHelper;
         }
 
@@ -67,6 +73,11 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
                     },
                 },
             };
+
+            if (request.RecurrenceRule != null)
+            {
+                newEvent.Public.Recurrence = request.RecurrenceRule;
+            }
 
             var res = await _eventProvider.Create(newEvent);
             if (!res)
@@ -487,6 +498,80 @@ namespace IT.WebServices.Authorization.Events.Manual.Services
 
             res.ErrorType = EventErrorType.NoError;
             res.Record = found;
+            return res;
+        }
+
+        public override async Task<GetInstancesForEventResponse> GetInstancesForEvent(
+            GetInstancesForEventRequest request,
+            ServerCallContext context
+        )
+        {
+            var res = new GetInstancesForEventResponse();
+            if (!Guid.TryParse(request.EventId, out var eventId) || eventId == Guid.Empty)
+                return res;
+
+            var foundEvent = await _eventProvider.GetById(eventId);
+            if (foundEvent is null)
+                return res;
+
+            if (!foundEvent.IsRecurring)
+            {
+                res.Instances.Add(
+                    new EventInstance
+                    {
+                        ParentEventId = foundEvent.EventId,
+                        StartDate = foundEvent.Public.StartDate,
+                        EndDate = foundEvent.Public.EndDate,
+                        IsCancelled = foundEvent.Public.LifecycleMetadata?.CanceledOnUTC != null,
+                    }
+                );
+                res.PageTotalItems = 1;
+                return res;
+            }
+
+            var generatedInstances = EventInstanceHelper
+                .BuildInstancesForEvent(foundEvent)
+                .ToDictionary(x => x.InstanceId);
+
+            await foreach (
+                var overrideRecord in _eventInstanceOverrideProvider.GetByEventId(eventId)
+            )
+            {
+                if (!string.IsNullOrWhiteSpace(overrideRecord.InstanceId))
+                {
+                    generatedInstances[overrideRecord.InstanceId] = new EventInstance
+                    {
+                        InstanceId = overrideRecord.InstanceId,
+                        ParentEventId = overrideRecord.ParentEventId,
+                        StartDate = overrideRecord.StartDate,
+                        EndDate = overrideRecord.EndDate,
+                        IsCancelled = overrideRecord.IsCanceled,
+                    };
+                }
+            }
+
+            res.Instances.AddRange(generatedInstances.Values.OrderBy(i => i.StartDate));
+            res.PageTotalItems = (uint)generatedInstances.Count;
+            return res;
+        }
+
+        public override async Task<OverrideEventInstanceResponse> OverrideEventInstance(
+            OverrideEventInstanceRequest request,
+            ServerCallContext context
+        )
+        {
+            var res = new OverrideEventInstanceResponse();
+            Guid.TryParse(request.EventId, out var eventId);
+            if (eventId == Guid.Empty)
+            {
+                res.Success = false;
+                res.Error = "Invalid EventID passed";
+                return res;
+            }
+
+            var success = await _eventInstanceOverrideProvider.Create(request.OverrideData);
+
+            res.Success = success;
             return res;
         }
     }

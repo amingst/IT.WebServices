@@ -13,6 +13,12 @@ enum WeekdayEnum {
 	Saturday = 6;
 }
 
+message Pagination {
+	uint32 PageOffsetStart = 1;
+	uint32 PageOffsetEnd = 2;
+	uint32 PageTotalItems = 3;
+}
+
 message LifecycleMetadataPublic {
 	google.protobuf.Timestamp CreatedOnUTC = 1;
 	google.protobuf.Timestamp ModifiedOnUTC = 2;

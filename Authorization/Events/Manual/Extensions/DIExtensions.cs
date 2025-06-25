@@ -18,6 +18,10 @@ namespace IT.WebServices.Authorization.Events.Manual.Extensions
             services.AddSingleton<IEventDataProvider, FileSystemEventDataProvider>();
             services.AddSingleton<ITicketDataProvider, FileSystemTicketDataProvider>();
             services.AddSingleton<IRSVPDataProvider, FileSystemEventRSVPDataProvider>();
+            services.AddSingleton<
+                IEventInstanceOverrideDataProvider,
+                FileSystemEventInstanceOverrideDataProvider
+            >();
             return services;
         }
 

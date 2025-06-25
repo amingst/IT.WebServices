@@ -156,3 +156,13 @@ message EventInstance {
 	google.protobuf.Timestamp EndDate = 4;
 	bool IsCancelled = 5;
 }
+
+message EventInstanceOverride {
+	string InstanceId = 1;
+	string ParentEventId = 2;
+	google.protobuf.Timestamp OriginalStartDate = 3;
+
+	optional google.protobuf.Timestamp StartDate = 4;
+	optional google.protobuf.Timestamp EndDate = 5;
+	optional bool IsCanceled = 6;
+}
