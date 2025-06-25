@@ -1,9 +1,9 @@
-﻿using IT.WebServices.Fragments.Settings;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IT.WebServices.Fragments.Settings;
 
 namespace IT.WebServices.Settings
 {
@@ -23,17 +23,16 @@ namespace IT.WebServices.Settings
 
         public CategoryRecord GetCategoryById(string id)
         {
-            return settingsClient.PublicData?.CMS?.Categories?.FirstOrDefault(c => c.CategoryId == id);
+            return settingsClient.PublicData?.CMS?.Categories?.FirstOrDefault(c =>
+                c.CategoryId == id
+            );
         }
 
         public CategoryRecord GetCategoryBySlug(string slug)
         {
-            return settingsClient.PublicData?.CMS?.Categories?.FirstOrDefault(c => c.UrlStub == slug);
-        }
-
-        public CategoryRecord[] GetAll()
-        {
-            return settingsClient.PublicData.CMS?.Categories?.ToArray();
+            return settingsClient.PublicData?.CMS?.Categories?.FirstOrDefault(c =>
+                c.UrlStub == slug
+            );
         }
     }
 }
