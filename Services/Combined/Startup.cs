@@ -1,17 +1,18 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using IT.WebServices.Authentication;
+using IT.WebServices.Authorization.Events.Extensions;
+using IT.WebServices.Models;
+using IT.WebServices.Services.Combined.Models;
+using IT.WebServices.Settings;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using IT.WebServices.Authentication;
-using IT.WebServices.Models;
-using IT.WebServices.Settings;
-using IT.WebServices.Services.Combined.Models;
-using AuthS = IT.WebServices.Authentication.Services;
-using CmsS = IT.WebServices.Content.CMS.Services;
-using System;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using AuthS = IT.WebServices.Authentication.Services;
+using CmsS = IT.WebServices.Content.CMS.Services;
 
 namespace IT.WebServices.Services.Combined
 {
@@ -28,13 +29,14 @@ namespace IT.WebServices.Services.Combined
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews()
-                    //.AddApplicationPart(typeof(UserApiController).GetTypeInfo().Assembly)
-                    //.AddApplicationPart(typeof(AssetApiController).GetTypeInfo().Assembly)
-                    .AddJsonOptions(options =>
-                    {
-                        options.JsonSerializerOptions.PropertyNamingPolicy = new NeutralNamingPolicy();
-                    });
+            services
+                .AddControllersWithViews()
+                //.AddApplicationPart(typeof(UserApiController).GetTypeInfo().Assembly)
+                //.AddApplicationPart(typeof(AssetApiController).GetTypeInfo().Assembly)
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = new NeutralNamingPolicy();
+                });
             ;
 
             services.AddGrpc(opt =>
@@ -65,11 +67,11 @@ namespace IT.WebServices.Services.Combined
                         Reference = new OpenApiReference
                         {
                             Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
+                            Id = "Bearer",
+                        },
                     },
-                    new string[] {}
-                }
+                    new string[] { }
+                },
             };
 
             var info = new OpenApiInfo()
@@ -97,7 +99,7 @@ namespace IT.WebServices.Services.Combined
             services.AddCommentClasses();
             services.AddSettingsClasses();
             services.AddStatsClasses();
-
+            services.AddEventsClasses();
             services.AddPaymentClasses();
 
             CryptoProviderFactory.DefaultCacheSignatureProviders = false;
@@ -107,10 +109,14 @@ namespace IT.WebServices.Services.Combined
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.Map("/ping", (app1) => app1.Run(async context =>
-            {
-                await context.Response.BodyWriter.WriteAsync(PONG_RESPONSE);
-            }));
+            app.Map(
+                "/ping",
+                (app1) =>
+                    app1.Run(async context =>
+                    {
+                        await context.Response.BodyWriter.WriteAsync(PONG_RESPONSE);
+                    })
+            );
 
             app.UseStaticFiles();
 
@@ -132,6 +138,7 @@ namespace IT.WebServices.Services.Combined
                 endpoints.MapCommentGrpcServices();
                 endpoints.MapSettingsGrpcServices();
                 endpoints.MapStatsGrpcServices();
+                endpoints.MapEventsGrpcServices();
 
                 endpoints.MapPaymentGrpcServices();
 
@@ -139,7 +146,8 @@ namespace IT.WebServices.Services.Combined
 
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Home}/{action=Index}/{id?}"
+                );
             });
         }
     }

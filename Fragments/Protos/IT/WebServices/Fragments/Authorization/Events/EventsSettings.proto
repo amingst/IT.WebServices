@@ -1,0 +1,24 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Events;
+
+message ManualEventsPublicSettings {
+	bool Enabled = 1;
+}
+
+message ManualEventsPrivateSettings {}
+
+message ManualEventsOwnerSettings {}
+
+message EventbriteEventsPublicSettings {
+	bool Enabled = 1;
+}
+
+message EventbriteEventsPrivateSettings {
+	string RedirectUri = 1;
+	string EventbriteApiKey = 2;
+}
+
+message EventbriteEventsOwnerSettings {
+	string EventbritePrivateToken = 1;
+}

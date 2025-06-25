@@ -1,0 +1,299 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Events;
+import "google/api/annotations.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Events/EventRecord.proto";
+import "google/protobuf/timestamp.proto";
+
+service EventInterface {
+	rpc GetEventById (GetEventByIdRequest) returns (GetEventByIdResponse) {
+		option (google.api.http) = {
+			get: "/api/events/{EventId}"
+		};
+	}
+
+	rpc GetEvents (GetEventsRequest) returns (GetEventsResponse) {
+		option (google.api.http) = {
+			get: "/api/events"
+		};
+	}
+
+	rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse) {
+		option (google.api.http) = {
+			post: "/api/events",
+			body: "*"
+		};
+	}
+
+	rpc ModifyEvent (ModifyEventRequest) returns (ModifyEventResponse) {
+		option (google.api.http) = {
+			put: "/api/events/{EventId}",
+			body: "*"
+		};
+	}
+
+	rpc DeleteEvent (DeleteEventRequest) returns (DeleteEventResponse) {
+		option (google.api.http) = {
+			post: "/api/events/{EventId}/delete",
+			body: "*"
+		};
+	}
+
+	rpc CreateTicket (CreateTicketRequest) returns (CreateTicketResponse) {
+		option (google.api.http) = {
+			post: "/api/events/tickets",
+			body: "*"
+		};
+	}
+
+	rpc GetTicket (GetTicketRequest) returns (GetTicketResponse) {
+		option (google.api.http) = {
+			get: "/api/events/tickets/{TicketId}"
+		};
+	}
+
+	rpc GetTicketsByEvent (GetTicketsByEventRequest) returns (GetTicketsByEventResponse) {
+		option (google.api.http) = {
+			get: "/api/events/{EventId}/tickets"
+		};
+	}
+
+	rpc GetTickets (GetTicketsRequest) returns (GetTicketsResposne) {
+		option (google.api.http) = {
+			get: "/api/events/tickets"
+		};
+	}
+
+	rpc CreateEventRSVP (CreateEventRSVPRequest) returns (CreateEventRSVPResponse) {
+		option (google.api.http) = {
+			post: "/api/events/{EventId}/reservations",
+			body: "*"
+		};
+	}
+
+	rpc CancelEventRSVP (CancelEventRSVPRequest) returns (CancelEventRSVPResponse) {
+		option (google.api.http) = {
+			put: "/api/events/reservations/{EventRSVPId}",
+			body: "*"
+		};
+	}
+
+	rpc GetRSVPForEvent (GetRSVPForEventRequest) returns (GetAllRSVPResponse) {
+		option (google.api.http) = {
+			get: "/api/events/{EventId}/reservations"
+		};
+	}
+
+	rpc GetRSVPForUser (GetRSVPForUserRequest) returns (GetAllRSVPResponse) {
+		option (google.api.http) = {
+			get: "/api/events/reservations/user/{UserId}"
+		};
+	}
+
+	rpc GetRSVPById (GetRSVPByIdRequest) returns (GetRSVPByIdResponse) {
+		option (google.api.http) = {
+			get: "/api/events/reservations/{EventRSVPId}"
+		};
+	}
+
+	rpc GetInstancesForEvent (GetInstancesForEventRequest) returns (GetInstancesForEventResponse) {
+		option (google.api.http) = {
+			get: "/api/events/{EventId}/instances"
+		};
+	}
+
+	rpc OverrideEventInstance (OverrideEventInstanceRequest) returns (OverrideEventInstanceResponse) {
+		option (google.api.http) = {
+			post: "/api/events/{EventId}/instances/{InstanceId}/override_instance",
+			body: "*"
+		};
+	}
+}
+
+message GetEventByIdRequest {
+	string EventId = 1;
+}
+
+message GetEventByIdResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+	EventRecord Record = 3;
+}
+
+message GetEventsRequest {
+	repeated EventType EventTypes = 1;
+}
+
+message GetEventsResponse {
+	repeated EventRecord Records = 1;
+	uint32 PageOffsetStart = 11;
+	uint32 PageOffsetEnd = 12;
+	uint32 PageTotalItems = 13;
+}
+
+message CreateEventRequest {
+	string Title = 1;
+	string Description = 2;
+	EventType Type = 3;
+	EventAccessData AccessData = 4;
+	EventLocationData LocationData = 5;
+	uint32 MaxAttendees = 6;
+	google.protobuf.Timestamp StartDate = 7;
+	google.protobuf.Timestamp EndDate = 8;
+	optional EventRecurrenceRule RecurrenceRule = 9;
+}
+
+message CreateEventResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+	EventRecord Record = 3;
+}
+
+message ModifyEventRequest {
+	string EventId = 1;
+	string Description = 2;
+	EventType Type = 3;
+	EventAccessData AccessData = 4;
+	EventLocationData LocationData = 5;
+	uint32 MaxAttendees = 6;
+	google.protobuf.Timestamp StartDate = 7;
+	google.protobuf.Timestamp EndDate = 8;
+}
+
+message ModifyEventResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+}
+
+message DeleteEventRequest {
+	string EventId = 1;
+}
+
+message DeleteEventResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+}
+
+message CreateTicketRequest {
+	string EventId = 1;
+	string TicketName = 2;
+	uint32 Price = 3;
+	uint32 MaxAttendees = 4;
+	uint32 MaxPerUser = 5;
+	uint32 QuantityAvailable = 6;
+	google.protobuf.Timestamp SaleStartOnUTC = 7;
+	google.protobuf.Timestamp SaleEndOnUTC = 8;
+}
+
+message CreateTicketResponse {
+	EventErrorType Error = 1;
+	string Message = 2;
+	EventTicketRecord Record = 3;
+}
+
+message GetTicketRequest {
+	string TicketId = 1;
+}
+
+message GetTicketResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+	EventTicketRecord Record = 3;
+}
+
+message GetTicketsByEventRequest {
+	string EventId = 1;
+}
+
+message GetTicketsByEventResponse {
+	repeated EventTicketRecord Records = 1;
+	uint32 PageOffsetStart = 11;
+	uint32 PageOffsetEnd = 12;
+	uint32 PageTotalItems = 13;
+}
+
+message GetTicketsRequest {}
+
+message GetTicketsResposne {
+	repeated EventTicketRecord Records = 1;
+	uint32 PageOffsetStart = 11;
+	uint32 PageOffsetEnd = 12;
+	uint32 PageTotalItems = 13;
+}
+
+message CreateEventRSVPRequest {
+	string EventId = 1;
+	string TicketId = 2;
+	string UserId = 3;
+	uint32 TotalPriceCents = 5;
+	uint32 AmountReserved = 6;
+}
+
+message CreateEventRSVPResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+	EventRSVPRecord Record = 3;
+}
+
+message CancelEventRSVPRequest {
+	string EventRSVPId = 1;
+	string Reason = 2;
+}
+
+message CancelEventRSVPResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+}
+
+message GetRSVPForEventRequest {
+	string EventId = 1;
+	bool IncludeCancelled = 2;
+}
+
+message GetRSVPForUserRequest {
+	string UserId = 1;
+	bool IncludeCancelled = 2;
+}
+
+message GetAllRSVPResponse {
+	repeated EventRSVPRecord Records = 1;
+	uint32 PageOffsetStart = 11;
+	uint32 PageOffsetEnd = 12;
+	uint32 PageTotalItems = 13;
+}
+
+message GetRSVPByIdRequest {
+	string EventRSVPId = 1;
+}
+
+message GetRSVPByIdResponse {
+	EventErrorType ErrorType = 1;
+	string Message = 2;
+	EventRSVPRecord Record = 3;
+}
+
+message GetInstancesForEventRequest {
+	string EventId = 1;
+	bool IncludeCanceled = 2;
+	uint32 PageOffsetStart = 11;
+	uint32 PageOffsetEnd = 12;
+	uint32 PageTotalItems = 13;
+}
+
+message GetInstancesForEventResponse {
+	repeated EventInstance Instances = 1;
+	uint32 PageOffsetStart = 2;
+	uint32 PageOffsetEnd = 3;
+	uint32 PageTotalItems = 4;
+}
+
+message OverrideEventInstanceRequest {
+	string EventId = 1;
+	string InstanceId = 2;
+	EventInstanceOverride OverrideData = 3;
+}
+
+message OverrideEventInstanceResponse {
+	bool Success = 1;
+	string Error = 2;
+}

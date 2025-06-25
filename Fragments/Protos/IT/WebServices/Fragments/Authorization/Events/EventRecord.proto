@@ -1,0 +1,168 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Events;
+import "Protos/IT/WebServices/Fragments/CommonTypes.proto";
+import "google/protobuf/timestamp.proto";
+
+enum EventErrorType {
+	NoError = 0;
+	Unknown = 1;
+	InsufficientPermissions = 2;
+	NotFound = 3;
+	NullRequestData = 4;
+}
+
+message EventError {
+	EventErrorType Type = 1;
+	string Message = 2;
+}
+
+enum EventType {
+	Live = 0;
+	Virtual = 1;
+}
+
+enum AccessType {
+	AllAccess = 0;
+	Members = 1;
+}
+
+enum RecurrenceFrequency {
+	REPEAT_NONE = 0;
+	REPEAT_DAILY = 1;
+	REPEAT_WEEKLY = 2;
+	REPEATE_MONTHLY = 3;
+	REPEAT_YEARLY = 4;
+}
+
+// Defines The Rules For Repeating Events
+message EventRecurrenceRule {
+	RecurrenceFrequency Frequency = 1;					// Frequency of Events Scheduled
+	uint32 Interval = 2;												// Units of {RecurrenceFrequency} Between Events
+	repeated WeekdayEnum ByWeekday = 3;          // For Rules That Contain Day Offsets (e.g., Repeat Every Sunday And Thursday)
+
+	oneof EndCondition {
+		uint32 Count = 4;													// How Many Instances To Schedule
+		google.protobuf.Timestamp RepeatUntilUTC = 5;  // Timestamp of When to Stop Repeating Event
+	}
+
+	optional google.protobuf.Timestamp ExcludeDatesUTC = 6; // Days To Not Schedule An Event For (e.g., Holidays)
+}
+
+message EventLocationData {
+	string VenueName = 1;
+	string VenueStreetAddress = 2;
+	string SecondaryVenueStreetAddress = 3;
+	string VenueCity = 4;
+	string VenueStateOrProvince = 5;
+	string VenuePostalCode = 6;
+	string VenueCountry = 7;
+	string Latitude = 8;
+	string Longitude = 9;
+}
+
+message EventAccessData {
+	AccessType Access = 1;
+	uint32 MinimumLevel = 2;
+}
+
+message EventPublicRecord {
+	string Title = 1;
+	string Description = 2;
+	EventType Type = 3;
+	EventAccessData AccessData = 4;
+	EventLocationData LocationData = 5;
+	uint32 MaxAttendees = 6;
+	optional EventRecurrenceRule Recurrence = 7;
+	google.protobuf.Timestamp StartDate = 8;
+	google.protobuf.Timestamp EndDate = 9;
+	LifecycleMetadataPublic LifecycleMetadata = 10;
+}
+
+// Controls Visibility Of Event Location To Users
+message EventLocationSettings {
+	bool ShowLocationBeforeEvent = 1;											// Whether Or Not Attendees See The Location Before The Day Of The Event
+	google.protobuf.Timestamp ShowLocationOnUTC = 2;				// Date To Allow Attendees To See Location Data
+}
+
+message EventSettings {
+	bool ShowStartDate = 1;
+	bool ShowEndDate = 2;
+	bool ShowMaxAttendees = 3;
+
+	EventLocationSettings LocationSettings = 30;
+}
+
+message EventPrivateRecord {
+	LifecycleMetadataPrivate LifecycleMetadata = 1;
+	EventSettings EventSettings = 2;
+}
+
+message EventRecord {
+	string EventId = 1;
+	EventPublicRecord Public = 2;
+	EventPrivateRecord Private = 3;
+}
+
+message EventTicketPublicRecord {
+	string TicketName = 1;
+	string EventId = 2;
+	uint32 Price = 3;
+	uint32 MaxAttendees = 4;
+	uint32 MaxPerUser = 5;
+}
+
+message EventTicketPrivateRecord {
+	google.protobuf.Timestamp SaleStartOnUTC = 1;
+	google.protobuf.Timestamp SaleEndOnUTC = 2;
+	uint32 QuantityAvailible = 3;
+}
+
+message EventTicketRecord {
+	string TicketId = 1;
+	EventTicketPublicRecord Public = 2;
+	EventTicketPrivateRecord Private = 3;
+}
+
+message EventTicketListRecord {
+	string TicketId = 1;
+	string TicketName = 2;
+	uint32 Price = 3;
+	uint32 MaxAttendees = 4;
+	uint32 MaxPerUser = 5;
+}
+
+message EventRSVPRecord {
+	string EventRSVPId = 1;
+	string EventId = 2;
+	string TicketId = 3;
+	string UserId = 4;
+	uint32 TotalPriceCents = 5;
+	uint32 AmountReserved = 6;
+
+	google.protobuf.Timestamp CreatedOnUTC = 11;
+	string CreatedById = 12;
+	google.protobuf.Timestamp ModifiedOnUTC = 13;
+	string ModifiedById = 14;
+	google.protobuf.Timestamp CancelledOnUTC = 15;
+	string CancelledById = 16;
+	string CancelledReason = 17;
+}
+
+message EventInstance {
+	string InstanceId = 1;
+	string ParentEventId = 2;
+	google.protobuf.Timestamp StartDate = 3;
+	google.protobuf.Timestamp EndDate = 4;
+	bool IsCancelled = 5;
+}
+
+message EventInstanceOverride {
+	string InstanceId = 1;
+	string ParentEventId = 2;
+	google.protobuf.Timestamp OriginalStartDate = 3;
+
+	optional google.protobuf.Timestamp StartDate = 4;
+	optional google.protobuf.Timestamp EndDate = 5;
+	optional bool IsCanceled = 6;
+}
