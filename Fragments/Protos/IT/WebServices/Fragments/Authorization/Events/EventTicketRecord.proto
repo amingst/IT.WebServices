@@ -16,11 +16,6 @@ enum EventTicketStatus {
 	TICKET_STATUS_CANCELED = 3;
 }
 
-enum EventTicketExpirationType {
-	TICKET_EXPIRATION_NONE = 0;
-	TICKET_EXPIRATION_EXPIRES = 1;
-}
-
 message EventTicketClass {
 	string TicketClassId = 1;
 	EventTicketClassType Type = 2;

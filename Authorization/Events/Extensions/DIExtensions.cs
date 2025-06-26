@@ -15,19 +15,13 @@ namespace IT.WebServices.Authorization.Events.Extensions
     {
         public static IServiceCollection AddEventsClasses(this IServiceCollection services)
         {
-            services.AddSingleton<IEventDataProvider, FileSystemEventDataProvider>();
             services.AddSingleton<ITicketDataProvider, FileSystemTicketDataProvider>();
-            services.AddSingleton<IRSVPDataProvider, FileSystemEventRSVPDataProvider>();
-            services.AddSingleton<
-                IEventInstanceOverrideDataProvider,
-                FileSystemEventInstanceOverrideDataProvider
-            >();
+            services.AddSingleton<ITicketClassDataProvider, FileSystemTicketClassDataProvider>();
             return services;
         }
 
         public static void MapEventsGrpcServices(this IEndpointRouteBuilder endpoints)
         {
-            endpoints.MapGrpcService<EventsService>();
             endpoints.MapGrpcService<EventTicketService>();
         }
     }

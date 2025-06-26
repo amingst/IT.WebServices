@@ -43,35 +43,8 @@ namespace IT.WebServices.Authorization.Events.Data
             if (file.Exists)
                 return false;
 
-            await File.WriteAllBytesAsync(file.FullName, record.ToByteArray());
+            await Save(record);
             return true;
-        }
-
-        public Task<bool> Delete(Guid ticketId)
-        {
-            var file = dataDir
-                .EnumerateFiles(ticketId.ToString(), SearchOption.AllDirectories)
-                .FirstOrDefault();
-
-            if (file == null)
-                return Task.FromResult(false);
-
-            file.Delete();
-            return Task.FromResult(true);
-        }
-
-        public Task<bool> Exists(Guid eventId, Guid ticketId)
-        {
-            var fd = GetDataFilePath(eventId, ticketId);
-            return Task.FromResult(fd.Exists);
-        }
-
-        public async IAsyncEnumerable<EventTicketRecord> GetAll()
-        {
-            foreach (var fd in GetAllDataFiles())
-                yield return EventTicketRecord.Parser.ParseFrom(
-                    await File.ReadAllBytesAsync(fd.FullName)
-                );
         }
 
         public async IAsyncEnumerable<EventTicketRecord> GetAllByEvent(Guid eventId)
@@ -88,10 +61,11 @@ namespace IT.WebServices.Authorization.Events.Data
             }
         }
 
-        public async Task<EventTicketRecord> GetById(Guid ticketId)
+        public async Task<EventTicketRecord> GetById(Guid ticketId, Guid eventId)
         {
             var file = dataDir
-                .EnumerateFiles(ticketId.ToString(), SearchOption.AllDirectories)
+                .EnumerateFiles(eventId.ToString(), SearchOption.AllDirectories)
+                .Where(f => f.Name == ticketId.ToString())
                 .FirstOrDefault();
 
             if (file == null)
@@ -100,7 +74,7 @@ namespace IT.WebServices.Authorization.Events.Data
             return EventTicketRecord.Parser.ParseFrom(await File.ReadAllBytesAsync(file.FullName));
         }
 
-        public async Task Save(EventTicketRecord record)
+        private async Task Save(EventTicketRecord record)
         {
             Guid.TryParse(record.TicketId, out var ticketId);
             if (ticketId == Guid.Empty)

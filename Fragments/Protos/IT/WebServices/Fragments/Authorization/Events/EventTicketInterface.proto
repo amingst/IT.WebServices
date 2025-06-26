@@ -2,6 +2,7 @@
 
 package IT.WebServices.Fragments.Authorization.Events;
 import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
+import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 service EventTicketInterface {
@@ -21,7 +22,13 @@ service EventTicketInterface {
 
 	rpc GetTicket (GetTicketRequest) returns (GetTicketResponse) {
 		option (google.api.http) = {
-			get: "/api/events/tickets/{TicketId}"
+			get: "/api/events/{EventId}/tickets/{TicketId}"
+		};
+	}
+
+	rpc GetTicketsForEvent (GetTicketsForEventRequest) returns (GetTicketsForEventResponse) {
+		option (google.api.http) = {
+			get: "/api/events/{EventId}/tickets"
 		};
 	}
 
@@ -36,46 +43,69 @@ service EventTicketInterface {
 			get: "/api/events/ticket-classes"
 		};
 	}
-
-	rpc GetTicketClassesForEvent (GetTicketClassesForEventRequest) returns (GetTicketClassesForEventResponse) {
-		option (google.api.http) = {
-			get: "/api/events/{EventId}/ticket-classes"
-		};
-	}
 }
 
-message CreateTicketRequest {}
+enum TicketsCreateErrorType {
+	CREATE_TICKET_NO_ERROR = 0;
+	CREATE_TICKET_INVALID_REQUEST = 1;
+	CREATE_TICKET_UNAUTHORIZED = 2;
+	CREATE_TICKET_NULL_BODY = 3;
+	CREATE_TICKET_UNKNOWN = 4;
+}
 
-message CreateTicketResponse {}
+message CreateTicketRequest {
+	string TicketClassId = 1;
+	string Title = 2;
+	string EventId = 3;
+}
 
-message CreateTicketClassRequest {}
+message CreateTicketResponse {
+	TicketsCreateErrorType Error = 1;
+	string Message = 2;
+}
 
-message CreateTicketClassResponse {}
+message CreateTicketClassRequest {
+	EventTicketClassType Type = 1;
+	string Name = 2;
+	uint32 AmountAvailible = 3;
+	uint32 MaxTicketsPerUser = 4;
+	bool IsTransferrable = 5;
+	google.protobuf.Timestamp SaleStartOnUTC = 21;
+	google.protobuf.Timestamp SaleEndOnUTC = 22;
+}
+
+message CreateTicketClassResponse {
+	TicketsCreateErrorType Error = 1;
+	string Message = 2;
+}
 
 message GetTicketRequest {
 	string TicketId = 1;
+	string EventId = 2;
 }
 
-message GetTicketResponse {}
+message GetTicketResponse {
+	EventTicketRecord Record = 1;
+}
 
-message GetTicketsByEventRequest {
+message GetTicketsForEventRequest {
 	string EventId = 1;
 }
 
-message GetTicketsByEventResponse {}
+message GetTicketsForEventResponse {
+	repeated EventTicketRecord Records = 1;
+}
 
 message GetTicketClassRequest {
 	string TicketClassId = 1;
 }
 
-message GetTicketClassResponse {}
+message GetTicketClassResponse {
+	EventTicketClass TicketClass = 1;
+}
 
 message GetTicketClassesRequest {}
 
-message GetTicketClassesResponse {}
-
-message GetTicketClassesForEventRequest {
-	string EventId = 1;
+message GetTicketClassesResponse {
+	repeated EventTicketClass TicketClasses = 1;
 }
-
-message GetTicketClassesForEventResponse {}
