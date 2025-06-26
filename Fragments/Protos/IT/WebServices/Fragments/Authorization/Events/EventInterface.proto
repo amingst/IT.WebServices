@@ -39,31 +39,6 @@ service EventInterface {
 		};
 	}
 
-	rpc CreateTicket (CreateTicketRequest) returns (CreateTicketResponse) {
-		option (google.api.http) = {
-			post: "/api/events/tickets",
-			body: "*"
-		};
-	}
-
-	rpc GetTicket (GetTicketRequest) returns (GetTicketResponse) {
-		option (google.api.http) = {
-			get: "/api/events/tickets/{TicketId}"
-		};
-	}
-
-	rpc GetTicketsByEvent (GetTicketsByEventRequest) returns (GetTicketsByEventResponse) {
-		option (google.api.http) = {
-			get: "/api/events/{EventId}/tickets"
-		};
-	}
-
-	rpc GetTickets (GetTicketsRequest) returns (GetTicketsResposne) {
-		option (google.api.http) = {
-			get: "/api/events/tickets"
-		};
-	}
-
 	rpc CreateEventRSVP (CreateEventRSVPRequest) returns (CreateEventRSVPResponse) {
 		option (google.api.http) = {
 			post: "/api/events/{EventId}/reservations",
@@ -172,53 +147,6 @@ message DeleteEventRequest {
 message DeleteEventResponse {
 	EventErrorType ErrorType = 1;
 	string Message = 2;
-}
-
-message CreateTicketRequest {
-	string EventId = 1;
-	string TicketName = 2;
-	uint32 Price = 3;
-	uint32 MaxAttendees = 4;
-	uint32 MaxPerUser = 5;
-	uint32 QuantityAvailable = 6;
-	google.protobuf.Timestamp SaleStartOnUTC = 7;
-	google.protobuf.Timestamp SaleEndOnUTC = 8;
-}
-
-message CreateTicketResponse {
-	EventErrorType Error = 1;
-	string Message = 2;
-	EventTicketRecord Record = 3;
-}
-
-message GetTicketRequest {
-	string TicketId = 1;
-}
-
-message GetTicketResponse {
-	EventErrorType ErrorType = 1;
-	string Message = 2;
-	EventTicketRecord Record = 3;
-}
-
-message GetTicketsByEventRequest {
-	string EventId = 1;
-}
-
-message GetTicketsByEventResponse {
-	repeated EventTicketRecord Records = 1;
-	uint32 PageOffsetStart = 11;
-	uint32 PageOffsetEnd = 12;
-	uint32 PageTotalItems = 13;
-}
-
-message GetTicketsRequest {}
-
-message GetTicketsResposne {
-	repeated EventTicketRecord Records = 1;
-	uint32 PageOffsetStart = 11;
-	uint32 PageOffsetEnd = 12;
-	uint32 PageTotalItems = 13;
 }
 
 message CreateEventRSVPRequest {

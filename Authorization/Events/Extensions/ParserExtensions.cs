@@ -168,38 +168,38 @@ namespace IT.WebServices.Authorization.Events.Extensions
             return eventRecord;
         }
 
-        public static EventTicketRecord ParseEventTicketRecord(this DbDataReader rdr)
-        {
-            var ticketRecord = new EventTicketRecord()
-            {
-                TicketId = rdr["TicketId"] as string,
-                Public = new()
-                {
-                    TicketName = rdr["TicketName"] as string ?? "",
-                    EventId = rdr["EventId"] as string,
-                    Price = (uint)(int)rdr["TicketPrice"],
-                    MaxAttendees = (uint)(int)rdr["MaxAttendees"],
-                    MaxPerUser = (uint)(int)rdr["MaxPerUser"],
-                },
-                Private = new() { QuantityAvailible = (uint)(int)rdr["QuantityAvailible"] },
-            };
+        //public static EventTicketRecord ParseEventTicketRecord(this DbDataReader rdr)
+        //{
+        //    var ticketRecord = new EventTicketRecord()
+        //    {
+        //        TicketId = rdr["TicketId"] as string,
+        //        Public = new()
+        //        {
+        //            TicketName = rdr["TicketName"] as string ?? "",
+        //            EventId = rdr["EventId"] as string,
+        //            Price = (uint)(int)rdr["TicketPrice"],
+        //            MaxAttendees = (uint)(int)rdr["MaxAttendees"],
+        //            MaxPerUser = (uint)(int)rdr["MaxPerUser"],
+        //        },
+        //        Private = new() { QuantityAvailible = (uint)(int)rdr["QuantityAvailible"] },
+        //    };
 
-            DateTime d;
-            if (!(rdr["SaleStartOnUTC"] is DBNull))
-            {
-                d = DateTime.SpecifyKind((DateTime)rdr["SaleStartOnUTC"], DateTimeKind.Utc);
-                ticketRecord.Private.SaleStartOnUTC =
-                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
-            }
+        //    DateTime d;
+        //    if (!(rdr["SaleStartOnUTC"] is DBNull))
+        //    {
+        //        d = DateTime.SpecifyKind((DateTime)rdr["SaleStartOnUTC"], DateTimeKind.Utc);
+        //        ticketRecord.Private.SaleStartOnUTC =
+        //            Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
+        //    }
 
-            if (!(rdr["SaleEndOnUTC"] is DBNull))
-            {
-                d = DateTime.SpecifyKind((DateTime)rdr["SaleEndOnUTC"], DateTimeKind.Utc);
-                ticketRecord.Private.SaleEndOnUTC =
-                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
-            }
+        //    if (!(rdr["SaleEndOnUTC"] is DBNull))
+        //    {
+        //        d = DateTime.SpecifyKind((DateTime)rdr["SaleEndOnUTC"], DateTimeKind.Utc);
+        //        ticketRecord.Private.SaleEndOnUTC =
+        //            Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(d);
+        //    }
 
-            return ticketRecord;
-        }
+        //    return ticketRecord;
+        //}
     }
 }

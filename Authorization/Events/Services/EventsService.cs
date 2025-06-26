@@ -19,7 +19,8 @@ namespace IT.WebServices.Authorization.Events.Services
     {
         private readonly ILogger<EventsService> _logger;
         private readonly IEventDataProvider _eventProvider;
-        private readonly ITicketDataProvider _ticketProvider;
+
+        //private readonly ITicketDataProvider _ticketProvider;
         private readonly IRSVPDataProvider _rsvpProvider;
         private readonly IEventInstanceOverrideDataProvider _eventInstanceOverrideProvider;
         private readonly ONUserHelper _userHelper;
@@ -35,7 +36,7 @@ namespace IT.WebServices.Authorization.Events.Services
         {
             _logger = logger;
             _eventProvider = eventProvider;
-            _ticketProvider = ticketProvider;
+            //_ticketProvider = ticketProvider;
             _rsvpProvider = rsvpProvider;
             _eventInstanceOverrideProvider = eventInstanceOverrideProvider;
             _userHelper = userHelper;
@@ -211,121 +212,121 @@ namespace IT.WebServices.Authorization.Events.Services
             };
         }
 
-        public override async Task<CreateTicketResponse> CreateTicket(
-            CreateTicketRequest request,
-            ServerCallContext context
-        )
-        {
-            Guid.TryParse(request.EventId, out var eventGuid);
-            if (eventGuid == Guid.Empty)
-                return new CreateTicketResponse()
-                {
-                    Error = EventErrorType.NotFound,
-                    Message = "Event Does Not Exist",
-                };
+        //public override async Task<CreateTicketResponse> CreateTicket(
+        //    CreateTicketRequest request,
+        //    ServerCallContext context
+        //)
+        //{
+        //    Guid.TryParse(request.EventId, out var eventGuid);
+        //    if (eventGuid == Guid.Empty)
+        //        return new CreateTicketResponse()
+        //        {
+        //            Error = EventErrorType.NotFound,
+        //            Message = "Event Does Not Exist",
+        //        };
 
-            var ticketId = Guid.NewGuid();
-            var now = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-            var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
-            var newTicket = new EventTicketRecord()
-            {
-                TicketId = ticketId.ToString(),
-                Public = new EventTicketPublicRecord()
-                {
-                    EventId = eventGuid.ToString(),
-                    TicketName = request.TicketName,
-                    MaxAttendees = request.MaxAttendees,
-                    MaxPerUser = request.MaxPerUser,
-                    Price = request.Price,
-                },
-                Private = new EventTicketPrivateRecord()
-                {
-                    SaleStartOnUTC = request.SaleStartOnUTC,
-                    SaleEndOnUTC = request.SaleEndOnUTC,
-                    QuantityAvailible = request.QuantityAvailable,
-                },
-            };
+        //    var ticketId = Guid.NewGuid();
+        //    var now = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+        //    var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
+        //    var newTicket = new EventTicketRecord()
+        //    {
+        //        TicketId = ticketId.ToString(),
+        //        Public = new EventTicketPublicRecord()
+        //        {
+        //            EventId = eventGuid.ToString(),
+        //            TicketName = request.TicketName,
+        //            MaxAttendees = request.MaxAttendees,
+        //            MaxPerUser = request.MaxPerUser,
+        //            Price = request.Price,
+        //        },
+        //        Private = new EventTicketPrivateRecord()
+        //        {
+        //            SaleStartOnUTC = request.SaleStartOnUTC,
+        //            SaleEndOnUTC = request.SaleEndOnUTC,
+        //            QuantityAvailible = request.QuantityAvailable,
+        //        },
+        //    };
 
-            var res = await _ticketProvider.Create(newTicket);
-            if (!res)
-            {
-                return new CreateTicketResponse()
-                {
-                    Error = EventErrorType.Unknown,
-                    Message = "Failed To Create Ticket",
-                };
-            }
+        //    var res = await _ticketProvider.Create(newTicket);
+        //    if (!res)
+        //    {
+        //        return new CreateTicketResponse()
+        //        {
+        //            Error = EventErrorType.Unknown,
+        //            Message = "Failed To Create Ticket",
+        //        };
+        //    }
 
-            return new CreateTicketResponse()
-            {
-                Error = EventErrorType.NoError,
-                Message = "Created Ticket",
-                Record = newTicket,
-            };
-        }
+        //    return new CreateTicketResponse()
+        //    {
+        //        Error = EventErrorType.NoError,
+        //        Message = "Created Ticket",
+        //        Record = newTicket,
+        //    };
+        //}
 
-        public override async Task<GetTicketResponse> GetTicket(
-            GetTicketRequest request,
-            ServerCallContext context
-        )
-        {
-            Guid.TryParse(request.TicketId, out var ticketId);
-            if (ticketId == Guid.Empty)
-            {
-                return new GetTicketResponse()
-                {
-                    ErrorType = EventErrorType.NullRequestData,
-                    Message = "Invalid Ticket Id Passed",
-                };
-            }
+        //public override async Task<GetTicketResponse> GetTicket(
+        //    GetTicketRequest request,
+        //    ServerCallContext context
+        //)
+        //{
+        //    Guid.TryParse(request.TicketId, out var ticketId);
+        //    if (ticketId == Guid.Empty)
+        //    {
+        //        return new GetTicketResponse()
+        //        {
+        //            ErrorType = EventErrorType.NullRequestData,
+        //            Message = "Invalid Ticket Id Passed",
+        //        };
+        //    }
 
-            var res = await _ticketProvider.GetById(ticketId);
-            if (res == null)
-            {
-                return new GetTicketResponse()
-                {
-                    ErrorType = EventErrorType.NotFound,
-                    Message = "Ticket Not Found",
-                };
-            }
+        //    var res = await _ticketProvider.GetById(ticketId);
+        //    if (res == null)
+        //    {
+        //        return new GetTicketResponse()
+        //        {
+        //            ErrorType = EventErrorType.NotFound,
+        //            Message = "Ticket Not Found",
+        //        };
+        //    }
 
-            return new GetTicketResponse() { ErrorType = EventErrorType.NoError, Record = res };
-        }
+        //    return new GetTicketResponse() { ErrorType = EventErrorType.NoError, Record = res };
+        //}
 
-        public override async Task<GetTicketsResposne> GetTickets(
-            GetTicketsRequest request,
-            ServerCallContext context
-        )
-        {
-            var res = new GetTicketsResposne();
-            var found = await _ticketProvider.GetAll().ToList();
-            res.PageTotalItems = (uint)found.Count();
+        //public override async Task<GetTicketsResposne> GetTickets(
+        //    GetTicketsRequest request,
+        //    ServerCallContext context
+        //)
+        //{
+        //    var res = new GetTicketsResposne();
+        //    var found = await _ticketProvider.GetAll().ToList();
+        //    res.PageTotalItems = (uint)found.Count();
 
-            if (found.Count() > 0)
-                res.Records.AddRange(found);
+        //    if (found.Count() > 0)
+        //        res.Records.AddRange(found);
 
-            return res;
-        }
+        //    return res;
+        //}
 
-        public override async Task<GetTicketsByEventResponse> GetTicketsByEvent(
-            GetTicketsByEventRequest request,
-            ServerCallContext context
-        )
-        {
-            var res = new GetTicketsByEventResponse();
-            Guid.TryParse(request.EventId, out var eventId);
-            if (eventId == Guid.Empty)
-                return res;
+        //public override async Task<GetTicketsByEventResponse> GetTicketsByEvent(
+        //    GetTicketsByEventRequest request,
+        //    ServerCallContext context
+        //)
+        //{
+        //    var res = new GetTicketsByEventResponse();
+        //    Guid.TryParse(request.EventId, out var eventId);
+        //    if (eventId == Guid.Empty)
+        //        return res;
 
-            var found = await _ticketProvider.GetAllByEvent(eventId).ToList();
-            if (found.Count > 0)
-            {
-                res.PageTotalItems = (uint)found.Count();
-                res.Records.AddRange(found);
-            }
+        //    var found = await _ticketProvider.GetAllByEvent(eventId).ToList();
+        //    if (found.Count > 0)
+        //    {
+        //        res.PageTotalItems = (uint)found.Count();
+        //        res.Records.AddRange(found);
+        //    }
 
-            return res;
-        }
+        //    return res;
+        //}
 
         public override async Task<CreateEventRSVPResponse> CreateEventRSVP(
             CreateEventRSVPRequest request,
@@ -356,12 +357,12 @@ namespace IT.WebServices.Authorization.Events.Services
                 return res;
             }
 
-            if (!_ticketProvider.Exists(eventGuid, ticketGuid).Result)
-            {
-                res.ErrorType = EventErrorType.NotFound;
-                res.Message = "Ticket Not Found";
-                return res;
-            }
+            //if (!_ticketProvider.Exists(eventGuid, ticketGuid).Result)
+            //{
+            //    res.ErrorType = EventErrorType.NotFound;
+            //    res.Message = "Ticket Not Found";
+            //    return res;
+            //}
 
             Guid.TryParse(request.UserId, out var userGuid);
             if (userGuid == Guid.Empty)

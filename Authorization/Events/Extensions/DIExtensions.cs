@@ -28,6 +28,7 @@ namespace IT.WebServices.Authorization.Events.Extensions
         public static void MapEventsGrpcServices(this IEndpointRouteBuilder endpoints)
         {
             endpoints.MapGrpcService<EventsService>();
+            endpoints.MapGrpcService<EventTicketService>();
         }
     }
 }

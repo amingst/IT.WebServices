@@ -1,0 +1,81 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Events;
+import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
+import "google/api/annotations.proto";
+
+service EventTicketInterface {
+	rpc CreateTicket (CreateTicketRequest) returns (CreateTicketResponse) {
+		option (google.api.http) = {
+			post: "/api/events/tickets",
+			body: "*"
+		};
+	}
+
+	rpc CreateTicketClass (CreateTicketClassRequest) returns (CreateTicketClassResponse) {
+		option (google.api.http) = {
+			post: "/api/events/ticket-classes",
+			body: "*"
+		};
+	}
+
+	rpc GetTicket (GetTicketRequest) returns (GetTicketResponse) {
+		option (google.api.http) = {
+			get: "/api/events/tickets/{TicketId}"
+		};
+	}
+
+	rpc GetTicketClass (GetTicketClassRequest) returns (GetTicketClassResponse) {
+		option (google.api.http) = {
+			get: "/api/events/ticket-classes/{TicketClassId}"
+		};
+	}
+
+	rpc GetTicketClasses (GetTicketClassesRequest) returns (GetTicketClassesResponse) {
+		option (google.api.http) = {
+			get: "/api/events/ticket-classes"
+		};
+	}
+
+	rpc GetTicketClassesForEvent (GetTicketClassesForEventRequest) returns (GetTicketClassesForEventResponse) {
+		option (google.api.http) = {
+			get: "/api/events/{EventId}/ticket-classes"
+		};
+	}
+}
+
+message CreateTicketRequest {}
+
+message CreateTicketResponse {}
+
+message CreateTicketClassRequest {}
+
+message CreateTicketClassResponse {}
+
+message GetTicketRequest {
+	string TicketId = 1;
+}
+
+message GetTicketResponse {}
+
+message GetTicketsByEventRequest {
+	string EventId = 1;
+}
+
+message GetTicketsByEventResponse {}
+
+message GetTicketClassRequest {
+	string TicketClassId = 1;
+}
+
+message GetTicketClassResponse {}
+
+message GetTicketClassesRequest {}
+
+message GetTicketClassesResponse {}
+
+message GetTicketClassesForEventRequest {
+	string EventId = 1;
+}
+
+message GetTicketClassesForEventResponse {}
