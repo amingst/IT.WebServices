@@ -245,6 +245,51 @@ namespace IT.WebServices.Authorization.Events.Services
             return res;
         }
 
+        public override async Task<AdminGetTicketClassesForEventResponse> GetTicketClassesForEvent(
+            AdminGetTicketClassesForEventRequest request,
+            ServerCallContext context
+        )
+        {
+            var res = new AdminGetTicketClassesForEventResponse();
+            Guid.TryParse(request.EventId, out var eventId);
+            if (eventId == Guid.Empty)
+            {
+                res.Error = new()
+                {
+                    GetEventError = GetEventErrorType.GetEventUnknown,
+                    Message = "Invalid Event Id",
+                };
+                return res;
+            }
+
+            var found = await _eventProvider.GetById(eventId);
+            var rec = found.Item1;
+            var errType = found.Item2;
+
+            res.Error = new EventError()
+            {
+                GetEventError = errType,
+                Message =
+                    errType == GetEventErrorType.GetEventNoError
+                        ? "No Error"
+                        : "Error Finding Event Ticket Classes",
+            };
+
+            switch (rec.OneOfType)
+            {
+                case EventRecordOneOfType.EventOneOfSingle:
+                    res.TicketClasses.AddRange(rec.SinglePublic.TicketClasses);
+                    break;
+                case EventRecordOneOfType.EventOneOfRecurring:
+                    res.TicketClasses.AddRange(rec.RecurringPublic.TicketClasses);
+                    break;
+                default:
+                    break;
+            }
+
+            return res;
+        }
+
         public override async Task<AdminModifyEventResponse> AdminModifyEvent(
             AdminModifyEventRequest request,
             ServerCallContext context

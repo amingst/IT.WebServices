@@ -6,16 +6,10 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 service EventTicketInterface {
+	// TODO: Rename to AdminCreateTicket
 	rpc CreateTicket (CreateTicketRequest) returns (CreateTicketResponse) {
 		option (google.api.http) = {
 			post: "/api/events/tickets",
-			body: "*"
-		};
-	}
-
-	rpc CreateTicketClass (CreateTicketClassRequest) returns (CreateTicketClassResponse) {
-		option (google.api.http) = {
-			post: "/api/events/ticket-classes",
 			body: "*"
 		};
 	}
@@ -26,21 +20,23 @@ service EventTicketInterface {
 		};
 	}
 
+	rpc AdminGetTicket (AdminGetTicketRequest) returns (AdminGetTicketResponse) {
+		option (google.api.http) = {
+			get: "/api/admin/events/{EventId}/tickets/{TicketId}"
+		};
+	}
+
+	// TODO: Rename to AdminGetTicketsForEvent
 	rpc GetTicketsForEvent (GetTicketsForEventRequest) returns (GetTicketsForEventResponse) {
 		option (google.api.http) = {
 			get: "/api/events/{EventId}/tickets"
 		};
 	}
 
-	rpc GetTicketClass (GetTicketClassRequest) returns (GetTicketClassResponse) {
+	rpc CancelOwnTicket (CancelOwnTicketRequest) returns (CancelOwnTicketResponse) {
 		option (google.api.http) = {
-			get: "/api/events/ticket-classes/{TicketClassId}"
-		};
-	}
-
-	rpc GetTicketClasses (GetTicketClassesRequest) returns (GetTicketClassesResponse) {
-		option (google.api.http) = {
-			get: "/api/events/ticket-classes"
+			post: "/api/events/{EventId}/tickets/{TicketId}/cancel",
+			body: "*"
 		};
 	}
 }
@@ -51,6 +47,21 @@ enum TicketsCreateErrorType {
 	CREATE_TICKET_UNAUTHORIZED = 2;
 	CREATE_TICKET_NULL_BODY = 3;
 	CREATE_TICKET_UNKNOWN = 4;
+}
+
+enum CancelTicketErrorType {
+	CANCEL_TICKET_NO_ERROR = 0;
+	CANCEL_TICKET_UNAUTHORIZED = 1;
+	CANCEL_TICKET_EVENT_NOT_FOUND = 2;
+	CANCEL_TICKET_TICKET_NOT_FOUND = 3;
+}
+
+message TicketError {
+	string Message = 1;
+	oneof TicketErrorType {
+		TicketsCreateErrorType CreateTicketError = 2;
+		CancelTicketErrorType CancelTicketError = 3;
+	}
 }
 
 message CreateTicketRequest {
@@ -64,27 +75,21 @@ message CreateTicketResponse {
 	string Message = 2;
 }
 
-message CreateTicketClassRequest {
-	EventTicketClassType Type = 1;
-	string Name = 2;
-	uint32 AmountAvailible = 3;
-	uint32 MaxTicketsPerUser = 4;
-	bool IsTransferrable = 5;
-	google.protobuf.Timestamp SaleStartOnUTC = 21;
-	google.protobuf.Timestamp SaleEndOnUTC = 22;
-}
-
-message CreateTicketClassResponse {
-	TicketsCreateErrorType Error = 1;
-	string Message = 2;
-}
-
 message GetTicketRequest {
 	string TicketId = 1;
 	string EventId = 2;
 }
 
 message GetTicketResponse {
+	EventTicketRecord Record = 1;
+}
+
+message AdminGetTicketRequest {
+	string EventId = 1;
+	string TicketId = 2;
+}
+
+message AdminGetTicketResponse {
 	EventTicketRecord Record = 1;
 }
 
@@ -96,16 +101,12 @@ message GetTicketsForEventResponse {
 	repeated EventTicketRecord Records = 1;
 }
 
-message GetTicketClassRequest {
-	string TicketClassId = 1;
+message CancelOwnTicketRequest {
+	string EventId = 1;
+	string TicketId = 2;
+	string Reason = 3;
 }
 
-message GetTicketClassResponse {
-	EventTicketClass TicketClass = 1;
-}
-
-message GetTicketClassesRequest {}
-
-message GetTicketClassesResponse {
-	repeated EventTicketClass TicketClasses = 1;
+message CancelOwnTicketResponse {
+	TicketError Error = 1;
 }

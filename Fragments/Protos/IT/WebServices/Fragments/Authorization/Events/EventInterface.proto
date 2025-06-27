@@ -32,6 +32,12 @@ service EventInterface {
 	};
   }
 
+  rpc GetTicketClassesForEvent (AdminGetTicketClassesForEventRequest) returns (AdminGetTicketClassesForEventResponse) {
+	  option (google.api.http) = {
+		  get: "/api/admin/events/{EventId}/ticket-classes"
+	  };
+  }
+
   rpc AdminModifyEvent (AdminModifyEventRequest) returns (AdminModifyEventResponse) {
 	  option (google.api.http) = {
 	  post: "/api/admin/events/modify",
@@ -143,6 +149,15 @@ message AdminGetEventsResponse {
 	EventError Error = 1; // Error information if retrieval failed
 	repeated EventRecord Events = 2;
 	Pagination Pagination = 3; // Pagination information for the list of events
+}
+
+message AdminGetTicketClassesForEventRequest {
+	string EventId = 1;
+}
+
+message AdminGetTicketClassesForEventResponse {
+	EventError Error = 1;
+	repeated EventTicketClass TicketClasses = 2;
 }
 
 message AdminModifyEventRequest {

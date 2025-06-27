@@ -16,7 +16,6 @@ namespace IT.WebServices.Authorization.Events.Extensions
         public static IServiceCollection AddEventsClasses(this IServiceCollection services)
         {
             services.AddSingleton<ITicketDataProvider, FileSystemTicketDataProvider>();
-            services.AddSingleton<ITicketClassDataProvider, FileSystemTicketClassDataProvider>();
             services.AddSingleton<IEventDataProvider, FileSystemEventDataProvider>();
             return services;
         }
