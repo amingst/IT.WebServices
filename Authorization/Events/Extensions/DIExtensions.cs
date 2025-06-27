@@ -17,11 +17,13 @@ namespace IT.WebServices.Authorization.Events.Extensions
         {
             services.AddSingleton<ITicketDataProvider, FileSystemTicketDataProvider>();
             services.AddSingleton<ITicketClassDataProvider, FileSystemTicketClassDataProvider>();
+            services.AddSingleton<IEventDataProvider, FileSystemEventDataProvider>();
             return services;
         }
 
         public static void MapEventsGrpcServices(this IEndpointRouteBuilder endpoints)
         {
+            endpoints.MapGrpcService<EventService>();
             endpoints.MapGrpcService<EventTicketService>();
         }
     }

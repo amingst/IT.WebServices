@@ -11,6 +11,7 @@
   <ItemGroup>
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\UserInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventsSettings.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketRecord.proto" />
@@ -89,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventRecord.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventsSettings.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketInterface.proto" />

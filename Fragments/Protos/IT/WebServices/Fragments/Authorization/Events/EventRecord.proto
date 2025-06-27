@@ -26,6 +26,24 @@ enum EventRecordOneOfType {
 }
 
 //
+// VENUE
+//
+
+// Represents a physical location where events are held
+message EventVenue {
+	string VenueId = 1;                            // Unique identifier for the venue
+	string Name = 2;                               // Name of the venue
+	string Address = 3;                            // Physical address
+	string City = 4;                               // City where the venue is located
+	string StateOrProvince = 5;                    // State or province
+	string PostalCode = 6;                          // Postal code
+	string Country = 7;                             // Country
+	string PhoneNumber = 8;                         // Contact phone number
+	string EmailAddress = 9;                        // Contact email address
+}
+
+
+//
 // RECURRING RULE
 //
 
@@ -52,7 +70,7 @@ message SingleEventPublicRecord {
 	string EventId = 1;                               // Unique identifier for the event
 	string Title = 2;
 	string Description = 3;
-	string Location = 4;
+	string Location = 4;							// Location of the event (e.g., venue name)
 
 	google.protobuf.Timestamp StartOnUTC = 5;         // When the event starts (UTC)
 	google.protobuf.Timestamp EndOnUTC = 6;           // When the event ends (UTC)
@@ -65,6 +83,7 @@ message SingleEventPublicRecord {
 
 	google.protobuf.Timestamp CreatedOnUTC = 11;
 	google.protobuf.Timestamp ModifiedOnUTC = 12;
+	EventVenue Venue = 15; // Venue where the recurring event takes place
 }
 
 // Internal data for single events (not exposed publicly)
@@ -76,6 +95,7 @@ message SingleEventPrivateRecord {
 	string InternalNotes = 4;                         // Private notes for staff/admins
 
 	string CanceledById = 5;
+	map<string, string> ExtraMetadata = 6; // Additional metadata for the event
 }
 
 //
@@ -103,6 +123,7 @@ message RecurringEventPublicRecord {
 	google.protobuf.Timestamp CreatedOnUTC = 12;
 	google.protobuf.Timestamp ModifiedOnUTC = 13;
 	string RecurrenceHash = 14;	// Hash all recurring events created together share for db indexing
+	EventVenue Venue = 15; // Venue where the recurring event takes place
 }
 
 // Internal data for recurring event definitions
@@ -114,6 +135,7 @@ message RecurringEventPrivateRecord {
 	string InternalNotes = 4;
 
 	string CanceledById = 5;
+	map<string, string> ExtraMetadata = 6; // Additional metadata for the recurring event
 }
 
 //
