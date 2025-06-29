@@ -161,3 +161,14 @@ message EventRecord {
 		RecurringEventPrivateRecord RecurringPrivate = 6;
 	}
 }
+
+message EventPublicRecord {
+	string EventId = 1; // Unique identifier for the event
+		EventRecordOneOfType OneOfType = 2; // Indicates which branch is active
+
+	// Public data, oneof-enforced
+	oneof EventPublicRecordOneOf {
+		SingleEventPublicRecord SinglePublic = 3;
+		RecurringEventPublicRecord RecurringPublic = 4;
+	}
+}

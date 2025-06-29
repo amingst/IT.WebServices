@@ -11,11 +11,12 @@
   <ItemGroup>
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\UserInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\AdminEventInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventError.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventsSettings.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketRecord.proto" />
-    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" />
@@ -90,10 +91,11 @@
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\AdminEventInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventError.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventRecord.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventsSettings.proto" />
-    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketRecord.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" GrpcServices="None" />

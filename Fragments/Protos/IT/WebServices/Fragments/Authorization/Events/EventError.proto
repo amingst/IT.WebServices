@@ -1,0 +1,83 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Events;
+
+enum CreateEventErrorType {
+	CREATE_EVENT_NO_ERROR = 0; // No error occurred
+	CREATE_EVENT_INVALID_REQUEST = 1; // The request was invalid
+	CREATE_EVENT_UNAUTHORIZED = 2; // The user is not authorized to create events
+	CREATE_EVENT_NULL_BODY = 3; // The request body was null
+	CREATE_EVENT_FILE_EXISTS = 4; // Event Already Exists
+	CREATE_EVENT_UNKNOWN = 5; // An unknown error occurred
+}
+
+enum CreateRecurringEventErrorType {
+	CREATE_RECURRING_EVENT_NO_ERROR = 0; // No error occurred
+	CREATE_RECURRING_EVENT_INVALID_REQUEST = 1; // The request was invalid
+	CREATE_RECURRING_EVENT_UNAUTHORIZED = 2; // The user is not authorized to create recurring events
+	CREATE_RECURRING_EVENT_NULL_BODY = 3; // The request body was null
+	CREATE_RECURRING_EVENT_IVALID_RECURRENCE = 4; // An Invalidd recurrence rule was provided
+	CREATE_RECURRING_EVENT_UNKNOWN = 5; // An unknown error occurred
+	CREATE_RECURRING_EVENT_INVALID_HASH = 6; // The recurrence hash provided is invalid
+}
+
+enum GetEventErrorType {
+	GET_EVENT_NO_ERROR = 0; // No error occurred
+	GET_EVENT_NOT_FOUND = 1; // The requested event was not found
+	GET_EVENT_UNAUTHORIZED = 2; // The user is not authorized to view the event
+	GET_EVENT_UNKNOWN = 3; // An unknown error occurred
+	GET_EVENT_INVALID_HASH = 4; // The recurrence hash provided is invalid
+}
+
+enum CancelEventErrorType {
+	CANCEL_EVENT_NO_ERROR = 0; // No error occurred
+	CANCEL_EVENT_NOT_FOUND = 1; // The event to cancel was not found
+	CANCEL_EVENT_UNAUTHORIZED = 2; // The user is not authorized to cancel the event
+	CANCEL_EVENT_UNKNOWN = 3; // An unknown error occurred
+}
+
+message EventError {
+	string Message = 1;
+	oneof ErrorTypeOneOf {
+		CreateEventErrorType CreateEventError = 2; // Error type for event creation
+		CreateRecurringEventErrorType CreateRecurringEventError = 3; // Error type for recurring event creation
+		CancelEventErrorType CancelEventError = 4; // Error type for event cancellation
+		GetEventErrorType GetEventError = 5;
+	}
+}
+
+enum ReserveTicketErrorType {
+	RESERVE_TICKET_NO_ERROR = 0; // No error occurred
+	RESERVE_TICKET_INVALID_REQUEST = 1; // The request was invalid
+	RESERVE_TICKET_UNAUTHORIZED = 2; // The user is not authorized to reserve tickets
+	RESERVE_TICKET_EVENT_NOT_FOUND = 3; // The event for which to reserve tickets was not found
+	RESERVE_TICKET_MAX_LIMIT_REACHED = 4; // The maximum number of tickets for the event has been reached
+	RESERVE_TICKET_NOT_ON_SALE = 5; // The tickets for the event are not currently on sale
+	RESERVE_TICKET_UNKNOWN = 6; // An unknown error occurred
+}
+
+enum CancelTicketErrorType {
+	CANCEL_TICKET_NO_ERROR = 0;
+	CANCEL_TICKET_UNAUTHORIZED = 1;
+	CANCEL_TICKET_EVENT_NOT_FOUND = 2;
+	CANCEL_TICKET_TICKET_NOT_FOUND = 3;
+}
+
+enum UseTicketErrorType {
+	USE_TICKET_NO_ERROR = 0; // No error occurred
+	USE_TICKET_UNAUTHORIZED = 1; // The user is not authorized to use the ticket
+	USE_TICKET_EVENT_NOT_FOUND = 2; // The event for which to use the ticket was not found
+	USE_TICKET_TICKET_NOT_FOUND = 3; // The ticket to use was not found
+	USE_TICKET_ALREADY_USED = 4; // The ticket has already been used
+	USE_TICKET_EXPIRED = 5; // The ticket has expired
+	USE_TICKET_UNKNOWN = 6; // An unknown error occurred
+}
+
+message TicketError {
+	string Message = 1;
+	oneof TicketErrorType {
+		ReserveTicketErrorType ReserveTicketError = 2;
+		CancelTicketErrorType CancelTicketError = 3;
+		UseTicketErrorType UseTicketError = 4; // Error type for using a ticket
+	}
+}

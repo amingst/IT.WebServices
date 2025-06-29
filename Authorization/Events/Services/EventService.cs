@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Google.Protobuf.Collections;
+﻿using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IT.WebServices.Authentication;
@@ -14,6 +8,13 @@ using IT.WebServices.Authorization.Events.Helpers;
 using IT.WebServices.Fragments.Authorization.Events;
 using IT.WebServices.Helpers;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace IT.WebServices.Authorization.Events.Services
 {
@@ -21,190 +22,27 @@ namespace IT.WebServices.Authorization.Events.Services
     {
         private readonly ILogger<EventService> _logger;
         private readonly IEventDataProvider _eventProvider;
+        private readonly ITicketDataProvider _ticketProvider;
         private readonly ONUserHelper _userHelper;
 
         public EventService(
             ILogger<EventService> logger,
             IEventDataProvider eventProvider,
+            ITicketDataProvider ticketProvider,
             ONUserHelper userHelper
         )
         {
             _logger = logger;
             _eventProvider = eventProvider;
+            _ticketProvider = ticketProvider;
             _userHelper = userHelper;
         }
 
-        public override async Task<AdminCreateEventResponse> AdminCreateEvent(
-            AdminCreateEventRequest request,
-            ServerCallContext context
-        )
-        {
-            var newEvent = new EventRecord() { EventId = Guid.NewGuid().ToString() };
-
-            var now = Timestamp.FromDateTime(DateTime.UtcNow);
-
-            newEvent.SinglePublic = new SingleEventPublicRecord()
-            {
-                EventId = newEvent.EventId,
-                Title = request.Data.Title,
-                Description = request.Data.Description,
-                Venue = request.Data.Venue,
-                StartOnUTC = request.Data.StartTimeUTC,
-                EndOnUTC = request.Data.EndTimeUTC,
-                CreatedOnUTC = now,
-                ModifiedOnUTC = now,
-            };
-
-            newEvent.SinglePublic.Tags.AddRange(request.Data.Tags);
-            newEvent.SinglePublic.TicketClasses.AddRange(request.Data.TicketClasses);
-
-            newEvent.SinglePrivate = new();
-
-            var res = await _eventProvider.Create(newEvent);
-            if (res != CreateEventErrorType.CreateEventNoError)
-            {
-                return new AdminCreateEventResponse()
-                {
-                    Error = new() { CreateEventError = res, Message = "An Error Ocurred" },
-                };
-            }
-
-            return new AdminCreateEventResponse()
-            {
-                Error = new()
-                {
-                    CreateEventError = CreateEventErrorType.CreateEventNoError,
-                    Message = "Success",
-                },
-                Event = newEvent,
-            };
-        }
-
-        public override async Task<AdminCreateEventResponse> AdminCreateRecurringEvent(
-            AdminCreateRecurringEventRequest request,
-            ServerCallContext context
-        )
-        {
-            var response = new AdminCreateEventResponse();
-
-            if (request == null || request.Data == null || request.RecurrenceRule == null)
-            {
-                response.Error = new EventError
-                {
-                    CreateRecurringEventError =
-                        CreateRecurringEventErrorType.CreateRecurringEventInvalidRequest,
-                    Message = "Missing Data or Recurrence Rule.",
-                };
-                return response;
-            }
-
-            var eventId = Guid.NewGuid();
-
-            var combinedString = JsonSerializer.Serialize(
-                new
-                {
-                    Frequency = request.RecurrenceRule.Frequency,
-                    Interval = request.RecurrenceRule.Interval,
-                    ByWeekday = request.RecurrenceRule.ByWeekday.OrderBy(d => d),
-                    Count = request.RecurrenceRule.Count,
-                    RepeatUntilUTC = request.RecurrenceRule.RepeatUntilUTC,
-                    ExcludeDatesUTC = request.RecurrenceRule.ExcludeDatesUTC,
-                    EventId = eventId,
-                    VenueId = request.Data.Venue?.VenueId,
-                }
-            );
-
-            string recurrenceHash = RecurrenceHelper.GenerateRecurrenceHash(combinedString);
-
-            var userId = _userHelper.MyUserId; // Extension/middleware required
-            var now = DateTime.UtcNow;
-
-            // Build base recurring record used for expansion
-            var baseRecord = new EventRecord
-            {
-                EventId = Guid.NewGuid().ToString(),
-                OneOfType = EventRecordOneOfType.EventOneOfRecurring,
-                RecurringPublic = new RecurringEventPublicRecord
-                {
-                    EventId = "", // Placeholder, each instance gets unique ID
-                    Title = request.Data.Title,
-                    Description = request.Data.Description,
-                    Location = request.Data.Venue?.Name ?? "",
-                    TemplateStartOnUTC = request.Data.StartTimeUTC,
-                    TemplateEndOnUTC = request.Data.EndTimeUTC,
-                    Tags = { request.Data.Tags },
-                    TicketClasses = { request.Data.TicketClasses },
-                    Recurrence = request.RecurrenceRule,
-                    RecurrenceHash = recurrenceHash,
-                    CreatedOnUTC = Timestamp.FromDateTime(now),
-                    ModifiedOnUTC = Timestamp.FromDateTime(now),
-                    Venue = request.Data.Venue,
-                },
-                RecurringPrivate = new RecurringEventPrivateRecord
-                {
-                    CreatedById = userId.ToString(),
-                    ModifiedById = userId.ToString(),
-                    ExtraMetadata = { request.Data.ExtraData },
-                },
-            };
-
-            // Expand the base into individual recurring records
-            var instances = RecurrenceHelper.GenerateInstances(baseRecord);
-            var records = new List<EventRecord>();
-
-            foreach (var instance in instances)
-            {
-                var instanceId = Guid.NewGuid().ToString();
-                records.Add(
-                    new EventRecord
-                    {
-                        EventId = instanceId,
-                        OneOfType = EventRecordOneOfType.EventOneOfRecurring,
-                        RecurringPublic = baseRecord.RecurringPublic.Clone(), // Deep copy
-                        RecurringPrivate = baseRecord.RecurringPrivate.Clone(),
-                    }.Tap(rec =>
-                    {
-                        rec.EventId = instanceId;
-                        rec.RecurringPublic.EventId = instanceId;
-                        rec.RecurringPublic.TemplateStartOnUTC = Timestamp.FromDateTime(
-                            instance.Start
-                        );
-                        rec.RecurringPublic.TemplateEndOnUTC = Timestamp.FromDateTime(instance.End);
-                    })
-                );
-            }
-
-            // Persist
-            var result = await _eventProvider.CreateRecurring(records);
-
-            if (result != CreateRecurringEventErrorType.CreateRecurringEventNoError)
-            {
-                response.Error = new EventError
-                {
-                    CreateRecurringEventError = result,
-                    Message = "Failed to persist recurring events.",
-                };
-                return response;
-            }
-
-            // Return the "template" event (first instance)
-            response.Event = records.First();
-            response.Error = new EventError
-            {
-                CreateRecurringEventError =
-                    CreateRecurringEventErrorType.CreateRecurringEventNoError,
-            };
-            return response;
-        }
-
-        public override async Task<AdminGetEventResponse> AdminGetEvent(
-            AdminGetEventRequest request,
-            ServerCallContext context
-        )
+        public override async Task<GetEventResponse> GetEvent(GetEventRequest request, ServerCallContext context)
         {
             Guid.TryParse(request.EventId, out var eventId);
-            if (eventId == Guid.Empty)
-                return new AdminGetEventResponse()
+            if (eventId != Guid.Empty)
+                return new GetEventResponse()
                 {
                     Error = new()
                     {
@@ -214,377 +52,292 @@ namespace IT.WebServices.Authorization.Events.Services
                 };
 
             var found = await _eventProvider.GetById(eventId);
-            return new AdminGetEventResponse() { Event = found.Item1 };
-        }
-
-        public override async Task<AdminGetEventsResponse> AdminGetEvents(
-            AdminGetEventsRequest request,
-            ServerCallContext context
-        )
-        {
-            var res = new AdminGetEventsResponse();
-
-            var enumerator = _eventProvider.GetEvents();
-
-            switch (string.IsNullOrWhiteSpace(request.RecurrenceHash))
-            {
-                case true:
-                    res.Events.AddRange(await GetSingleEvents(enumerator, request.IncludeCanceled));
-                    break;
-                case false:
-                    res.Events.AddRange(
-                        await GetRecurringEvents(
-                            enumerator,
-                            request.RecurrenceHash,
-                            request.IncludeCanceled
-                        )
-                    );
-                    break;
-            }
-
-            return res;
-        }
-
-        public override async Task<AdminGetTicketClassesForEventResponse> GetTicketClassesForEvent(
-            AdminGetTicketClassesForEventRequest request,
-            ServerCallContext context
-        )
-        {
-            var res = new AdminGetTicketClassesForEventResponse();
-            Guid.TryParse(request.EventId, out var eventId);
-            if (eventId == Guid.Empty)
-            {
-                res.Error = new()
-                {
-                    GetEventError = GetEventErrorType.GetEventUnknown,
-                    Message = "Invalid Event Id",
-                };
-                return res;
-            }
-
-            var found = await _eventProvider.GetById(eventId);
             var rec = found.Item1;
-            var errType = found.Item2;
-
-            res.Error = new EventError()
+            if (found.Item2 != GetEventErrorType.GetEventNoError)
             {
-                GetEventError = errType,
-                Message =
-                    errType == GetEventErrorType.GetEventNoError
-                        ? "No Error"
-                        : "Error Finding Event Ticket Classes",
+                return new GetEventResponse()
+                {
+                    Error = new()
+                    {
+                        GetEventError = found.Item2,
+                        Message = "Error Getting Event",
+                    },
+                };
+            }
+
+            if (rec == null)
+            {
+                return new GetEventResponse()
+                {
+                    Error = new()
+                    {
+                        GetEventError = GetEventErrorType.GetEventNotFound,
+                        Message = "Event Not Found",
+                    },
+                };
+            }
+
+            var res = new GetEventResponse()
+            {
+                Event = new EventPublicRecord()
+                {
+                    EventId = rec.EventId,
+                },
+                Error = new EventError()
+                {
+                    GetEventError = GetEventErrorType.GetEventNoError,
+                    Message = "Success",
+                },
             };
 
             switch (rec.OneOfType)
             {
                 case EventRecordOneOfType.EventOneOfSingle:
-                    res.TicketClasses.AddRange(rec.SinglePublic.TicketClasses);
+                    res.Event.SinglePublic = rec.SinglePublic;
                     break;
                 case EventRecordOneOfType.EventOneOfRecurring:
-                    res.TicketClasses.AddRange(rec.RecurringPublic.TicketClasses);
+                    res.Event.RecurringPublic = rec.RecurringPublic;
                     break;
                 default:
+                    res.Error.GetEventError = GetEventErrorType.GetEventUnknown;
+                    res.Error.Message = "Unknown Event Type";
                     break;
             }
 
             return res;
         }
 
-        public override async Task<AdminModifyEventResponse> AdminModifyEvent(
-            AdminModifyEventRequest request,
-            ServerCallContext context
-        )
+        public override async Task<GetEventsResponse> GetEvents(GetEventsRequest request, ServerCallContext context)
         {
-            var res = new AdminModifyEventResponse();
+            var res = new GetEventsResponse();
+            var enumerator = _eventProvider.GetEvents();
 
-            if (!Guid.TryParse(request.EventId, out var eventId) || eventId == Guid.Empty)
+            // TODO: Make this more efficient
+            await foreach (var item in enumerator)
             {
-                res.Error = new EventError
+                switch (item.OneOfType)
                 {
-                    CreateEventError = CreateEventErrorType.CreateEventInvalidRequest,
-                    Message = "Invalid EventId passed",
-                };
-                return res;
+                     case EventRecordOneOfType.EventOneOfSingle:
+                        res.Events.Add(new EventPublicRecord()
+                        {
+                            EventId = item.EventId,
+                            SinglePublic = item.SinglePublic,
+                        });
+                        break;
+                    case EventRecordOneOfType.EventOneOfRecurring:
+                        res.Events.Add(new EventPublicRecord()
+                        {
+                            EventId = item.EventId,
+                            RecurringPublic = item.RecurringPublic,
+                        });
+                        break;
+                    default:
+                        _logger.LogWarning("Unknown event type encountered: {Type}", item.OneOfType);
+                        break;
+                }
             }
 
-            var (existing, error) = await _eventProvider.GetById(eventId);
-            if (existing == null || existing.OneOfType != EventRecordOneOfType.EventOneOfSingle)
+            res.Error = new EventError()
             {
-                res.Error = new EventError
-                {
-                    CreateEventError = CreateEventErrorType.CreateEventInvalidRequest,
-                    Message = "Single event not found or event is not modifiable",
-                };
-                return res;
-            }
-
-            var newData = request.Data;
-
-            // Update fields
-            var updated = existing.Clone();
-            var single = updated.SinglePublic;
-            single.Title = newData.Title;
-            single.Description = newData.Description;
-            single.Venue = newData.Venue;
-            single.Location = newData.Venue?.Name ?? "";
-            single.StartOnUTC = newData.StartTimeUTC;
-            single.EndOnUTC = newData.EndTimeUTC;
-            single.Tags.Clear();
-            single.Tags.AddRange(newData.Tags);
-            single.TicketClasses.Clear();
-            single.TicketClasses.AddRange(newData.TicketClasses);
-            updated.SinglePublic = single;
-
-            // Also update private metadata if it exists
-            if (
-                updated.OneOfType == EventRecordOneOfType.EventOneOfSingle
-                && updated.SinglePrivate != null
-            )
-            {
-                updated.SinglePrivate.ModifiedById =
-                    context.GetHttpContext()?.User?.Identity?.Name ?? "unknown";
-                updated.SinglePrivate.ExtraMetadata.Clear();
-                if (newData.ExtraData != null)
-                    updated.SinglePrivate.ExtraMetadata.Add(newData.ExtraData);
-            }
-
-            var updateError = await _eventProvider.Update(updated);
-            if (updateError != CreateEventErrorType.CreateEventNoError)
-            {
-                res.Error = new EventError
-                {
-                    CreateEventError = updateError,
-                    Message = "Failed to update the event",
-                };
-                return res;
-            }
-
-            res.Error = new EventError
-            {
-                CreateEventError = CreateEventErrorType.CreateEventNoError,
+                GetEventError = GetEventErrorType.GetEventNoError,
+                Message = "Success",
             };
+            return res;
+        }
+
+        public override async Task<GetOwnTicketResponse> GetOwnTicket(GetOwnTicketRequest request, ServerCallContext context)
+        {
+            var res = new GetOwnTicketResponse();
+            var user = ONUserHelper.ParseUser(context.GetHttpContext());
 
             return res;
         }
 
-        public override async Task<AdminCancelEventResponse> AdminCancelEvent(
-            AdminCancelEventRequest request,
-            ServerCallContext context
-        )
+        public override async Task<GetOwnTicketsResponse> GetOwnTickets(GetOwnTicketsRequest request, ServerCallContext context)
         {
-            var res = new AdminCancelEventResponse();
+            var user = ONUserHelper.ParseUser(context.GetHttpContext());
+
+            return new GetOwnTicketsResponse();
+        }
+
+        public override async Task<CancelOwnTicketResponse> CancelOwnTicket(CancelOwnTicketRequest request, ServerCallContext context)
+        {
+            var user = ONUserHelper.ParseUser(context.GetHttpContext());
+
+            return new CancelOwnTicketResponse();
+        }
+
+        public override async Task<ReserveTicketForEventResponse> ReserveTicketForEvent(ReserveTicketForEventRequest request, ServerCallContext context)
+        {
+            var res = new ReserveTicketForEventResponse();
+            var user = ONUserHelper.ParseUser(context.GetHttpContext());
+            if (user == null)
+            {
+                res.Error = new TicketError()
+                {
+                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketUnauthorized,
+                    Message = "User not authorized",
+                };
+                return res;
+            }
+
             Guid.TryParse(request.EventId, out var eventId);
             if (eventId == Guid.Empty)
             {
-                res.Error = new()
+                res.Error = new TicketError()
                 {
-                    CancelEventError = CancelEventErrorType.CancelEventUnknown,
+                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketInvalidRequest,
                     Message = "Invalid Event Id",
                 };
                 return res;
             }
 
-            var found = await _eventProvider.GetById(eventId);
-            if (found.Item2 != GetEventErrorType.GetEventNoError)
+            var (eventRecord, eventError) = await _eventProvider.GetById(eventId);
+            if (eventRecord == null || eventError != GetEventErrorType.GetEventNoError)
             {
-                res.Error = new()
+                res.Error = new TicketError()
                 {
-                    CancelEventError = CancelEventErrorType.CancelEventUnknown,
-                    Message = "Error Getting Event To Cancel",
-                };
-            }
-
-            var rec = found.Item1;
-            var now = Timestamp.FromDateTime(DateTime.UtcNow);
-            if (rec == null)
-            {
-                res.Error = new()
-                {
-                    CancelEventError = CancelEventErrorType.CancelEventNotFound,
-                    Message = "Event Not Found",
-                };
-            }
-
-            if (rec.OneOfType == EventRecordOneOfType.EventOneOfRecurring)
-            {
-                rec.RecurringPublic.CanceledOnUTC = now;
-                rec.RecurringPublic.IsCanceled = true;
-            }
-            else if (rec.OneOfType == EventRecordOneOfType.EventOneOfSingle)
-            {
-                rec.SinglePublic.CanceledOnUTC = now;
-                rec.SinglePublic.IsCanceled = true;
-            }
-            else
-            {
-                res.Error = new()
-                {
-                    CancelEventError = CancelEventErrorType.CancelEventUnknown,
-                    Message = "Error Canceling Event",
+                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketEventNotFound,
+                    Message = "Event not found",
                 };
                 return res;
             }
 
-            var cancelRes = await _eventProvider.Update(rec);
-
-            if (cancelRes != CreateEventErrorType.CreateEventNoError)
+            var ticketClass = GetTicketClassFromEventRecord(eventRecord, request.TicketClassId);
+            if (ticketClass == null)
             {
-                res.Error = new()
+                res.Error = new TicketError()
                 {
-                    CancelEventError = CancelEventErrorType.CancelEventUnknown,
-                    Message = "Unknown Error Ocurred While Canceling Event",
+                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketInvalidRequest,
+                    Message = "Invalid Ticket Class Id",
                 };
-            }
-            else
-            {
-                res.Error = new()
-                {
-                    CancelEventError = CancelEventErrorType.CancelEventNoError,
-                    Message = "Canceled Event",
-                };
+                return res;
             }
 
+            // TODO: Refactor this to EventTicketClass Extension Method
+            var amountAvailable = (int)ticketClass.AmountAvailible;
+            var numToReserve = (int)request.Quantity;
+            var maxPerUser = (int)ticketClass.MaxTicketsPerUser;
+            if ( amountAvailable<= 0 || amountAvailable - numToReserve <= 0)
+            {
+                res.Error = new TicketError()
+                {
+                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketInvalidRequest,
+                    Message = "No tickets available for this class",
+                };
+                return res;
+            }
+
+            if (numToReserve > maxPerUser)
+            {
+                res.Error = new TicketError()
+                {
+                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketMaxLimitReached,
+                    Message = $"You can only reserve {maxPerUser} tickets per user",
+                };
+                return res;
+            }
+
+            // TODO: Validate User Hasn't already bought the limit and if the limit isn't reached, will the reservation put the user over the limit
+
+            // TODO: Refactor this to EventTicketClass Extension Method
+            var now = Timestamp.FromDateTime(DateTime.UtcNow);
+            if (now < ticketClass.SaleStartOnUTC || now > ticketClass.SaleEndOnUTC)
+            {
+                res.Error = new TicketError()
+                {
+                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketNotOnSale,
+                    Message = "Tickets are not on sale at this time",
+                };
+                return res;
+            }
+
+            var ticketsToReserve = GenerateTicketRecords(numToReserve, eventRecord, user.Id.ToString(), ticketClass);
+            if (ticketsToReserve.Count == 0)
+            {
+                res.Error = new TicketError()
+                {
+                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketUnknown,
+                    Message = "Unknown Error Has Occured"
+                };
+                return res;
+            }
+
+            var success = await _ticketProvider.Create(ticketsToReserve);
+            if (!success)
+            {
+                res.Error = new TicketError()
+                {
+                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketUnknown,
+                    Message = "Unknown Error Has Occured"
+                };
+                return res;
+            }
+
+            res.Tickets.AddRange(ticketsToReserve);
+            res.Error = new TicketError()
+            {
+                ReserveTicketError = ReserveTicketErrorType.ReserveTicketNoError,
+                Message = "Success",
+            };
             return res;
         }
 
-        public override async Task<AdminCancelAllRecurringEventsResponse> AdminCancelAllRecurringEvents(
-            AdminCancelAllRecurringEventsRequest request,
-            ServerCallContext context
-        )
+        public override Task<UseTicketResponse> UseTicket(UseTicketRequest request, ServerCallContext context)
         {
-            var response = new AdminCancelAllRecurringEventsResponse();
-
-            if (string.IsNullOrWhiteSpace(request.RecurrenceHash))
-            {
-                response.Error = new EventError
-                {
-                    CreateRecurringEventError =
-                        CreateRecurringEventErrorType.CreateRecurringEventInvalidRequest,
-                    Message = "RecurrenceHash is required.",
-                };
-                return response;
-            }
-
-            var utcNow = DateTime.UtcNow;
-            var toCancel = new List<EventRecord>();
-
-            try
-            {
-                await foreach (var record in _eventProvider.GetEvents())
-                {
-                    if (
-                        record.OneOfType == EventRecordOneOfType.EventOneOfRecurring
-                        && string.Equals(
-                            record.RecurringPublic.RecurrenceHash,
-                            request.RecurrenceHash,
-                            StringComparison.OrdinalIgnoreCase
-                        )
-                    )
-                    {
-                        if (!record.RecurringPublic.IsCanceled)
-                        {
-                            // Mark canceled
-                            var recurring = record.RecurringPublic;
-                            recurring.IsCanceled = true;
-                            recurring.CanceledOnUTC =
-                                Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(utcNow);
-
-                            toCancel.Add(record);
-                        }
-                    }
-                }
-
-                var updateResult = await _eventProvider.UpdateRecurring(toCancel);
-
-                if (updateResult != CreateRecurringEventErrorType.CreateRecurringEventNoError)
-                {
-                    response.Error = new EventError
-                    {
-                        CreateRecurringEventError = updateResult,
-                        Message = "Failed to update recurring events during cancellation.",
-                    };
-                    return response;
-                }
-
-                response.Error = new EventError
-                {
-                    CreateRecurringEventError =
-                        CreateRecurringEventErrorType.CreateRecurringEventNoError,
-                };
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Unexpected error cancelling recurring events with hash {RecurrenceHash}",
-                    request.RecurrenceHash
-                );
-                response.Error = new EventError
-                {
-                    CreateRecurringEventError =
-                        CreateRecurringEventErrorType.CreateRecurringEventUnknown,
-                    Message = "Unexpected error occurred.",
-                };
-                return response;
-            }
+            return base.UseTicket(request, context);
         }
 
-        private async Task<List<EventRecord>> GetSingleEvents(
-            IAsyncEnumerable<EventRecord> events,
-            bool includeCanceled = false
-        )
+        private EventTicketClass GetTicketClassFromEventRecord(Fragments.Authorization.Events.EventRecord record, string ticketClassId)
         {
-            var res = new List<EventRecord>();
-            await foreach (var item in events)
+            EventTicketClass ticketClass = null;
+            if (record.OneOfType == EventRecordOneOfType.EventOneOfSingle)
             {
-                if (includeCanceled && item.SinglePublic.IsCanceled == true)
-                {
-                    res.Add(item);
-                }
-
-                if (!includeCanceled && !item.SinglePublic.IsCanceled)
-                {
-                    res.Add(item);
-                }
+                ticketClass = record.SinglePublic.TicketClasses.FirstOrDefault(tc => tc.TicketClassId ==ticketClassId);
+            }
+            else if (record.OneOfType == EventRecordOneOfType.EventOneOfRecurring)
+            {
+                ticketClass = record.RecurringPublic.TicketClasses.FirstOrDefault(tc => tc.TicketClassId ==ticketClassId);
             }
 
-            return res;
+            return ticketClass;
         }
 
-        private async Task<List<EventRecord>> GetRecurringEvents(
-            IAsyncEnumerable<EventRecord> events,
-            string recurrenceHash,
-            bool includeCanceled = false
-        )
+        // TODO: Refactor this to EventTicketRecord Extension Method
+        private List<EventTicketRecord> GenerateTicketRecords(int numToGenerate, Fragments.Authorization.Events.EventRecord eventRecord, string userId, EventTicketClass ticketClass)
         {
-            var res = new List<EventRecord>();
-            await foreach (var item in events)
-            {
-                // Only process recurring events with the matching recurrence hash
-                if (item.OneOfType != EventRecordOneOfType.EventOneOfRecurring)
-                    continue;
+            List<EventTicketRecord> tickets = new List<EventTicketRecord>();
 
-                if (
-                    string.Equals(
-                        item.RecurringPublic.RecurrenceHash,
-                        recurrenceHash,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                )
+            for (int i = 0; i <= numToGenerate; i++)
+            {
+                var now = Timestamp.FromDateTime(DateTime.UtcNow);
+                var ticket = new EventTicketRecord()
                 {
-                    if (includeCanceled && item.RecurringPublic.IsCanceled)
+                    TicketId = Guid.NewGuid().ToString(),
+                    Public = new EventTicketPublicRecord()
                     {
-                        res.Add(item);
-                    }
-                    else if (!includeCanceled && !item.RecurringPublic.IsCanceled)
+                        TicketClassId = ticketClass.TicketClassId,
+                        Title = ticketClass.Name + " " + ( eventRecord.EventPublicRecordOneOfCase == Fragments.Authorization.Events.EventRecord.EventPublicRecordOneOfOneofCase.SinglePublic ? eventRecord.SinglePublic.Title : eventRecord.RecurringPublic.Title),
+                        EventId = eventRecord.EventId,
+                        Status = EventTicketStatus.TicketStatusAvailable,
+                        CreatedOnUTC = now,
+                        ModifiedOnUTC = now,
+                        ExpiredOnUTC = eventRecord.EventPublicRecordOneOfCase == Fragments.Authorization.Events.EventRecord.EventPublicRecordOneOfOneofCase.SinglePublic
+                            ? eventRecord.SinglePublic.EndOnUTC
+                            : eventRecord.RecurringPublic.TemplateEndOnUTC,
+                    },
+                    Private = new EventTicketPrivateRecord()
                     {
-                        res.Add(item);
-                    }
-                }
+                        UserId = userId,
+                        CreatedById = userId,
+                        ModifiedById = userId,
+                    },
+                };
+
+                tickets.Add(ticket);
             }
 
-            return res;
+            return tickets;
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IT.WebServices.Authorization.Events.Data;
 using IT.WebServices.Authorization.Events.Services;
+using IT.WebServices.Authorization.Events.Services.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,8 +23,9 @@ namespace IT.WebServices.Authorization.Events.Extensions
 
         public static void MapEventsGrpcServices(this IEndpointRouteBuilder endpoints)
         {
+            endpoints.MapGrpcService<ClaimsService>();
             endpoints.MapGrpcService<EventService>();
-            endpoints.MapGrpcService<EventTicketService>();
+            endpoints.MapGrpcService<AdminEventService>();
         }
     }
 }

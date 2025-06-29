@@ -10,7 +10,9 @@ namespace IT.WebServices.Authorization.Events.Data
     public interface ITicketDataProvider
     {
         Task<bool> Create(EventTicketRecord record);
+        Task<bool> Create(List<EventTicketRecord> records);
         Task<EventTicketRecord> GetById(Guid ticketId, Guid eventId);
         IAsyncEnumerable<EventTicketRecord> GetAllByEvent(Guid eventId);
+        IAsyncEnumerable<EventTicketRecord> GetAllByUser(Guid userId);
     }
 }

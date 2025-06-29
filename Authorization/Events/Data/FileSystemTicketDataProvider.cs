@@ -47,6 +47,21 @@ namespace IT.WebServices.Authorization.Events.Data
             return true;
         }
 
+        public async Task<bool> Create(List<EventTicketRecord> records)
+        {
+            bool allSucceeded = true;
+            foreach (var record in records)
+            {
+                var success = await Create(record);
+                if (!success)
+                {
+                    allSucceeded = false;
+                    break;
+                }
+            }
+            return allSucceeded;
+        }
+
         public async IAsyncEnumerable<EventTicketRecord> GetAllByEvent(Guid eventId)
         {
             var eventFolder = new DirectoryInfo(Path.Combine(dataDir.FullName, eventId.ToString()));
@@ -86,6 +101,27 @@ namespace IT.WebServices.Authorization.Events.Data
 
             var file = GetDataFilePath(eventId, ticketId);
             await File.WriteAllBytesAsync(file.FullName, record.ToByteArray());
+        }
+
+        public async IAsyncEnumerable<EventTicketRecord> GetAllByUser(Guid userId)
+        {
+            foreach (var file in GetAllDataFiles())
+            {
+                EventTicketRecord record;
+                try
+                {
+                    record = EventTicketRecord.Parser.ParseFrom(await File.ReadAllBytesAsync(file.FullName));
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (Guid.TryParse(record.Private?.UserId, out var ownerId) && ownerId == userId)
+                {
+                    yield return record;
+                }
+            }
         }
 
         private IEnumerable<FileInfo> GetAllDataFiles()
