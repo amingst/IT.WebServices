@@ -291,6 +291,7 @@ namespace IT.WebServices.Authorization.Events.Services
             }
 
             res.Tickets.AddRange(ticketsToReserve);
+            
             res.Error = new TicketError()
             {
                 ReserveTicketError = ReserveTicketErrorType.ReserveTicketNoError,

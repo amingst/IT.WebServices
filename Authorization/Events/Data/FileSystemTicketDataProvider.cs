@@ -126,7 +126,21 @@ namespace IT.WebServices.Authorization.Events.Data
 
         public async Task<bool> Update(EventTicketRecord record)
         {
-            throw new NotImplementedException();
+            // Validate TicketId and EventId
+            if (!Guid.TryParse(record.TicketId, out var ticketId) || ticketId == Guid.Empty)
+                return false;
+
+            if (!Guid.TryParse(record.Public?.EventId, out var eventId) || eventId == Guid.Empty)
+                return false;
+
+            var file = GetDataFilePath(eventId, ticketId);
+
+            // Only update if the ticket file exists
+            if (!file.Exists)
+                return false;
+
+            await Save(record);
+            return true;
         }
 
         private IEnumerable<FileInfo> GetAllDataFiles()
