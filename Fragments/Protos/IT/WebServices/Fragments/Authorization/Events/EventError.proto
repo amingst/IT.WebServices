@@ -70,7 +70,8 @@ enum UseTicketErrorType {
 	USE_TICKET_TICKET_NOT_FOUND = 3; // The ticket to use was not found
 	USE_TICKET_ALREADY_USED = 4; // The ticket has already been used
 	USE_TICKET_EXPIRED = 5; // The ticket has expired
-	USE_TICKET_UNKNOWN = 6; // An unknown error occurred
+	USE_TICKET_CANCELED = 6; // The ticket has been canceled
+	USE_TICKET_UNKNOWN = 7; // An unknown error occurred
 }
 
 message TicketError {

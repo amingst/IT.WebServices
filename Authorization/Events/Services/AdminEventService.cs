@@ -114,37 +114,11 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             string recurrenceHash = RecurrenceHelper.GenerateRecurrenceHash(combinedString);
 
             var userId = _userHelper.MyUserId; // Extension/middleware required
-            var now = DateTime.UtcNow;
-
-            // Build base recurring record used for expansion
-            var baseRecord = new EventRecord
-            {
-                EventId = Guid.NewGuid().ToString(),
-                OneOfType = EventRecordOneOfType.EventOneOfRecurring,
-                RecurringPublic = new RecurringEventPublicRecord
-                {
-                    EventId = "", // Placeholder, each instance gets unique ID
-                    Title = request.Data.Title,
-                    Description = request.Data.Description,
-                    Location = request.Data.Venue?.Name ?? "",
-                    TemplateStartOnUTC = request.Data.StartTimeUTC,
-                    TemplateEndOnUTC = request.Data.EndTimeUTC,
-                    Tags = { request.Data.Tags },
-                    TicketClasses = { request.Data.TicketClasses },
-                    Recurrence = request.RecurrenceRule,
-                    RecurrenceHash = recurrenceHash,
-                    CreatedOnUTC = Timestamp.FromDateTime(now),
-                    ModifiedOnUTC = Timestamp.FromDateTime(now),
-                    Venue = request.Data.Venue,
-                },
-                RecurringPrivate = new RecurringEventPrivateRecord
-                {
-                    CreatedById = userId.ToString(),
-                    ModifiedById = userId.ToString(),
-                    ExtraMetadata = { request.Data.ExtraData },
-                },
-            };
-
+            var baseRecord = new EventRecord(
+                request,
+                userId.ToString(),
+                recurrenceHash
+            );
             // Expand the base into individual recurring records
             var instances = RecurrenceHelper.GenerateInstances(baseRecord);
             var records = new List<EventRecord>();

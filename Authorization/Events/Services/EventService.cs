@@ -77,34 +77,15 @@ namespace IT.WebServices.Authorization.Events.Services
                 };
             }
 
-            var res = new GetEventResponse()
+            return  new GetEventResponse()
             {
-                Event = new EventPublicRecord()
-                {
-                    EventId = rec.EventId,
-                },
+                Event = rec.GetPublicRecord(),
                 Error = new EventError()
                 {
                     GetEventError = GetEventErrorType.GetEventNoError,
                     Message = "Success",
                 },
             };
-
-            switch (rec.OneOfType)
-            {
-                case EventRecordOneOfType.EventOneOfSingle:
-                    res.Event.SinglePublic = rec.SinglePublic;
-                    break;
-                case EventRecordOneOfType.EventOneOfRecurring:
-                    res.Event.RecurringPublic = rec.RecurringPublic;
-                    break;
-                default:
-                    res.Error.GetEventError = GetEventErrorType.GetEventUnknown;
-                    res.Error.Message = "Unknown Event Type";
-                    break;
-            }
-
-            return res;
         }
 
         public override async Task<GetEventsResponse> GetEvents(GetEventsRequest request, ServerCallContext context)
@@ -150,21 +131,57 @@ namespace IT.WebServices.Authorization.Events.Services
             var res = new GetOwnTicketResponse();
             var user = ONUserHelper.ParseUser(context.GetHttpContext());
 
+            var tickets = await _ticketProvider.GetAllByUser(user.Id).ToList();
+            var foundTicket = tickets.FirstOrDefault(t => t.TicketId == request.TicketId);
+
+            res.Record = foundTicket.Public;
             return res;
         }
 
         public override async Task<GetOwnTicketsResponse> GetOwnTickets(GetOwnTicketsRequest request, ServerCallContext context)
         {
             var user = ONUserHelper.ParseUser(context.GetHttpContext());
-
-            return new GetOwnTicketsResponse();
+            var tickets = await _ticketProvider.GetAllByUser(user.Id).ToList();
+            var res  = new GetOwnTicketsResponse();
+            res.Records.AddRange(tickets.Select(t => t.Public));
+            return res;
         }
 
         public override async Task<CancelOwnTicketResponse> CancelOwnTicket(CancelOwnTicketRequest request, ServerCallContext context)
         {
             var user = ONUserHelper.ParseUser(context.GetHttpContext());
+            var res = new CancelOwnTicketResponse();
 
-            return new CancelOwnTicketResponse();
+            var tickets = await _ticketProvider.GetAllByUser(user.Id).ToList();
+            var foundTicket = tickets.FirstOrDefault(t => t.TicketId == request.TicketId);
+            if (foundTicket == null)
+            {
+                res.Error = new TicketError()
+                {
+                    CancelTicketError = CancelTicketErrorType.CancelTicketTicketNotFound,
+                    Message = "Ticket not found",
+                };
+                return res;
+            }
+
+            foundTicket = foundTicket.Cancel(user.Id.ToString());
+
+           var success = await _ticketProvider.Update(foundTicket);
+            if (!success)
+            {
+                res.Error = new TicketError()
+                {
+                    CancelTicketError = CancelTicketErrorType.CancelTicketTicketNotFound,
+                    Message = "Unknown Error Has Occured",
+                };
+                return res;
+            }
+            res.Error = new TicketError()
+            {
+                CancelTicketError = CancelTicketErrorType.CancelTicketNoError,
+                Message = "Success",
+            };
+            return res;
         }
 
         public override async Task<ReserveTicketForEventResponse> ReserveTicketForEvent(ReserveTicketForEventRequest request, ServerCallContext context)
@@ -224,7 +241,7 @@ namespace IT.WebServices.Authorization.Events.Services
                 return res;
             }
 
-            // TODO: Validate User Hasn't already bought the limit and if the limit isn't reached, will the reservation put the user over the limit
+            // TODO: Count Tickets Reserved by User For This Event And Pass Into HitReservationLimit Second Parameter
             if (ticketClass.HitReservationLimit((int)request.Quantity))
             {
                 res.Error = new TicketError()
@@ -276,9 +293,72 @@ namespace IT.WebServices.Authorization.Events.Services
             return res;
         }
 
-        public override Task<UseTicketResponse> UseTicket(UseTicketRequest request, ServerCallContext context)
+        public override async Task<UseTicketResponse> UseTicket(UseTicketRequest request, ServerCallContext context)
         {
-            return base.UseTicket(request, context);
+            var user = ONUserHelper.ParseUser(context.GetHttpContext());
+            var res = new UseTicketResponse();  
+            var tickets = await _ticketProvider.GetAllByUser(user.Id).ToList();
+            var foundTicket = tickets.FirstOrDefault(t => t.TicketId == request.TicketId);
+
+            if (foundTicket == null)
+            {
+                res.Error = new TicketError()
+                {
+                    UseTicketError = UseTicketErrorType.UseTicketTicketNotFound,
+                    Message = "Ticket not found",
+                };
+                return res;
+            }
+
+            if (foundTicket.Public.Status == EventTicketStatus.TicketStatusUsed)
+            {
+                res.Error = new TicketError()
+                {
+                    UseTicketError = UseTicketErrorType.UseTicketAlreadyUsed,
+                    Message = "Ticket is not available for use",
+                };
+                return res;
+            }
+
+            if (foundTicket.Public.Status == EventTicketStatus.TicketStatusCanceled)
+            {
+                res.Error = new TicketError()
+                {
+                    UseTicketError = UseTicketErrorType.UseTicketCanceled,
+                    Message = "Ticket is canceled and cannot be used",
+                };
+                return res;
+            }
+
+            if (foundTicket.Public.Status == EventTicketStatus.TicketStatusExpired)
+            {
+                res.Error = new TicketError()
+                {
+                    UseTicketError = UseTicketErrorType.UseTicketExpired,
+                    Message = "Ticket is expired and cannot be used",
+                };
+                return res;
+            }
+
+            foundTicket = foundTicket.MarkAsUsed(user.Id.ToString());
+
+            var success = await _ticketProvider.Update(foundTicket);
+            if (!success)
+            {
+                res.Error = new TicketError()
+                {
+                    UseTicketError = UseTicketErrorType.UseTicketUnknown,
+                    Message = "Unknown Error Has Occured",
+                };
+                return res;
+            }
+
+            res.Error = new TicketError()
+            {
+                UseTicketError = UseTicketErrorType.UseTicketNoError,
+                Message = "Success",
+            };
+            return res;
         }
     }
 }

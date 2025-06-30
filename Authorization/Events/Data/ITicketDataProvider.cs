@@ -14,5 +14,6 @@ namespace IT.WebServices.Authorization.Events.Data
         Task<EventTicketRecord> GetById(Guid ticketId, Guid eventId);
         IAsyncEnumerable<EventTicketRecord> GetAllByEvent(Guid eventId);
         IAsyncEnumerable<EventTicketRecord> GetAllByUser(Guid userId);
+        Task<bool> Update(EventTicketRecord record);
     }
 }

@@ -11,6 +11,29 @@ namespace IT.WebServices.Fragments.Authorization.Events
 {
     public sealed partial class EventTicketRecord : pb::IMessage<EventTicketRecord>
     {
+        public EventTicketRecord Cancel(string canceledById)
+        {
+            var now = Timestamp.FromDateTime(DateTime.UtcNow);
+            Public.Status = EventTicketStatus.TicketStatusCanceled;
+            Public.ModifiedOnUTC = now;
+            Public.CanceledOnUTC = now;
+            Public.ExpiredOnUTC = now;
+            Private.CanceledById = canceledById;
+            Private.ModifiedById = canceledById;
+            return this;
+        }
+
+        public EventTicketRecord MarkAsUsed(string usedById)
+        {
+            var now = Timestamp.FromDateTime(DateTime.UtcNow);
+            Public.Status = EventTicketStatus.TicketStatusUsed;
+            Public.ModifiedOnUTC = now;
+            Public.UsedOnUTC = now;
+            Private.UsedById = usedById;
+            Private.ModifiedById = usedById;
+            return this;
+        }
+
         public static List<EventTicketRecord> GenerateRecords(int numToGenerate, Fragments.Authorization.Events.EventRecord eventRecord, string userId, EventTicketClass ticketClass)
         {
             List<EventTicketRecord> tickets = new List<EventTicketRecord>();

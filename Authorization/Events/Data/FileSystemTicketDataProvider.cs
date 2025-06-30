@@ -124,6 +124,11 @@ namespace IT.WebServices.Authorization.Events.Data
             }
         }
 
+        public async Task<bool> Update(EventTicketRecord record)
+        {
+            throw new NotImplementedException();
+        }
+
         private IEnumerable<FileInfo> GetAllDataFiles()
         {
             return dataDir.EnumerateFiles("*", SearchOption.AllDirectories);
