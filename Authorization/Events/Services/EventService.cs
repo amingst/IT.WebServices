@@ -249,8 +249,18 @@ namespace IT.WebServices.Authorization.Events.Services
                 return res;
             }
 
-            // TODO: Count Tickets Reserved by User For This Event And Pass Into HitReservationLimit Second Parameter
-            if (ticketClass.HitReservationLimit((int)request.Quantity))
+            var ticketsReservedByUser = 0;
+            await foreach (var ticket in _ticketProvider.GetAllByUser(user.Id))
+            {
+                if (ticket.Public.EventId == eventId.ToString())
+                {
+                    ticketsReservedByUser++;
+                }
+            }
+
+            var ticketLimitHit = ticketClass.HitReservationLimit((int)request.Quantity, ticketsReservedByUser);
+
+            if (ticketLimitHit)
             {
                 res.Error = new TicketError()
                 {

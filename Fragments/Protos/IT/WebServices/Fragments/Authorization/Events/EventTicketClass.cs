@@ -21,7 +21,7 @@ namespace IT.WebServices.Fragments.Authorization.Events
         public bool HitReservationLimit(int numToReserve, int numReservedAlready = 0)
         {
             var maxPerUser = (int)MaxTicketsPerUser;
-            return numToReserve > maxPerUser && numToReserve < numReservedAlready;
+            return numToReserve > maxPerUser || numToReserve <= numReservedAlready;
         }
 
         public bool IsOnSale()

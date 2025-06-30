@@ -124,6 +124,29 @@ namespace IT.WebServices.Authorization.Events.Data
             }
         }
 
+        public async IAsyncEnumerable<EventTicketRecord> GetAllByUserAndEvent(Guid userId, Guid eventId)
+        {
+            var eventFolder = new DirectoryInfo(Path.Combine(dataDir.FullName, eventId.ToString()));
+            if (!eventFolder.Exists)
+                yield break;
+            foreach (var file in eventFolder.EnumerateFiles("*"))
+            {
+                EventTicketRecord record;
+                try
+                {
+                    record = EventTicketRecord.Parser.ParseFrom(await File.ReadAllBytesAsync(file.FullName));
+                }
+                catch
+                {
+                    continue;
+                }
+                if (Guid.TryParse(record.Private?.UserId, out var ownerId) && ownerId == userId)
+                {
+                    yield return record;
+                }
+            }
+        }
+
         public async Task<bool> Update(EventTicketRecord record)
         {
             // Validate TicketId and EventId
