@@ -4,6 +4,8 @@ package IT.WebServices.Fragments.Settings;
 
 import "google/api/annotations.proto";
 import "Protos/IT/WebServices/Fragments/Settings/SettingsRecord.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Events/EventsSettings.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
 
 // Service for Settings service fragment interface
 service SettingsInterface {
@@ -189,6 +191,14 @@ service SettingsInterface {
       body: "*"
     };
   }
+
+  rpc ModifyEventPublicSettings (ModifyEventPublicSettingsRequest) returns (ModifyEventPublicSettingsResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/settings/events/public"
+      body: "*"
+    };
+  }
 }
 
 message GetPublicDataRequest {
@@ -366,5 +376,13 @@ message ModifyNotificationOwnerDataRequest {
 
 message ModifyNotificationOwnerDataResponse {
   ModifyResponseErrorType Error = 1;
+}
+
+message ModifyEventPublicSettingsRequest {
+  IT.WebServices.Fragments.Authorization.Events.EventPublicSettings Data = 1;
+}
+
+message ModifyEventPublicSettingsResponse {
+    ModifyResponseErrorType Error = 1;
 }
 

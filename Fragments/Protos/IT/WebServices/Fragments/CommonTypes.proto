@@ -1,0 +1,39 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments;
+import "google/protobuf/timestamp.proto";
+
+enum WeekdayEnum {
+	Sunday = 0;
+	Monday = 1;
+	Tuesday = 2;
+	Wednesday = 3;
+	Thursday = 4;
+	Friday = 5;
+	Saturday = 6;
+}
+
+message Pagination {
+	uint32 PageOffsetStart = 1;
+	uint32 PageOffsetEnd = 2;
+	uint32 PageTotalItems = 3;
+}
+
+message LifecycleMetadataPublic {
+	google.protobuf.Timestamp CreatedOnUTC = 1;
+	google.protobuf.Timestamp ModifiedOnUTC = 2;
+	optional google.protobuf.Timestamp DeletedOnUTC = 3;
+	optional google.protobuf.Timestamp PublishedOnUTC = 4;
+	optional google.protobuf.Timestamp CanceledOnUTC = 5;
+	optional google.protobuf.Timestamp AnnouncedOnUTC = 6;
+}
+
+message LifecycleMetadataPrivate {
+	string CreatedById = 1;
+	string ModifiedById = 2;
+	optional string DeletedById = 3;
+	optional string PublishedById = 4;
+	optional string CanceledById = 5;
+	optional string AnnouncedById = 6;
+}
+

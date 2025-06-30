@@ -1,20 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;CS8981</NoWarn>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <NoWarn>1701;1702;CS8981</NoWarn>
   </PropertyGroup>
-
   <ItemGroup>
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\UserInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\AdminEventInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventError.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventsSettings.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" />
@@ -42,6 +44,7 @@
     <None Remove="Protos\IT\WebServices\Fragments\Comment\CommentInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Comment\CommentRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Comment\SharedTypes.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\CommonTypes.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\AssetBackup.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\AssetInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Content\AssetRecord.proto" />
@@ -84,9 +87,14 @@
     <None Remove="Protos\IT\WebServices\Fragments\CreatorDashboard\Subscribers\Mute.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Generic\ServiceOps.proto" />
   </ItemGroup>
-
   <ItemGroup>
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\AdminEventInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventError.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventsSettings.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketRecord.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fortis\FortisInterface.proto" />
@@ -113,6 +121,7 @@
     <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\CommentInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\CommentRecord.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Comment\SharedTypes.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\CommonTypes.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\AssetBackup.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\AssetRecord.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Music\MusicInterface.proto" />
@@ -161,11 +170,10 @@
     <Protobuf Include="Protos\IT\WebServices\Fragments\Generic\ServiceOps.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalInterface.proto" GrpcServices="Both" />
   </ItemGroup>
-
   <ItemGroup>
-	<PackageReference Include="Grpc.Net.Client" Version="2.65.0" />
-	<PackageReference Include="Microsoft.AspNetCore.Grpc.HttpApi" Version="0.1.0-alpha.21317.5" />
-	<PackageReference Include="Microsoft.AspNetCore.Grpc.Swagger" Version="0.8.7" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.65.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Grpc.HttpApi" Version="0.1.0-alpha.21317.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Grpc.Swagger" Version="0.8.7" />
     <PackageReference Include="Google.Protobuf" Version="3.27.3" />
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
     <PackageReference Include="Grpc.Tools" Version="2.65.0">
@@ -173,5 +181,4 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
 </Project>

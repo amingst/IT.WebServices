@@ -1,11 +1,11 @@
-﻿using Grpc.Core;
+﻿using System;
+using System.Threading.Tasks;
+using Grpc.Core;
 using Grpc.Core.Logging;
 using Grpc.Net.Client;
+using IT.WebServices.Fragments.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using IT.WebServices.Fragments.Authentication;
-using System;
-using System.Threading.Tasks;
 
 namespace IT.WebServices.Clients
 {
@@ -21,6 +21,7 @@ namespace IT.WebServices.Clients
         public readonly Channel SettingsServiceChannel;
         public readonly Channel StatsServiceChannel;
         public readonly Channel UserServiceChannel;
+        public readonly Channel EventsServiceChannel;
 
         private readonly Task<string> ServiceTokenTask;
         public readonly Lazy<string> ServiceToken;
@@ -39,10 +40,18 @@ namespace IT.WebServices.Clients
             ChatServiceChannel = new Channel("localhost", 7001, ChannelCredentials.Insecure);
             CommentServiceChannel = new Channel("localhost", 7001, ChannelCredentials.Insecure);
             SettingsServiceChannel = new Channel("localhost", 7001, ChannelCredentials.Insecure);
-            ContentServiceChannel = GrpcChannel.ForAddress(new Uri("http://localhost:7001"), options);
-            NotificationServiceChannel = new Channel("localhost", 7001, ChannelCredentials.Insecure);
+            ContentServiceChannel = GrpcChannel.ForAddress(
+                new Uri("http://localhost:7001"),
+                options
+            );
+            NotificationServiceChannel = new Channel(
+                "localhost",
+                7001,
+                ChannelCredentials.Insecure
+            );
             PaymentServiceChannel = new Channel("localhost", 7001, ChannelCredentials.Insecure);
             StatsServiceChannel = new Channel("localhost", 7001, ChannelCredentials.Insecure);
+            EventsServiceChannel = new Channel("localhost", 7001, ChannelCredentials.Insecure);
 
             ServiceTokenTask = GetServiceToken();
             ServiceToken = new Lazy<string>(() => ServiceTokenTask.Result);
@@ -53,13 +62,20 @@ namespace IT.WebServices.Clients
             try
             {
                 var client = new ServiceInterface.ServiceInterfaceClient(UserServiceChannel);
-                var reply = await client.AuthenticateServiceAsync(new(), null, DateTime.UtcNow.AddSeconds(5));
+                var reply = await client.AuthenticateServiceAsync(
+                    new(),
+                    null,
+                    DateTime.UtcNow.AddSeconds(5)
+                );
 
                 return reply?.BearerToken;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error in IT.WebServices.Settings.ServiceNameHelper.GetServiceToken");
+                logger.LogError(
+                    ex,
+                    "Error in IT.WebServices.Settings.ServiceNameHelper.GetServiceToken"
+                );
                 return null;
             }
         }
