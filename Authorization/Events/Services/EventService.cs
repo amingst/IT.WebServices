@@ -192,6 +192,7 @@ namespace IT.WebServices.Authorization.Events.Services
             return res;
         }
 
+        // TODO: Handle Event Count Update
         public override async Task<ReserveTicketForEventResponse> ReserveTicketForEvent(ReserveTicketForEventRequest request, ServerCallContext context)
         {
             var res = new ReserveTicketForEventResponse();

@@ -26,14 +26,16 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         private readonly ITicketDataProvider _ticketDataProvider;
         private readonly ONUserHelper _userHelper;
         private readonly EventTicketClassHelper _ticketClassHelper;
+        private readonly EventVenueHelper _venueHelper;
 
-        public AdminEventService(ILogger<EventService> logger, ITicketDataProvider ticketDataProvider,IEventDataProvider eventProvider, ONUserHelper userHelper, EventTicketClassHelper eventTicketClassHelper)
+        public AdminEventService(ILogger<EventService> logger, ITicketDataProvider ticketDataProvider,IEventDataProvider eventProvider, ONUserHelper userHelper, EventTicketClassHelper eventTicketClassHelper,  EventVenueHelper venueHelper)
         {
             _logger = logger;
             _eventProvider = eventProvider;
             _ticketDataProvider = ticketDataProvider;
             _userHelper = userHelper;
             _ticketClassHelper = eventTicketClassHelper;
+            _venueHelper = venueHelper;
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_CREATOR_OR_HIGHER)]
@@ -56,6 +58,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
                 EndOnUTC = request.Data.EndTimeUTC,
                 CreatedOnUTC = now,
                 ModifiedOnUTC = now,
+                MaxTickets = request.Data.MaxTickets,
             };
 
             newEvent.SinglePublic.Tags.AddRange(request.Data.Tags);
@@ -126,6 +129,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
                 userId.ToString(),
                 recurrenceHash
             );
+            baseRecord.RecurringPublic.MaxTickets = request.Data.MaxTickets;
             // Expand the base into individual recurring records
             var instances = RecurrenceHelper.GenerateInstances(baseRecord);
             var records = new List<EventRecord>();
@@ -268,7 +272,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             single.Title = newData.Title;
             single.Description = newData.Description;
             single.Venue = newData.Venue;
-            single.Location = newData.Venue?.Name ?? "";
+            // single.Location = newData.Venue?.Name ?? "";
             single.StartOnUTC = newData.StartTimeUTC;
             single.EndOnUTC = newData.EndTimeUTC;
             single.Tags.Clear();

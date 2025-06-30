@@ -21,9 +21,10 @@ message EventTicketClass {
 	EventTicketClassType Type = 2;
 	string Name = 3;
 	uint32 AmountAvailible = 4;
-	uint32 MaxTicketsPerUser = 5;
-	bool IsTransferrable = 6;
-	uint32 PricePerTicketCents = 7;
+	bool CountTowardEventMax = 5;
+	uint32 MaxTicketsPerUser = 6;
+	bool IsTransferrable = 7;
+	uint32 PricePerTicketCents = 8;
 	google.protobuf.Timestamp SaleStartOnUTC = 21;
 	google.protobuf.Timestamp SaleEndOnUTC = 22;
 }

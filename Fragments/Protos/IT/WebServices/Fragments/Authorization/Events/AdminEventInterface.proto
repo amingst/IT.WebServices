@@ -89,6 +89,7 @@ message CreateEventData {
 	repeated string Tags = 6; // Tags associated with the event
 	repeated string TicketClasses = 7; // Ticket classes available for the event
 	map<string, string> ExtraData = 8; // Additional metadata for the event
+	uint32 MaxTickets = 9; // Maximum number of tickets available for the event
 }
 
 message AdminCreateEventRequest {
