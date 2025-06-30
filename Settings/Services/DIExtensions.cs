@@ -13,7 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.AddSingleton<ISettingsDataProvider, FileSettingsDataProvider>();
 
-            services.AddScoped<ISettingsService, SettingsService>();
+            services.AddSingleton<ISettingsService, SettingsService>();
 
             return services;
         }

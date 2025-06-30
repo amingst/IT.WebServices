@@ -681,7 +681,7 @@ namespace IT.WebServices.Settings.Services
                         Subscription = new()
                         {
                             AllowOther = true,
-                            ParallelEconomy = new()
+                            Fortis = new()
                             {
                                 Enabled = false,
                             },
@@ -726,7 +726,7 @@ namespace IT.WebServices.Settings.Services
                         Personalization = new() { },
                         Subscription = new()
                         {
-                            ParallelEconomy = new(),
+                            Fortis = new(),
                             //Stripe = new(),
                             Paypal = new(),
                         },

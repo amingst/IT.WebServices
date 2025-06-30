@@ -8,7 +8,7 @@ using IT.WebServices.Fragments.Authorization;
 using IT.WebServices.Fragments.Authorization.Payment;
 using IT.WebServices.Fragments.Generic;
 using ManualD = IT.WebServices.Authorization.Payment.Manual.Data;
-using PED = IT.WebServices.Authorization.Payment.ParallelEconomy.Data;
+using FortisD = IT.WebServices.Authorization.Payment.Fortis.Data;
 using PaypalD = IT.WebServices.Authorization.Payment.Paypal.Data;
 using StripeD = IT.WebServices.Authorization.Payment.Stripe.Data;
 using IT.WebServices.Helpers;
@@ -23,7 +23,7 @@ namespace IT.WebServices.Authorization.Payment.Service
         private readonly Stripe.Clients.StripeClient stripeClient;
         private readonly ManualD.ISubscriptionRecordProvider manualProvider;
         private readonly PaypalD.ISubscriptionFullRecordProvider paypalProvider;
-        private readonly PED.ISubscriptionFullRecordProvider peProvider;
+        private readonly FortisD.ISubscriptionFullRecordProvider peProvider;
         private readonly StripeD.ISubscriptionFullRecordProvider stripeProvider;
         private readonly StripeD.IOneTimeRecordProvider stripeOneTimeProvider;
 
@@ -33,7 +33,7 @@ namespace IT.WebServices.Authorization.Payment.Service
             Stripe.Clients.StripeClient stripeClient,
             ManualD.ISubscriptionRecordProvider manualProvider,
             PaypalD.ISubscriptionFullRecordProvider paypalProvider,
-            PED.ISubscriptionFullRecordProvider peProvider,
+            FortisD.ISubscriptionFullRecordProvider peProvider,
             StripeD.ISubscriptionFullRecordProvider stripeProvider,
             StripeD.IOneTimeRecordProvider stripeOneTimeProvider
         )
@@ -78,20 +78,20 @@ namespace IT.WebServices.Authorization.Payment.Service
             if (userToken == null)
                 return new();
 
+            var fortisT = peProvider.GetAllByUserId(request.UserID.ToGuid()).ToList();
             var manualT = manualProvider.GetAllByUserId(request.UserID.ToGuid()).ToList();
             var paypalT = paypalProvider.GetAllByUserId(request.UserID.ToGuid()).ToList();
-            var peT = peProvider.GetAllByUserId(request.UserID.ToGuid()).ToList();
             var stripeT = stripeProvider.GetAllByUserId(request.UserID.ToGuid()).ToList();
 
-            await Task.WhenAll(manualT, paypalT, peT, stripeT);
+            await Task.WhenAll(manualT, paypalT, fortisT, stripeT);
 
             var res = new GetOtherSubscriptionRecordsResponse();
 
+            if (fortisT.Result != null)
+                res.Fortis.AddRange(fortisT.Result);
+
             if (manualT.Result != null)
                 res.Manual.AddRange(manualT.Result);
-
-            if (paypalT.Result != null)
-                res.PE.AddRange(peT.Result);
 
             if (paypalT.Result != null)
                 res.Paypal.AddRange(paypalT.Result);
@@ -111,20 +111,20 @@ namespace IT.WebServices.Authorization.Payment.Service
             if (userToken == null)
                 return new();
 
+            var fortisT = peProvider.GetAllByUserId(userToken.Id).ToList();
             var manualT = manualProvider.GetAllByUserId(userToken.Id).ToList();
             var paypalT = paypalProvider.GetAllByUserId(userToken.Id).ToList();
-            var peT = peProvider.GetAllByUserId(userToken.Id).ToList();
             var stripeT = stripeProvider.GetAllByUserId(userToken.Id).ToList();
 
-            await Task.WhenAll(manualT, paypalT, peT, stripeT);
+            await Task.WhenAll(manualT, paypalT, fortisT, stripeT);
 
             var res = new GetOwnSubscriptionRecordsResponse();
 
+            if (fortisT.Result != null)
+                res.Fortis.AddRange(fortisT.Result);
+
             if (manualT.Result != null)
                 res.Manual.AddRange(manualT.Result);
-
-            if (paypalT.Result != null)
-                res.PE.AddRange(peT.Result);
 
             if (paypalT.Result != null)
                 res.Paypal.AddRange(paypalT.Result);

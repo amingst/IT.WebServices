@@ -2,22 +2,124 @@ syntax = "proto3";
 
 package IT.WebServices.Fragments.Authorization.Payment.Stripe;
 
+import "google/api/annotations.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/ProductRecord.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeSubscriptionRecord.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeOneTimeRecord.proto";
 
 service StripeInterface {
-  rpc StripeCancelOtherSubscription (StripeCancelOtherSubscriptionRequest) returns (StripeCancelOtherSubscriptionResponse) {}
-  rpc StripeCancelOwnSubscription (StripeCancelOwnSubscriptionRequest) returns (StripeCancelOwnSubscriptionResponse) {}
+  rpc StripeBulkActionCancel (StripeBulkActionCancelRequest) returns (StripeBulkActionCancelResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/stripe/admin/bulk/cancel"
+      body: "*"
+    };
+  }
+
+  rpc StripeBulkActionStart (StripeBulkActionStartRequest) returns (StripeBulkActionStartResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/stripe/admin/bulk/start"
+      body: "*"
+    };
+  }
+
+  rpc StripeBulkActionStatus (StripeBulkActionStatusRequest) returns (StripeBulkActionStatusResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/stripe/admin/bulk"
+    };
+  }
+
+  rpc StripeCancelOtherSubscription (StripeCancelOtherSubscriptionRequest) returns (StripeCancelOtherSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/stripe/admin/subscription/cancel"
+      body: "*"
+    };
+  }
+
+  rpc StripeCancelOwnSubscription (StripeCancelOwnSubscriptionRequest) returns (StripeCancelOwnSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/stripe/subscription/cancel"
+      body: "*"
+    };
+  }
+
   rpc StripeCheckOtherSubscription (StripeCheckOtherSubscriptionRequest) returns (StripeCheckOtherSubscriptionResponse) {}
+
   rpc StripeCheckOwnSubscription (StripeCheckOwnSubscriptionRequest) returns (StripeCheckOwnSubscriptionResponse) {}
+
   rpc StripeCheckOwnOneTime (StripeCheckOwnOneTimeRequest) returns (StripeCheckOwnOneTimeResponse) {}
+
   rpc StripeGetAccountDetails (StripeGetAccountDetailsRequest) returns (StripeGetAccountDetailsResponse) {}
-  rpc StripeGetOwnSubscriptionRecords (StripeGetOwnSubscriptionRecordsRequest) returns (StripeGetOwnSubscriptionRecordsResponse) {}
-  rpc StripeNewOwnSubscription (StripeNewOwnSubscriptionRequest) returns (StripeNewOwnSubscriptionResponse) {}
+
+  rpc StripeGetOtherSubscriptionRecords (StripeGetOtherSubscriptionRecordsRequest) returns (StripeGetOtherSubscriptionRecordsResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/stripe/admin/subscription"
+    };
+  }
+
+  rpc StripeGetOwnSubscriptionRecords (StripeGetOwnSubscriptionRecordsRequest) returns (StripeGetOwnSubscriptionRecordsResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/stripe/subscription"
+    };
+  }
+
+  rpc StripeNewOwnSubscription (StripeNewOwnSubscriptionRequest) returns (StripeNewOwnSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/stripe/subscription/new"
+      body: "*"
+    };
+  }
+
   rpc StripeCreateBillingPortal (StripeCreateBillingPortalRequest) returns (StripeCreateBillingPortalResponse) {}
+
   rpc StripeCreateCheckoutSession(StripeCheckoutSessionRequest) returns (StripeCheckoutSessionResponse) {}
+
   rpc StripeEnsureOneTimeProduct(StripeEnsureOneTimeProductRequest) returns (StripeEnsureOneTimeProductResponse) {}
+
+  rpc StripeReconcileOtherSubscription (StripeReconcileOtherSubscriptionRequest) returns (StripeReconcileOtherSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/stripe/admin/subscription/reconcile"
+    };
+  }
+
+  rpc StripeReconcileOwnSubscription (StripeReconcileOwnSubscriptionRequest) returns (StripeReconcileOwnSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/stripe/subscription/reconcile"
+    };
+  }
+}
+
+message StripeBulkActionCancelRequest {
+  PaymentBulkAction Action = 1;
+}
+  
+message StripeBulkActionCancelResponse {
+  repeated PaymentBulkActionProgress RunningActions = 1;
+}
+
+message StripeBulkActionStartRequest {
+  PaymentBulkAction Action = 1;
+}
+  
+message StripeBulkActionStartResponse {
+  repeated PaymentBulkActionProgress RunningActions = 1;
+}
+
+message StripeBulkActionStatusRequest {
+}
+  
+message StripeBulkActionStatusResponse {
+  repeated PaymentBulkActionProgress RunningActions = 1;
 }
 
 message StripeCheckOtherSubscriptionRequest {
@@ -92,6 +194,14 @@ message StripeGetAccountDetailsResponse {
   string ClientID = 2;
 }
   
+message StripeGetOtherSubscriptionRecordsRequest {
+  string UserID = 1;
+}
+  
+message StripeGetOtherSubscriptionRecordsResponse {
+  repeated StripeSubscriptionFullRecord Records = 1;
+}
+
 message StripeGetOwnSubscriptionRecordsRequest {
 }
   
@@ -120,4 +230,23 @@ message StripeEnsureOneTimeProductRequest {
 
 message StripeEnsureOneTimeProductResponse {
 	string Error = 1;
+}
+
+message StripeReconcileOtherSubscriptionRequest {
+  string UserID = 1;
+  string SubscriptionID = 2;
+}
+  
+message StripeReconcileOtherSubscriptionResponse {
+  StripeSubscriptionFullRecord Record = 1;
+  string Error = 2;
+}
+
+message StripeReconcileOwnSubscriptionRequest {
+  string SubscriptionID = 1;
+}
+  
+message StripeReconcileOwnSubscriptionResponse {
+  StripeSubscriptionFullRecord Record = 1;
+  string Error = 2;
 }

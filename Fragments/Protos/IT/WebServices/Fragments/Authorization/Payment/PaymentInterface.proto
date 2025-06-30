@@ -5,7 +5,7 @@ package IT.WebServices.Fragments.Authorization.Payment;
 import "google/api/annotations.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Crypto/CryptoRecords.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Manual/ManualSubscriptionRecord.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/ParallelEconomy/ParallelEconomySubscriptionRecord.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Fortis/FortisSubscriptionRecord.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalRecords.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalSubscriptionRecord.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeRecords.proto";
@@ -77,7 +77,7 @@ message GetOtherSubscriptionRecordsRequest {
 
 message GetOtherSubscriptionRecordsResponse {
     repeated Manual.ManualSubscriptionRecord Manual = 2;
-    repeated ParallelEconomy.ParallelEconomySubscriptionFullRecord PE = 4;
+    repeated Fortis.FortisSubscriptionFullRecord Fortis = 4;
     repeated Paypal.PaypalSubscriptionFullRecord Paypal = 5;
     repeated Stripe.StripeSubscriptionFullRecord Stripe = 6;
 }
@@ -88,7 +88,7 @@ message GetOwnSubscriptionRecordsRequest {
 
 message GetOwnSubscriptionRecordsResponse {
     repeated Manual.ManualSubscriptionRecord Manual = 2;
-    repeated ParallelEconomy.ParallelEconomySubscriptionFullRecord PE = 4;
+    repeated Fortis.FortisSubscriptionFullRecord Fortis = 4;
     repeated Paypal.PaypalSubscriptionFullRecord Paypal = 5;
     repeated Stripe.StripeSubscriptionFullRecord Stripe = 6;
 }

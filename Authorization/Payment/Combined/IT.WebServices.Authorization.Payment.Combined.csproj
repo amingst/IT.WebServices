@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Manual\IT.WebServices.Authorization.Payment.Manual.csproj" />
-    <ProjectReference Include="..\ParallelEconomy\IT.WebServices.Authorization.Payment.ParallelEconomy\IT.WebServices.Authorization.Payment.ParallelEconomy.csproj" />
+    <ProjectReference Include="..\Fortis\IT.WebServices.Authorization.Payment.Fortis\IT.WebServices.Authorization.Payment.Fortis.csproj" />
     <ProjectReference Include="..\Paypal\IT.WebServices.Authorization.Payment.Paypal.csproj" />
     <ProjectReference Include="..\Stripe\IT.WebServices.Authorization.Payment.Stripe.csproj" />
   </ItemGroup>

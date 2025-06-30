@@ -3,14 +3,53 @@ syntax = "proto3";
 package IT.WebServices.Fragments.Authorization.Payment.Paypal;
 
 import "google/api/annotations.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalSubscriptionRecord.proto";
 
 service PaypalInterface {
+  rpc PaypalBulkActionCancel (PaypalBulkActionCancelRequest) returns (PaypalBulkActionCancelResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/paypal/admin/bulk/cancel"
+      body: "*"
+    };
+  }
+
+  rpc PaypalBulkActionStart (PaypalBulkActionStartRequest) returns (PaypalBulkActionStartResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/paypal/admin/bulk/start"
+      body: "*"
+    };
+  }
+
+  rpc PaypalBulkActionStatus (PaypalBulkActionStatusRequest) returns (PaypalBulkActionStatusResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/paypal/admin/bulk"
+    };
+  }
+
+  rpc PaypalCancelOtherSubscription (PaypalCancelOtherSubscriptionRequest) returns (PaypalCancelOtherSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/paypal/admin/subscription/cancel"
+      body: "*"
+    };
+  }
+
   rpc PaypalCancelOwnSubscription (PaypalCancelOwnSubscriptionRequest) returns (PaypalCancelOwnSubscriptionResponse)
   {
     option (google.api.http) = {
       post: "/api/payment/paypal/subscription/cancel"
       body: "*"
+    };
+  }
+
+  rpc PaypalGetOtherSubscriptionRecords (PaypalGetOtherSubscriptionRecordsRequest) returns (PaypalGetOtherSubscriptionRecordsResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/paypal/admin/subscription"
     };
   }
 
@@ -28,8 +67,56 @@ service PaypalInterface {
       body: "*"
     };
   }
+
+  rpc PaypalReconcileOtherSubscription (PaypalReconcileOtherSubscriptionRequest) returns (PaypalReconcileOtherSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/paypal/admin/subscription/reconcile"
+    };
+  }
+
+  rpc PaypalReconcileOwnSubscription (PaypalReconcileOwnSubscriptionRequest) returns (PaypalReconcileOwnSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/paypal/subscription/reconcile"
+    };
+  }
 }
   
+message PaypalBulkActionCancelRequest {
+  PaymentBulkAction Action = 1;
+}
+  
+message PaypalBulkActionCancelResponse {
+  repeated PaymentBulkActionProgress RunningActions = 1;
+}
+
+message PaypalBulkActionStartRequest {
+  PaymentBulkAction Action = 1;
+}
+  
+message PaypalBulkActionStartResponse {
+  repeated PaymentBulkActionProgress RunningActions = 1;
+}
+
+message PaypalBulkActionStatusRequest {
+}
+  
+message PaypalBulkActionStatusResponse {
+  repeated PaymentBulkActionProgress RunningActions = 1;
+}
+
+message PaypalCancelOtherSubscriptionRequest {
+  string UserID = 1;
+  string SubscriptionID = 2;
+  string Reason = 3;
+}
+  
+message PaypalCancelOtherSubscriptionResponse {
+  PaypalSubscriptionRecord Record = 1;
+  string Error = 2;
+}
+
 message PaypalCancelOwnSubscriptionRequest {
   string SubscriptionID = 1;
   string Reason = 2;
@@ -38,6 +125,14 @@ message PaypalCancelOwnSubscriptionRequest {
 message PaypalCancelOwnSubscriptionResponse {
   PaypalSubscriptionRecord Record = 1;
   string Error = 2;
+}
+
+message PaypalGetOtherSubscriptionRecordsRequest {
+  string UserID = 1;
+}
+  
+message PaypalGetOtherSubscriptionRecordsResponse {
+  repeated PaypalSubscriptionFullRecord Records = 1;
 }
 
 message PaypalGetOwnSubscriptionRecordsRequest {
@@ -53,5 +148,24 @@ message PaypalNewOwnSubscriptionRequest {
   
 message PaypalNewOwnSubscriptionResponse {
   PaypalSubscriptionRecord Record = 1;
+  string Error = 2;
+}
+
+message PaypalReconcileOtherSubscriptionRequest {
+  string UserID = 1;
+  string SubscriptionID = 2;
+}
+  
+message PaypalReconcileOtherSubscriptionResponse {
+  PaypalSubscriptionFullRecord Record = 1;
+  string Error = 2;
+}
+
+message PaypalReconcileOwnSubscriptionRequest {
+  string SubscriptionID = 1;
+}
+  
+message PaypalReconcileOwnSubscriptionResponse {
+  PaypalSubscriptionFullRecord Record = 1;
   string Error = 2;
 }

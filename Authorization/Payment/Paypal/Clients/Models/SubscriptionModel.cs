@@ -1,4 +1,6 @@
-﻿namespace IT.WebServices.Authorization.Payment.Paypal.Clients.Models
+﻿using IT.WebServices.Fragments.Authorization.Payment;
+
+namespace IT.WebServices.Authorization.Payment.Paypal.Clients.Models
 {
     public class SubscriptionModel
     {
@@ -9,6 +11,24 @@
         public DateTime create_time { get; set; }
         public DateTime update_time { get; set; }
         public string? status { get; set; }
+
+        public SubscriptionStatus StatusEnum
+        {
+            get
+            {
+                switch (status)
+                {
+                    case "ACTIVE":
+                        return SubscriptionStatus.SubscriptionActive;
+                    case "CANCELLED":
+                        return SubscriptionStatus.SubscriptionStopped;
+                    case "SUSPENDED":
+                        return SubscriptionStatus.SubscriptionPaused;
+                    default:
+                        return SubscriptionStatus.SubscriptionUnknown;
+                }
+            }
+        }
 
         public class BillingInfo
         {

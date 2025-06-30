@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using IT.WebServices.Authentication;
 using ManualD = IT.WebServices.Authorization.Payment.Manual.Data;
-using PED = IT.WebServices.Authorization.Payment.ParallelEconomy.Data;
+using FortisD = IT.WebServices.Authorization.Payment.Fortis.Data;
 using PaypalD = IT.WebServices.Authorization.Payment.Paypal.Data;
 using StripeD = IT.WebServices.Authorization.Payment.Stripe.Data;
 using IT.WebServices.Fragments.Authorization;
@@ -13,7 +13,7 @@ using System.Linq;
 using IT.WebServices.Fragments.Authorization.Payment.Paypal;
 using IT.WebServices.Fragments.Authorization.Payment.Stripe;
 using IT.WebServices.Helpers;
-using IT.WebServices.Fragments.Authorization.Payment.ParallelEconomy;
+using IT.WebServices.Fragments.Authorization.Payment.Fortis;
 using IT.WebServices.Fragments.Authorization.Payment.Manual;
 
 namespace IT.WebServices.Authorization.Payment.Service
@@ -23,10 +23,10 @@ namespace IT.WebServices.Authorization.Payment.Service
         private readonly ILogger<ClaimsService> logger;
         private readonly ManualD.ISubscriptionRecordProvider manualProvider;
         private readonly PaypalD.ISubscriptionFullRecordProvider paypalProvider;
-        private readonly PED.ISubscriptionFullRecordProvider peProvider;
+        private readonly FortisD.ISubscriptionFullRecordProvider peProvider;
         private readonly StripeD.ISubscriptionFullRecordProvider stripeProvider;
 
-        public ClaimsService(ILogger<ClaimsService> logger, ManualD.ISubscriptionRecordProvider manualProvider, PaypalD.ISubscriptionFullRecordProvider paypalProvider, PED.ISubscriptionFullRecordProvider peProvider, StripeD.ISubscriptionFullRecordProvider stripeProvider)
+        public ClaimsService(ILogger<ClaimsService> logger, ManualD.ISubscriptionRecordProvider manualProvider, PaypalD.ISubscriptionFullRecordProvider paypalProvider, FortisD.ISubscriptionFullRecordProvider peProvider, StripeD.ISubscriptionFullRecordProvider stripeProvider)
         {
             this.logger = logger;
             this.manualProvider = manualProvider;
@@ -90,7 +90,7 @@ namespace IT.WebServices.Authorization.Payment.Service
                 Service = "manual";
             }
 
-            public UnifiedSubscriptionRecord(ParallelEconomySubscriptionFullRecord r)
+            public UnifiedSubscriptionRecord(FortisSubscriptionFullRecord r)
             {
                 PaidThruUTC = r.PaidThruUTC;
                 AmountCents = r.SubscriptionRecord.AmountCents;

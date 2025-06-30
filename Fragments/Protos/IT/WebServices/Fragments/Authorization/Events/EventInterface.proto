@@ -2,7 +2,6 @@
 
 package IT.WebServices.Fragments.Authorization.Events;
 
-import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Events/EventRecord.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
