@@ -96,6 +96,7 @@ message SingleEventPrivateRecord {
 
 	string CanceledById = 5;
 	map<string, string> ExtraMetadata = 6; // Additional metadata for the event
+	string CanceledForReason = 7; // Reason for cancellation, if applicable
 }
 
 //
@@ -136,6 +137,7 @@ message RecurringEventPrivateRecord {
 
 	string CanceledById = 5;
 	map<string, string> ExtraMetadata = 6; // Additional metadata for the recurring event
+	string CanceledForReason = 7;
 }
 
 //

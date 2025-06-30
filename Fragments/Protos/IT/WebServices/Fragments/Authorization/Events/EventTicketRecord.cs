@@ -11,7 +11,7 @@ namespace IT.WebServices.Fragments.Authorization.Events
 {
     public sealed partial class EventTicketRecord : pb::IMessage<EventTicketRecord>
     {
-        public EventTicketRecord Cancel(string canceledById)
+        public EventTicketRecord Cancel(string canceledById, string reason = "")
         {
             var now = Timestamp.FromDateTime(DateTime.UtcNow);
             Public.Status = EventTicketStatus.TicketStatusCanceled;
@@ -20,6 +20,7 @@ namespace IT.WebServices.Fragments.Authorization.Events
             Public.ExpiredOnUTC = now;
             Private.CanceledById = canceledById;
             Private.ModifiedById = canceledById;
+            Private.CanceledForReason = reason;
             return this;
         }
 

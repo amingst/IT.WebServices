@@ -347,11 +347,13 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             {
                 rec.RecurringPublic.CanceledOnUTC = now;
                 rec.RecurringPublic.IsCanceled = true;
+                rec.RecurringPrivate.CanceledForReason = request.Reason;
             }
             else if (rec.OneOfType == EventRecordOneOfType.EventOneOfSingle)
             {
                 rec.SinglePublic.CanceledOnUTC = now;
                 rec.SinglePublic.IsCanceled = true;
+                rec.SinglePrivate.CanceledForReason = request.Reason;
             }
             else
             {

@@ -172,7 +172,7 @@ namespace IT.WebServices.Authorization.Events.Services
                 return res;
             }
 
-            foundTicket = foundTicket.Cancel(user.Id.ToString());
+            foundTicket = foundTicket.Cancel(user.Id.ToString(), request.Reason);
 
            var success = await _ticketProvider.Update(foundTicket);
             if (!success)

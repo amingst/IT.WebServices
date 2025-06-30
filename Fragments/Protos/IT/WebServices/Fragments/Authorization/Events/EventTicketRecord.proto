@@ -46,6 +46,7 @@ message EventTicketPrivateRecord {
 	string ModifiedById = 3;
 	string UsedById = 4;
 	string CanceledById = 5;
+	string CanceledForReason = 6;
 }
 
 message EventTicketRecord {
