@@ -38,7 +38,7 @@ namespace IT.WebServices.Fragments.Authorization.Events
         {
             List<EventTicketRecord> tickets = new List<EventTicketRecord>();
 
-            for (int i = 0; i <= numToGenerate; i++)
+            for (int i = 1; i <= numToGenerate; i++)
             {
                 var now = Timestamp.FromDateTime(DateTime.UtcNow);
                 var ticket = new EventTicketRecord()
