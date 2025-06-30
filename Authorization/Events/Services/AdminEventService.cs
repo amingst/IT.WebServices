@@ -199,28 +199,33 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventsResponse> AdminGetEvents(
-            AdminGetEventsRequest request,
-            ServerCallContext context
-        )
+    AdminGetEventsRequest request,
+    ServerCallContext context
+)
         {
             var res = new AdminGetEventsResponse();
-
             var enumerator = _eventProvider.GetEvents();
 
-            switch (string.IsNullOrWhiteSpace(request.RecurrenceHash))
+            if (string.IsNullOrWhiteSpace(request.RecurrenceHash))
             {
-                case true:
-                    res.Events.AddRange(await GetSingleEvents(enumerator, request.IncludeCanceled));
-                    break;
-                case false:
-                    res.Events.AddRange(
-                        await GetRecurringEvents(
-                            enumerator,
-                            request.RecurrenceHash,
-                            request.IncludeCanceled
-                        )
-                    );
-                    break;
+                // Get single events
+                var singles = await GetSingleEvents(enumerator, request.IncludeCanceled);
+
+                // Get template recurring events (need a new enumerator)
+                var recurringTemplates = await GetTemplateRecurringEvents(_eventProvider.GetEvents(), request.IncludeCanceled);
+
+                res.Events.AddRange(singles);
+                res.Events.AddRange(recurringTemplates);
+            }
+            else
+            {
+                res.Events.AddRange(
+                    await GetRecurringEvents(
+                        enumerator,
+                        request.RecurrenceHash,
+                        request.IncludeCanceled
+                    )
+                );
             }
 
             return res;
@@ -521,17 +526,18 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             var res = new List<EventRecord>();
             await foreach (var item in events)
             {
+                if (item.OneOfType != EventRecordOneOfType.EventOneOfSingle || item.SinglePublic == null)
+                    continue;
+
                 if (includeCanceled && item.SinglePublic.IsCanceled == true)
                 {
                     res.Add(item);
                 }
-
-                if (!includeCanceled && !item.SinglePublic.IsCanceled)
+                else if (!includeCanceled && !item.SinglePublic.IsCanceled)
                 {
                     res.Add(item);
                 }
             }
-
             return res;
         }
 
@@ -568,6 +574,32 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             }
 
             return res;
+        }
+
+        private async Task<List<EventRecord>> GetTemplateRecurringEvents(
+            IAsyncEnumerable<EventRecord> events,
+            bool includeCanceled = false
+        )
+        {
+            var templates = new Dictionary<string, EventRecord>();
+            await foreach (var item in events)
+            {
+                if (item.OneOfType != EventRecordOneOfType.EventOneOfRecurring || item.RecurringPublic == null)
+                    continue;
+
+                var hash = item.RecurringPublic.RecurrenceHash;
+                if (string.IsNullOrEmpty(hash))
+                    continue;
+
+                // Only add the first (earliest) event for each recurrence hash
+                if (!templates.ContainsKey(hash) ||
+                    item.RecurringPublic.TemplateStartOnUTC < templates[hash].RecurringPublic.TemplateStartOnUTC)
+                {
+                    if (includeCanceled || !item.RecurringPublic.IsCanceled)
+                        templates[hash] = item;
+                }
+            }
+            return templates.Values.ToList();
         }
     }
 }
