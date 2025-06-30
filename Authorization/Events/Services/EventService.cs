@@ -203,7 +203,7 @@ namespace IT.WebServices.Authorization.Events.Services
                 return res;
             }
 
-            var ticketClass = GetTicketClassFromEventRecord(eventRecord, request.TicketClassId);
+            var ticketClass = eventRecord.GetTicketClass(request.TicketClassId);
             if (ticketClass == null)
             {
                 res.Error = new TicketError()
@@ -214,11 +214,7 @@ namespace IT.WebServices.Authorization.Events.Services
                 return res;
             }
 
-            // TODO: Refactor this to EventTicketClass Extension Method
-            var amountAvailable = (int)ticketClass.AmountAvailible;
-            var numToReserve = (int)request.Quantity;
-            var maxPerUser = (int)ticketClass.MaxTicketsPerUser;
-            if ( amountAvailable<= 0 || amountAvailable - numToReserve <= 0)
+            if (!ticketClass.HasRequestedAmount((int) request.Quantity))
             {
                 res.Error = new TicketError()
                 {
@@ -228,21 +224,18 @@ namespace IT.WebServices.Authorization.Events.Services
                 return res;
             }
 
-            if (numToReserve > maxPerUser)
+            // TODO: Validate User Hasn't already bought the limit and if the limit isn't reached, will the reservation put the user over the limit
+            if (ticketClass.HitReservationLimit((int)request.Quantity))
             {
                 res.Error = new TicketError()
                 {
                     ReserveTicketError = ReserveTicketErrorType.ReserveTicketMaxLimitReached,
-                    Message = $"You can only reserve {maxPerUser} tickets per user",
+                    Message = $"You can only reserve {ticketClass.MaxTicketsPerUser} tickets per user",
                 };
                 return res;
             }
 
-            // TODO: Validate User Hasn't already bought the limit and if the limit isn't reached, will the reservation put the user over the limit
-
-            // TODO: Refactor this to EventTicketClass Extension Method
-            var now = Timestamp.FromDateTime(DateTime.UtcNow);
-            if (now < ticketClass.SaleStartOnUTC || now > ticketClass.SaleEndOnUTC)
+            if (!ticketClass.IsOnSale())
             {
                 res.Error = new TicketError()
                 {
@@ -252,7 +245,7 @@ namespace IT.WebServices.Authorization.Events.Services
                 return res;
             }
 
-            var ticketsToReserve = GenerateTicketRecords(numToReserve, eventRecord, user.Id.ToString(), ticketClass);
+            var ticketsToReserve = EventTicketRecord.GenerateRecords((int) request.Quantity, eventRecord, user.Id.ToString(), ticketClass);
             if (ticketsToReserve.Count == 0)
             {
                 res.Error = new TicketError()
@@ -286,58 +279,6 @@ namespace IT.WebServices.Authorization.Events.Services
         public override Task<UseTicketResponse> UseTicket(UseTicketRequest request, ServerCallContext context)
         {
             return base.UseTicket(request, context);
-        }
-
-        private EventTicketClass GetTicketClassFromEventRecord(Fragments.Authorization.Events.EventRecord record, string ticketClassId)
-        {
-            EventTicketClass ticketClass = null;
-            if (record.OneOfType == EventRecordOneOfType.EventOneOfSingle)
-            {
-                ticketClass = record.SinglePublic.TicketClasses.FirstOrDefault(tc => tc.TicketClassId ==ticketClassId);
-            }
-            else if (record.OneOfType == EventRecordOneOfType.EventOneOfRecurring)
-            {
-                ticketClass = record.RecurringPublic.TicketClasses.FirstOrDefault(tc => tc.TicketClassId ==ticketClassId);
-            }
-
-            return ticketClass;
-        }
-
-        // TODO: Refactor this to EventTicketRecord Extension Method
-        private List<EventTicketRecord> GenerateTicketRecords(int numToGenerate, Fragments.Authorization.Events.EventRecord eventRecord, string userId, EventTicketClass ticketClass)
-        {
-            List<EventTicketRecord> tickets = new List<EventTicketRecord>();
-
-            for (int i = 0; i <= numToGenerate; i++)
-            {
-                var now = Timestamp.FromDateTime(DateTime.UtcNow);
-                var ticket = new EventTicketRecord()
-                {
-                    TicketId = Guid.NewGuid().ToString(),
-                    Public = new EventTicketPublicRecord()
-                    {
-                        TicketClassId = ticketClass.TicketClassId,
-                        Title = ticketClass.Name + " " + ( eventRecord.EventPublicRecordOneOfCase == Fragments.Authorization.Events.EventRecord.EventPublicRecordOneOfOneofCase.SinglePublic ? eventRecord.SinglePublic.Title : eventRecord.RecurringPublic.Title),
-                        EventId = eventRecord.EventId,
-                        Status = EventTicketStatus.TicketStatusAvailable,
-                        CreatedOnUTC = now,
-                        ModifiedOnUTC = now,
-                        ExpiredOnUTC = eventRecord.EventPublicRecordOneOfCase == Fragments.Authorization.Events.EventRecord.EventPublicRecordOneOfOneofCase.SinglePublic
-                            ? eventRecord.SinglePublic.EndOnUTC
-                            : eventRecord.RecurringPublic.TemplateEndOnUTC,
-                    },
-                    Private = new EventTicketPrivateRecord()
-                    {
-                        UserId = userId,
-                        CreatedById = userId,
-                        ModifiedById = userId,
-                    },
-                };
-
-                tickets.Add(ticket);
-            }
-
-            return tickets;
         }
     }
 }
