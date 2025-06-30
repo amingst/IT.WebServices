@@ -1,11 +1,11 @@
 ﻿syntax = "proto3";
 
 package IT.WebServices.Fragments.Authorization.Events;
-import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Events/TicketClassRecord.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Events/EventRecord.proto";
 
 message EventPublicSettings {
-	repeated EventTicketClass TicketClasses = 1; // List of ticket classes available for the event
+	repeated TicketClassRecord TicketClasses = 1; // List of ticket classes available for the event
 }
 
 message EventPrivateSettings {

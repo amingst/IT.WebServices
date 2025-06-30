@@ -1,0 +1,34 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Events;
+import "google/protobuf/timestamp.proto";
+
+message TicketClassRecord {
+  string TicketClassId = 1; // Unique identifier for the ticket class
+  string EventId = 2;       // ID of the event this ticket class belongs to
+  string Name = 3;          // Name of the ticket class
+  uint32 AmountAvailable = 4; // Number of tickets available in this class
+  bool CountTowardEventMax = 5; // Whether tickets in this class count toward the event's maximum ticket limit
+  uint32 MaxTicketsPerUser = 6; // Maximum number of tickets a user can purchase in this class
+  bool IsTransferrable = 7; // Whether tickets in this class can be transferred to another user
+  uint32 PricePerTicketCents = 8; // Price per ticket in cents
+}
+
+enum EventTicketClassType {
+	TICKET_GENERAL_ACCESS = 0;
+	TICKET_ALL_MEMBER_ACCESS = 1;
+	TICKET_MEMBER_LEVEL_ACCESS = 2;
+}
+
+message EventTicketClass {
+	string TicketClassId = 1;
+	EventTicketClassType Type = 2;
+	string Name = 3;
+	uint32 AmountAvailible = 4;
+	bool CountTowardEventMax = 5;
+	uint32 MaxTicketsPerUser = 6;
+	bool IsTransferrable = 7;
+	uint32 PricePerTicketCents = 8;
+	google.protobuf.Timestamp SaleStartOnUTC = 21;
+	google.protobuf.Timestamp SaleEndOnUTC = 22;
+}

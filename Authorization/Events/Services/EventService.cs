@@ -240,70 +240,71 @@ namespace IT.WebServices.Authorization.Events.Services
                 return res;
             }
 
-            if (!ticketClass.HasRequestedAmount((int) request.Quantity))
-            {
-                res.Error = new TicketError()
-                {
-                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketInvalidRequest,
-                    Message = "No tickets available for this class",
-                };
-                return res;
-            }
+            // TODO: Rework generation to include the EventTicketClass
+            //if (!ticketClass.HasRequestedAmount((int) request.Quantity))
+            //{
+            //    res.Error = new TicketError()
+            //    {
+            //        ReserveTicketError = ReserveTicketErrorType.ReserveTicketInvalidRequest,
+            //        Message = "No tickets available for this class",
+            //    };
+            //    return res;
+            //}
 
-            var ticketsReservedByUser = 0;
-            await foreach (var ticket in _ticketProvider.GetAllByUser(user.Id))
-            {
-                if (ticket.Public.EventId == eventId.ToString())
-                {
-                    ticketsReservedByUser++;
-                }
-            }
+            //var ticketsReservedByUser = 0;
+            //await foreach (var ticket in _ticketProvider.GetAllByUser(user.Id))
+            //{
+            //    if (ticket.Public.EventId == eventId.ToString())
+            //    {
+            //        ticketsReservedByUser++;
+            //    }
+            //}
 
-            var ticketLimitHit = ticketClass.HitReservationLimit((int)request.Quantity, ticketsReservedByUser);
+            //var ticketLimitHit = ticketClass.HitReservationLimit((int)request.Quantity, ticketsReservedByUser);
 
-            if (ticketLimitHit)
-            {
-                res.Error = new TicketError()
-                {
-                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketMaxLimitReached,
-                    Message = $"You can only reserve {ticketClass.MaxTicketsPerUser} tickets per user",
-                };
-                return res;
-            }
+            //if (ticketLimitHit)
+            //{
+            //    res.Error = new TicketError()
+            //    {
+            //        ReserveTicketError = ReserveTicketErrorType.ReserveTicketMaxLimitReached,
+            //        Message = $"You can only reserve {ticketClass.MaxTicketsPerUser} tickets per user",
+            //    };
+            //    return res;
+            //}
 
-            if (!ticketClass.IsOnSale())
-            {
-                res.Error = new TicketError()
-                {
-                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketNotOnSale,
-                    Message = "Tickets are not on sale at this time",
-                };
-                return res;
-            }
+            //if (!ticketClass.IsOnSale())
+            //{
+            //    res.Error = new TicketError()
+            //    {
+            //        ReserveTicketError = ReserveTicketErrorType.ReserveTicketNotOnSale,
+            //        Message = "Tickets are not on sale at this time",
+            //    };
+            //    return res;
+            //}
 
-            var ticketsToReserve = EventTicketRecord.GenerateRecords((int) request.Quantity, eventRecord, user.Id.ToString(), ticketClass);
-            if (ticketsToReserve.Count == 0)
-            {
-                res.Error = new TicketError()
-                {
-                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketUnknown,
-                    Message = "Unknown Error Has Occured"
-                };
-                return res;
-            }
+            //var ticketsToReserve = EventTicketRecord.GenerateRecords((int) request.Quantity, eventRecord, user.Id.ToString(), ticketClass);
+            //if (ticketsToReserve.Count == 0)
+            //{
+            //    res.Error = new TicketError()
+            //    {
+            //        ReserveTicketError = ReserveTicketErrorType.ReserveTicketUnknown,
+            //        Message = "Unknown Error Has Occured"
+            //    };
+            //    return res;
+            //}
 
-            var success = await _ticketProvider.Create(ticketsToReserve);
-            if (!success)
-            {
-                res.Error = new TicketError()
-                {
-                    ReserveTicketError = ReserveTicketErrorType.ReserveTicketUnknown,
-                    Message = "Unknown Error Has Occured"
-                };
-                return res;
-            }
+            //var success = await _ticketProvider.Create(ticketsToReserve);
+            //if (!success)
+            //{
+            //    res.Error = new TicketError()
+            //    {
+            //        ReserveTicketError = ReserveTicketErrorType.ReserveTicketUnknown,
+            //        Message = "Unknown Error Has Occured"
+            //    };
+            //    return res;
+            //}
 
-            res.Tickets.AddRange(ticketsToReserve);
+            //res.Tickets.AddRange(ticketsToReserve);
             
             res.Error = new TicketError()
             {
