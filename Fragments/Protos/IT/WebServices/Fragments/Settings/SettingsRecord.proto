@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/SharedTypes.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Crypto/CryptoSettings.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Manual/ManualPaymentSettings.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/ParallelEconomy/ParallelEconomySettings.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Fortis/FortisSettings.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeSettings.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalSettings.proto";
 import "Protos/IT/WebServices/Fragments/Content/SharedTypes.proto";
@@ -67,7 +67,7 @@ message SubscriptionPublicRecord {
   bool MinimumAllowed = 3;
   bool MaximumAllowed = 4;
   IT.WebServices.Fragments.Authorization.Payment.Manual.ManualPaymentPublicSettings Manual = 11;
-  IT.WebServices.Fragments.Authorization.Payment.ParallelEconomy.ParallelEconomyPublicSettings ParallelEconomy = 12;
+  IT.WebServices.Fragments.Authorization.Payment.Fortis.FortisPublicSettings Fortis = 12;
   IT.WebServices.Fragments.Authorization.Payment.Crypto.CryptoPublicSettings Crypto = 13;
   IT.WebServices.Fragments.Authorization.Payment.Stripe.StripePublicSettings Stripe = 14;
   IT.WebServices.Fragments.Authorization.Payment.Paypal.PaypalPublicSettings Paypal = 15;
@@ -77,7 +77,7 @@ message SubscriptionPrivateRecord {
 }
 
 message SubscriptionOwnerRecord {
-  IT.WebServices.Fragments.Authorization.Payment.ParallelEconomy.ParallelEconomyOwnerSettings ParallelEconomy = 12;
+  IT.WebServices.Fragments.Authorization.Payment.Fortis.FortisOwnerSettings Fortis = 12;
   IT.WebServices.Fragments.Authorization.Payment.Stripe.StripeOwnerSettings Stripe = 14;
   IT.WebServices.Fragments.Authorization.Payment.Paypal.PaypalOwnerSettings Paypal = 15;
 }

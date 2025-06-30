@@ -12,7 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddPaymentClasses(this IServiceCollection services)
         {
             services.AddManualPaymentClasses();
-            services.AddParallelEconomyClasses();
+            services.AddFortisClasses();
             services.AddPaypalClasses();
             services.AddStripeClasses();
 
@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static void MapPaymentGrpcServices(this IEndpointRouteBuilder endpoints)
         {
             endpoints.MapManualPaymentGrpcServices();
-            endpoints.MapParallelEconomyGrpcServices();
+            endpoints.MapFortisGrpcServices();
             endpoints.MapPaypalGrpcServices();
             endpoints.MapStripeGrpcServices();
 

@@ -37,9 +37,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Authorizatio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Payments", "Payments", "{D37AF415-7FED-4A29-B656-090408A69CF4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FortisAPI.Standard", "Authorization\Payment\ParallelEconomy\Nugets\FortisAPI.Standard\FortisAPI.Standard.csproj", "{7BB9F2EA-84C6-407D-BCD7-BC7690FA2CB2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FortisAPI.Standard", "Authorization\Payment\Fortis\Nugets\FortisAPI.Standard\FortisAPI.Standard.csproj", "{7BB9F2EA-84C6-407D-BCD7-BC7690FA2CB2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Authorization.Payment.ParallelEconomy", "Authorization\Payment\ParallelEconomy\IT.WebServices.Authorization.Payment.ParallelEconomy\IT.WebServices.Authorization.Payment.ParallelEconomy.csproj", "{B66A6BDC-5C75-4A11-BB9C-EA1C88E96013}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Authorization.Payment.Fortis", "Authorization\Payment\Fortis\IT.WebServices.Authorization.Payment.Fortis\IT.WebServices.Authorization.Payment.Fortis.csproj", "{B66A6BDC-5C75-4A11-BB9C-EA1C88E96013}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Authorization.Payment.Combined", "Authorization\Payment\Combined\IT.WebServices.Authorization.Payment.Combined.csproj", "{16FF5FB6-787A-4EA4-A5E3-6761BDE9851D}"
 EndProject
