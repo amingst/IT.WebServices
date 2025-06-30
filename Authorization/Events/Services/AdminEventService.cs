@@ -7,6 +7,7 @@ using IT.WebServices.Authorization.Events.Helpers;
 using IT.WebServices.Fragments.Authorization.Events;
 using IT.WebServices.Helpers;
 using IT.WebServices.Settings;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ using System.Threading.Tasks;
 
 namespace IT.WebServices.Authorization.Events.Services.Services
 {
+    [Authorize]
     public class AdminEventService :  AdminEventInterface.AdminEventInterfaceBase
     {
         private readonly ILogger<EventService> _logger;
@@ -34,6 +36,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             _ticketClassHelper = eventTicketClassHelper;
         }
 
+        [Authorize(Roles = ONUser.ROLE_IS_EVENT_CREATOR_OR_HIGHER)]
         public override async Task<AdminCreateEventResponse> AdminCreateEvent(
             AdminCreateEventRequest request,
             ServerCallContext context
@@ -80,6 +83,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             };
         }
 
+        [Authorize(Roles = ONUser.ROLE_IS_EVENT_CREATOR_OR_HIGHER)]
         public override async Task<AdminCreateEventResponse> AdminCreateRecurringEvent(
             AdminCreateRecurringEventRequest request,
             ServerCallContext context
@@ -171,6 +175,8 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             return response;
         }
 
+
+        [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventResponse> AdminGetEvent(
             AdminGetEventRequest request,
             ServerCallContext context
@@ -190,7 +196,8 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             var found = await _eventProvider.GetById(eventId);
             return new AdminGetEventResponse() { Event = found.Item1 };
         }
-
+        
+        [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventsResponse> AdminGetEvents(
             AdminGetEventsRequest request,
             ServerCallContext context
@@ -219,6 +226,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             return res;
         }
 
+        [Authorize(Roles = ONUser.ROLE_IS_EVENT_CREATOR_OR_HIGHER)]
         public override async Task<AdminModifyEventResponse> AdminModifyEvent(
             AdminModifyEventRequest request,
             ServerCallContext context
@@ -296,6 +304,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             return res;
         }
 
+        [Authorize(Roles = ONUser.ROLE_IS_EVENT_CREATOR_OR_HIGHER)]
         public override async Task<AdminCancelEventResponse> AdminCancelEvent(
             AdminCancelEventRequest request,
             ServerCallContext context
@@ -376,6 +385,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             return res;
         }
 
+        [Authorize(Roles = ONUser.ROLE_IS_EVENT_CREATOR_OR_HIGHER)]
         public override async Task<AdminCancelAllRecurringEventsResponse> AdminCancelAllRecurringEvents(
             AdminCancelAllRecurringEventsRequest request,
             ServerCallContext context
@@ -458,6 +468,49 @@ namespace IT.WebServices.Authorization.Events.Services.Services
                 return response;
             }
         }
+
+        [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
+        public override async Task<AdminGetTicketResponse> AdminGetTicket(AdminGetTicketRequest request, ServerCallContext context)
+        {
+            Guid.TryParse(request.TicketId, out var ticketId);
+            if (ticketId == Guid.Empty)
+                return new AdminGetTicketResponse();
+
+            Guid.TryParse(request.EventId, out var eventId);
+            if (eventId == Guid.Empty)
+                return new AdminGetTicketResponse();
+
+            var found = await _ticketDataProvider.GetById(ticketId, eventId);
+            return new AdminGetTicketResponse() { Record = found };
+        }
+
+        public override async Task<AdminGetTicketsForEventResponse> AdminGetTicketsForEvent(
+            AdminGetTicketsForEventRequest request,
+            ServerCallContext context
+        )
+        {
+            Guid.TryParse(request.EventId, out var eventId);
+            if (eventId == Guid.Empty)
+                return new AdminGetTicketsForEventResponse();
+
+            var found = await _ticketDataProvider.GetAllByEvent(eventId).ToList();
+            var res = new AdminGetTicketsForEventResponse();
+            res.Records.AddRange(found);
+
+            return res;
+        }
+
+        [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
+        public override async Task<AdminCancelOtherTicketResponse> AdminCancelOtherTicket(AdminCancelOtherTicketRequest request, ServerCallContext context)
+        {
+            return new();
+        }
+
+        [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
+        public override Task<AdminReserveEventTicketForUserResponse> AdminReserveEventTicketForUser(AdminReserveEventTicketForUserRequest request, ServerCallContext context)
+        {
+            return base.AdminReserveEventTicketForUser(request, context);
+        }
         private async Task<List<EventRecord>> GetSingleEvents(
             IAsyncEnumerable<EventRecord> events,
             bool includeCanceled = false
@@ -513,46 +566,6 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             }
 
             return res;
-        }
-
-        public override async Task<AdminGetTicketResponse> AdminGetTicket(AdminGetTicketRequest request, ServerCallContext context)
-        {
-            Guid.TryParse(request.TicketId, out var ticketId);
-            if (ticketId == Guid.Empty)
-                return new AdminGetTicketResponse();
-
-            Guid.TryParse(request.EventId, out var eventId);
-            if (eventId == Guid.Empty)
-                return new AdminGetTicketResponse();
-
-            var found = await _ticketDataProvider.GetById(ticketId, eventId);
-            return new AdminGetTicketResponse() { Record = found };
-        }
-
-        public override async Task<AdminGetTicketsForEventResponse> AdminGetTicketsForEvent(
-            AdminGetTicketsForEventRequest request,
-            ServerCallContext context
-        )
-        {
-            Guid.TryParse(request.EventId, out var eventId);
-            if (eventId == Guid.Empty)
-                return new AdminGetTicketsForEventResponse();
-
-            var found = await _ticketDataProvider.GetAllByEvent(eventId).ToList();
-            var res = new AdminGetTicketsForEventResponse();
-            res.Records.AddRange(found);
-
-            return res;
-        }
-
-        public override async Task<AdminCancelOtherTicketResponse> AdminCancelOtherTicket(AdminCancelOtherTicketRequest request, ServerCallContext context)
-        {
-            return new();
-        }
-
-        public override Task<AdminReserveEventTicketForUserResponse> AdminReserveEventTicketForUser(AdminReserveEventTicketForUserRequest request, ServerCallContext context)
-        {
-            return base.AdminReserveEventTicketForUser(request, context);
         }
     }
 }

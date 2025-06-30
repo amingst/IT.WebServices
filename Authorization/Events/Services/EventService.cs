@@ -8,6 +8,7 @@ using IT.WebServices.Authorization.Events.Helpers;
 using IT.WebServices.Fragments.Authorization.Events;
 using IT.WebServices.Helpers;
 using IT.WebServices.Settings;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ using System.Threading.Tasks;
 
 namespace IT.WebServices.Authorization.Events.Services
 {
+    [Authorize]
     public class EventService : EventInterface.EventInterfaceBase
     {
         private readonly ILogger<EventService> _logger;
