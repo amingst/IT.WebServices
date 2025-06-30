@@ -44,6 +44,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IT.WebServices.Authorization.Payment.Combined", "Authorization\Payment\Combined\IT.WebServices.Authorization.Payment.Combined.csproj", "{16FF5FB6-787A-4EA4-A5E3-6761BDE9851D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IT.WebServices.Authorization.Events", "Authorization\Events\IT.WebServices.Authorization.Events.csproj", "{8BCBE890-85AD-C2B8-5127-5459C75469FF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{192910A9-2259-4A8C-A638-BA4439FC2790} = {192910A9-2259-4A8C-A638-BA4439FC2790}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

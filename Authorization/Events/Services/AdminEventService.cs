@@ -6,6 +6,7 @@ using IT.WebServices.Authorization.Events.Extensions;
 using IT.WebServices.Authorization.Events.Helpers;
 using IT.WebServices.Fragments.Authorization.Events;
 using IT.WebServices.Helpers;
+using IT.WebServices.Settings;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -22,13 +23,15 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         private readonly IEventDataProvider _eventProvider;
         private readonly ITicketDataProvider _ticketDataProvider;
         private readonly ONUserHelper _userHelper;
+        private readonly EventTicketClassHelper _ticketClassHelper;
 
-        public AdminEventService(ILogger<EventService> logger, ITicketDataProvider ticketDataProvider,IEventDataProvider eventProvider, ONUserHelper userHelper)
+        public AdminEventService(ILogger<EventService> logger, ITicketDataProvider ticketDataProvider,IEventDataProvider eventProvider, ONUserHelper userHelper, EventTicketClassHelper eventTicketClassHelper)
         {
             _logger = logger;
             _eventProvider = eventProvider;
             _ticketDataProvider = ticketDataProvider;
             _userHelper = userHelper;
+            _ticketClassHelper = eventTicketClassHelper;
         }
 
         public override async Task<AdminCreateEventResponse> AdminCreateEvent(

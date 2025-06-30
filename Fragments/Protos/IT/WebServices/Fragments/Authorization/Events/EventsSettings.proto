@@ -1,24 +1,12 @@
 ﻿syntax = "proto3";
 
 package IT.WebServices.Fragments.Authorization.Events;
+import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
 
-message ManualEventsPublicSettings {
-	bool Enabled = 1;
+message EventPublicSettings {
+	repeated EventTicketClass TicketClasses = 1; // List of ticket classes available for the event
 }
 
-message ManualEventsPrivateSettings {}
+message EventPrivateSettings {}
 
-message ManualEventsOwnerSettings {}
-
-message EventbriteEventsPublicSettings {
-	bool Enabled = 1;
-}
-
-message EventbriteEventsPrivateSettings {
-	string RedirectUri = 1;
-	string EventbriteApiKey = 2;
-}
-
-message EventbriteEventsOwnerSettings {
-	string EventbritePrivateToken = 1;
-}
+message EventOwnerSettings {}

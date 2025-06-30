@@ -87,7 +87,7 @@ message CreateEventData {
 	google.protobuf.Timestamp StartTimeUTC = 4; // Start time of the event in UTC
 	google.protobuf.Timestamp EndTimeUTC = 5; // End time of the event in UTC
 	repeated string Tags = 6; // Tags associated with the event
-	repeated EventTicketClass TicketClasses = 7; // Ticket classes available for the event
+	repeated string TicketClasses = 7; // Ticket classes available for the event
 	map<string, string> ExtraData = 8; // Additional metadata for the event
 }
 

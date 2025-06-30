@@ -76,7 +76,7 @@ message SingleEventPublicRecord {
 	google.protobuf.Timestamp EndOnUTC = 6;           // When the event ends (UTC)
 
 	repeated string Tags = 7;                         // Optional tags for categorization
-	repeated EventTicketClass TicketClasses = 8;      // Tickets available for this event
+	repeated string TicketClasses = 8;      // Tickets available for this event
 
 	bool IsCanceled = 9;                              // Whether the event was canceled
 	google.protobuf.Timestamp CanceledOnUTC = 10;
@@ -113,7 +113,7 @@ message RecurringEventPublicRecord {
 	google.protobuf.Timestamp TemplateEndOnUTC = 6;   // Example/template end time
 
 	repeated string Tags = 7;
-	repeated EventTicketClass TicketClasses = 8;
+	repeated string TicketClasses = 8;
 
 	EventRecurrenceRule Recurrence = 9;
 

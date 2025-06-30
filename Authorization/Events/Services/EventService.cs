@@ -7,6 +7,7 @@ using IT.WebServices.Authorization.Events.Extensions;
 using IT.WebServices.Authorization.Events.Helpers;
 using IT.WebServices.Fragments.Authorization.Events;
 using IT.WebServices.Helpers;
+using IT.WebServices.Settings;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -24,22 +25,26 @@ namespace IT.WebServices.Authorization.Events.Services
         private readonly IEventDataProvider _eventProvider;
         private readonly ITicketDataProvider _ticketProvider;
         private readonly ONUserHelper _userHelper;
+        private readonly EventTicketClassHelper _ticketClassHelper;
 
         public EventService(
             ILogger<EventService> logger,
             IEventDataProvider eventProvider,
             ITicketDataProvider ticketProvider,
-            ONUserHelper userHelper
+            ONUserHelper userHelper,
+            EventTicketClassHelper ticketClassHelper
         )
         {
             _logger = logger;
             _eventProvider = eventProvider;
             _ticketProvider = ticketProvider;
             _userHelper = userHelper;
+            _ticketClassHelper = ticketClassHelper;
         }
 
         public override async Task<GetEventResponse> GetEvent(GetEventRequest request, ServerCallContext context)
         {
+
             Guid.TryParse(request.EventId, out var eventId);
             if (eventId != Guid.Empty)
                 return new GetEventResponse()
@@ -90,6 +95,7 @@ namespace IT.WebServices.Authorization.Events.Services
 
         public override async Task<GetEventsResponse> GetEvents(GetEventsRequest request, ServerCallContext context)
         {
+            var classes = _ticketClassHelper.GetAll();
             var res = new GetEventsResponse();
             var enumerator = _eventProvider.GetEvents();
 
@@ -220,7 +226,7 @@ namespace IT.WebServices.Authorization.Events.Services
                 return res;
             }
 
-            var ticketClass = eventRecord.GetTicketClass(request.TicketClassId);
+            var ticketClass = _ticketClassHelper.GetById(request.TicketClassId);
             if (ticketClass == null)
             {
                 res.Error = new TicketError()

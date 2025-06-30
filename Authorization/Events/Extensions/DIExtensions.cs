@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using IT.WebServices.Authorization.Events.Data;
 using IT.WebServices.Authorization.Events.Services;
 using IT.WebServices.Authorization.Events.Services.Services;
+using IT.WebServices.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,7 @@ namespace IT.WebServices.Authorization.Events.Extensions
         {
             services.AddSingleton<ITicketDataProvider, FileSystemTicketDataProvider>();
             services.AddSingleton<IEventDataProvider, FileSystemEventDataProvider>();
+            services.AddScoped<EventTicketClassHelper>();
             return services;
         }
 
