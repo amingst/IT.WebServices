@@ -1,0 +1,14 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Events;
+import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
+
+message EventPublicSettings {
+	repeated EventTicketClass TicketClasses = 1; // List of ticket classes available for the event
+}
+
+message EventPrivateSettings {}
+
+message EventOwnerSettings {
+	bool IsEnabled = 1; // Indicates if the event system is enabled
+}

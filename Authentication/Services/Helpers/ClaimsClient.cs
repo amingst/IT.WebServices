@@ -14,6 +14,7 @@ namespace IT.WebServices.Authentication.Services.Helpers
         public const string CLAIMS_SERVICE_LIST = "CLAIMS_SERVICE_LIST";
         public const string CHANNEL_NAME_CHAT = "chat";
         public const string CHANNEL_NAME_PAYMENT = "payment";
+        public const string CHANNEL_NAME_EVENTS = "events";
 
         private readonly ILogger logger;
         public readonly ONUser User;
@@ -92,6 +93,8 @@ namespace IT.WebServices.Authentication.Services.Helpers
                         break;
                     case CHANNEL_NAME_PAYMENT:
                         //channels.Add(settingsService.PaymentServiceChannel);
+                        break;
+                    case CHANNEL_NAME_EVENTS:
                         break;
                 }
             }

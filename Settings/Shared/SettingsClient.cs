@@ -1,6 +1,6 @@
-﻿using Grpc.Core;
+﻿using System.Threading.Tasks;
+using Grpc.Core;
 using IT.WebServices.Fragments.Settings;
-using System.Threading.Tasks;
 
 namespace IT.WebServices.Settings
 {
@@ -21,10 +21,22 @@ namespace IT.WebServices.Settings
 
         public async Task LoadLatestDirect()
         {
-            var client = new SettingsInterface.SettingsInterfaceClient(nameHelper.SettingsServiceChannel);
+            var client = new SettingsInterface.SettingsInterfaceClient(
+                nameHelper.SettingsServiceChannel
+            );
             var res = await client.GetOwnerDataAsync(new(), GetMetadata());
 
             PublicData = res.Public;
+
+            if (res.Private != null)
+            {
+                PrivateData = res.Private;
+            }
+
+            if (res.Owner != null)
+            {
+                OwnerData = res.Owner;
+            }
         }
 
         private Metadata GetMetadata()

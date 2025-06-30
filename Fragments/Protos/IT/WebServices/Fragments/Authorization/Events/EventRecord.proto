@@ -1,0 +1,176 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Events;
+
+import "google/protobuf/timestamp.proto";
+import "Protos/IT/WebServices/Fragments/CommonTypes.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
+
+//
+// ENUMS
+//
+
+// Defines how a recurring event repeats over time
+enum RecurrenceFrequency {
+	REPEAT_NONE = 0;         // Not a recurring event
+	REPEAT_DAILY = 1;        // Repeats every X days
+	REPEAT_WEEKLY = 2;       // Repeats every X weeks
+	REPEATE_MONTHLY = 3;     // Repeats every X months
+	REPEAT_YEARLY = 4;       // Repeats every X years
+}
+
+// Used to indicate which oneof branch is active in EventRecord
+enum EventRecordOneOfType {
+	EVENT_ONE_OF_SINGLE = 0;      // The record is a one-time event
+	EVENT_ONE_OF_RECURRING = 2;   // The record is a recurring event definition
+}
+
+//
+// VENUE
+//
+
+// Represents a physical location where events are held
+message EventVenue {
+	string VenueId = 1;                            // Unique identifier for the venue
+	string Name = 2;                               // Name of the venue
+	string Address = 3;                            // Physical address
+	string City = 4;                               // City where the venue is located
+	string StateOrProvince = 5;                    // State or province
+	string PostalCode = 6;                          // Postal code
+	string Country = 7;                             // Country
+	string PhoneNumber = 8;                         // Contact phone number
+	string EmailAddress = 9;                        // Contact email address
+}
+
+
+//
+// RECURRING RULE
+//
+
+// Describes how and when a recurring event should repeat
+message EventRecurrenceRule {
+	RecurrenceFrequency Frequency = 1;                // Frequency unit (e.g. daily, weekly, etc.)
+	uint32 Interval = 2;                              // How often to repeat (every N units of Frequency)
+	repeated WeekdayEnum ByWeekday = 3;               // Specific weekdays (if weekly recurrence)
+
+	oneof EndCondition {
+		uint32 Count = 4;                              // Total number of occurrences
+		google.protobuf.Timestamp RepeatUntilUTC = 5;  // Stop repeating after this date
+	}
+
+	repeated google.protobuf.Timestamp ExcludeDatesUTC = 6; // Specific dates to skip (e.g., holidays)
+}
+
+//
+// SINGLE EVENT (One-time Only)
+//
+
+// Public data for single (non-recurring) events
+message SingleEventPublicRecord {
+	string EventId = 1;                               // Unique identifier for the event
+	string Title = 2;
+	string Description = 3;
+	string Location = 4;							// Location of the event (e.g., venue name)
+
+	google.protobuf.Timestamp StartOnUTC = 5;         // When the event starts (UTC)
+	google.protobuf.Timestamp EndOnUTC = 6;           // When the event ends (UTC)
+
+	repeated string Tags = 7;                         // Optional tags for categorization
+	repeated string TicketClasses = 8;      // Tickets available for this event
+
+	bool IsCanceled = 9;                              // Whether the event was canceled
+	google.protobuf.Timestamp CanceledOnUTC = 10;
+
+	google.protobuf.Timestamp CreatedOnUTC = 11;
+	google.protobuf.Timestamp ModifiedOnUTC = 12;
+	EventVenue Venue = 15; // Venue where the recurring event takes place
+}
+
+// Internal data for single events (not exposed publicly)
+message SingleEventPrivateRecord {
+	string CreatedById = 1;
+	string ModifiedById = 2;
+
+	string ExternalSystemId = 3;                      // Optional system integration reference
+	string InternalNotes = 4;                         // Private notes for staff/admins
+
+	string CanceledById = 5;
+	map<string, string> ExtraMetadata = 6; // Additional metadata for the event
+	string CanceledForReason = 7; // Reason for cancellation, if applicable
+}
+
+//
+// RECURRING EVENT (Definition Only)
+//
+
+// Public data for recurring event definitions
+message RecurringEventPublicRecord {
+	string EventId = 1;
+	string Title = 2;
+	string Description = 3;
+	string Location = 4;
+
+	google.protobuf.Timestamp TemplateStartOnUTC = 5; // Example/template start time
+	google.protobuf.Timestamp TemplateEndOnUTC = 6;   // Example/template end time
+
+	repeated string Tags = 7;
+	repeated string TicketClasses = 8;
+
+	EventRecurrenceRule Recurrence = 9;
+
+	bool IsCanceled = 10;
+	google.protobuf.Timestamp CanceledOnUTC = 11;
+
+	google.protobuf.Timestamp CreatedOnUTC = 12;
+	google.protobuf.Timestamp ModifiedOnUTC = 13;
+	string RecurrenceHash = 14;	// Hash all recurring events created together share for db indexing
+	EventVenue Venue = 15; // Venue where the recurring event takes place
+}
+
+// Internal data for recurring event definitions
+message RecurringEventPrivateRecord {
+	string CreatedById = 1;
+	string ModifiedById = 2;
+
+	string ExternalSystemId = 3;
+	string InternalNotes = 4;
+
+	string CanceledById = 5;
+	map<string, string> ExtraMetadata = 6; // Additional metadata for the recurring event
+	string CanceledForReason = 7;
+}
+
+//
+// COMBINED EVENT RECORD
+//
+
+// A unified event wrapper that can represent either a single event or a recurring definition.
+// Stored together in one place, type determined by OneOfType + oneof branch.
+message EventRecord {
+	string EventId = 1;
+
+	EventRecordOneOfType OneOfType = 2; // Indicates which branch is active
+
+	// Public data, oneof-enforced
+	oneof EventPublicRecordOneOf {
+		SingleEventPublicRecord SinglePublic = 3;
+		RecurringEventPublicRecord RecurringPublic = 4;
+	}
+
+	// Private data, oneof-enforced
+	oneof EventPrivateRecordOneOf {
+		SingleEventPrivateRecord SinglePrivate = 5;
+		RecurringEventPrivateRecord RecurringPrivate = 6;
+	}
+}
+
+message EventPublicRecord {
+	string EventId = 1; // Unique identifier for the event
+		EventRecordOneOfType OneOfType = 2; // Indicates which branch is active
+
+	// Public data, oneof-enforced
+	oneof EventPublicRecordOneOf {
+		SingleEventPublicRecord SinglePublic = 3;
+		RecurringEventPublicRecord RecurringPublic = 4;
+	}
+}

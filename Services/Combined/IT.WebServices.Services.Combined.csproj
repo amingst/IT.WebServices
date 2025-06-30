@@ -1,17 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.65.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\Authentication\Services\IT.WebServices.Authentication.Services.csproj" />
+    <ProjectReference Include="..\..\Authorization\Events\IT.WebServices.Authorization.Events.csproj" />
     <ProjectReference Include="..\..\Authorization\Payment\Combined\IT.WebServices.Authorization.Payment.Combined.csproj" />
     <ProjectReference Include="..\..\Content\CMS\Services\IT.WebServices.Content.CMS.Services.csproj" />
     <ProjectReference Include="..\..\Content\Comment\Services\IT.WebServices.Content.Comment.Services.csproj" />
@@ -19,11 +17,9 @@
     <ProjectReference Include="..\..\Notification\Services\IT.WebServices.Notification.Services.csproj" />
     <ProjectReference Include="..\..\Settings\Services\IT.WebServices.Settings.Services.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Update="appsettings.Development.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
 </Project>

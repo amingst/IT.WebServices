@@ -1,10 +1,10 @@
-﻿using IT.WebServices.Fragments.Content;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
+using IT.WebServices.Fragments.Content;
 
 namespace IT.WebServices.Content.CMS.Services.Data
 {
@@ -21,7 +21,7 @@ namespace IT.WebServices.Content.CMS.Services.Data
 
         private async Task LoadCache()
         {
-            await foreach(var r in dataProvider.GetAll())
+            await foreach (var r in dataProvider.GetAll())
             {
                 cache.TryAdd(r.AssetIDGuid, r.ToAssetListRecord());
             }
@@ -62,6 +62,12 @@ namespace IT.WebServices.Content.CMS.Services.Data
         {
             cache[asset.AssetIDGuid] = asset.ToAssetListRecord();
             return dataProvider.Save(asset);
+        }
+
+        public async Task<List<AssetListRecord>> GetByAssetTypeAsync(AssetType assetType)
+        {
+            var found = await dataProvider.GetByAssetTypeAsync(assetType);
+            return found;
         }
     }
 }

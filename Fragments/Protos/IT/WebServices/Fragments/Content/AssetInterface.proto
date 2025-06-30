@@ -35,6 +35,12 @@ service AssetInterface {
       get: "/api/cms/admin/asset/old/{OldAssetID}"
     };
   }
+  rpc GetImageAssets (GetImageAssetsRequest) returns (SearchAssetResponse) 
+  {
+      option (google.api.http) = {
+          get: "/api/cms/admin/asset/image"
+      };
+  }
   rpc GetListOfIDs (GetListOfIDsRequest) returns (stream GetListOfIDsResponse)
   {
   }
@@ -135,4 +141,16 @@ message AssetListRecord {
   uint32 Height = 20;
   uint32 Width = 21;
   uint32 LengthSeconds = 30;
+}
+
+message AssetDateFilter {
+    google.protobuf.Timestamp BeginCreatedOnUTC = 1;
+    google.protobuf.Timestamp EndCreatedOnUTC = 2;
+}
+
+message GetImageAssetsRequest {  
+  uint32 PageSize = 1;
+  uint32 PageOffset = 2;
+  string Query = 6;
+  optional AssetDateFilter CreationDateRange = 7;
 }

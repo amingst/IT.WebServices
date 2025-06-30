@@ -1,8 +1,8 @@
-﻿using IT.WebServices.Fragments.Content;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IT.WebServices.Fragments.Content;
 
 namespace IT.WebServices.Content.CMS.Services.Data
 {
@@ -15,5 +15,6 @@ namespace IT.WebServices.Content.CMS.Services.Data
         Task<bool> Delete(Guid assetId);
         Task<bool> Exists(Guid assetId);
         Task Save(AssetRecord asset);
+        Task<List<AssetListRecord>> GetByAssetTypeAsync(AssetType assetType);
     }
 }

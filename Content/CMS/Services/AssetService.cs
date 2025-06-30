@@ -4,12 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
 using IT.WebServices.Authentication;
 using IT.WebServices.Content.CMS.Services.Data;
 using IT.WebServices.Fragments.Content;
 using IT.WebServices.Fragments.Generic;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace IT.WebServices.Content.CMS.Services
 {
@@ -26,7 +26,10 @@ namespace IT.WebServices.Content.CMS.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_CAN_CREATE_CONTENT)]
-        public override async Task<CreateAssetResponse> CreateAsset(CreateAssetRequest request, ServerCallContext context)
+        public override async Task<CreateAssetResponse> CreateAsset(
+            CreateAssetRequest request,
+            ServerCallContext context
+        )
         {
             if (!IsValid(request))
                 return new();
@@ -58,25 +61,15 @@ namespace IT.WebServices.Content.CMS.Services
                     {
                         AssetID = Guid.NewGuid().ToString(),
                         CreatedOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.UtcNow),
-                        Data = audio.Public
+                        Data = audio.Public,
                     },
-                    Private = new()
-                    {
-                        CreatedBy = user.Id.ToString(),
-                        Data = audio.Private
-                    }
-                }
+                    Private = new() { CreatedBy = user.Id.ToString(), Data = audio.Private },
+                },
             };
 
             await dataProvider.Save(record);
 
-            return new()
-            {
-                Record = new()
-                {
-                    Audio = record.Audio,
-                }
-            };
+            return new() { Record = new() { Audio = record.Audio } };
         }
 
         private async Task<CreateAssetResponse> CreateImage(ImageAssetData image, ONUser user)
@@ -89,29 +82,22 @@ namespace IT.WebServices.Content.CMS.Services
                     {
                         AssetID = Guid.NewGuid().ToString(),
                         CreatedOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.UtcNow),
-                        Data = image.Public
+                        Data = image.Public,
                     },
-                    Private = new()
-                    {
-                        CreatedBy = user.Id.ToString(),
-                        Data = image.Private
-                    }
-                }
+                    Private = new() { CreatedBy = user.Id.ToString(), Data = image.Private },
+                },
             };
 
             await dataProvider.Save(record);
 
-            return new()
-            {
-                Record = new()
-                {
-                    Image = record.Image,
-                }
-            };
+            return new() { Record = new() { Image = record.Image } };
         }
 
         [AllowAnonymous]
-        public override async Task<GetAssetResponse> GetAsset(GetAssetRequest request, ServerCallContext context)
+        public override async Task<GetAssetResponse> GetAsset(
+            GetAssetRequest request,
+            ServerCallContext context
+        )
         {
             Guid contentId = request.AssetID.ToGuid();
             if (contentId == Guid.Empty)
@@ -133,7 +119,10 @@ namespace IT.WebServices.Content.CMS.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_CAN_CREATE_CONTENT)]
-        public override async Task<GetAssetAdminResponse> GetAssetAdmin(GetAssetAdminRequest request, ServerCallContext context)
+        public override async Task<GetAssetAdminResponse> GetAssetAdmin(
+            GetAssetAdminRequest request,
+            ServerCallContext context
+        )
         {
             Guid contentId = request.AssetID.ToGuid();
             if (contentId == Guid.Empty)
@@ -147,7 +136,10 @@ namespace IT.WebServices.Content.CMS.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public async override Task<GetAssetByOldContentIDResponse> GetAssetByOldContentID(GetAssetByOldContentIDRequest request, ServerCallContext context)
+        public override async Task<GetAssetByOldContentIDResponse> GetAssetByOldContentID(
+            GetAssetByOldContentIDRequest request,
+            ServerCallContext context
+        )
         {
             var oldId = request.OldAssetID;
             if (oldId == "")
@@ -161,7 +153,11 @@ namespace IT.WebServices.Content.CMS.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public async override Task GetListOfIDs(GetListOfIDsRequest request, IServerStreamWriter<GetListOfIDsResponse> responseStream, ServerCallContext context)
+        public override async Task GetListOfIDs(
+            GetListOfIDsRequest request,
+            IServerStreamWriter<GetListOfIDsResponse> responseStream,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -171,30 +167,36 @@ namespace IT.WebServices.Content.CMS.Services
                     {
                         case AssetRecord.AssetRecordOneofOneofCase.Audio:
                             if (r.Audio.Private.Data.OldAssetID != "")
-                                await responseStream.WriteAsync(new()
-                                {
-                                    AssetID = r.Audio.Public.AssetID,
-                                    ModifiedOnUTC = r.Audio.Public.ModifiedOnUTC,
-                                });
+                                await responseStream.WriteAsync(
+                                    new()
+                                    {
+                                        AssetID = r.Audio.Public.AssetID,
+                                        ModifiedOnUTC = r.Audio.Public.ModifiedOnUTC,
+                                    }
+                                );
                             break;
                         case AssetRecord.AssetRecordOneofOneofCase.Image:
                             if (r.Image.Private.Data.OldAssetID != "")
-                                await responseStream.WriteAsync(new()
-                                {
-                                    AssetID = r.Image.Public.AssetID,
-                                    ModifiedOnUTC = r.Image.Public.ModifiedOnUTC,
-                                });
+                                await responseStream.WriteAsync(
+                                    new()
+                                    {
+                                        AssetID = r.Image.Public.AssetID,
+                                        ModifiedOnUTC = r.Image.Public.ModifiedOnUTC,
+                                    }
+                                );
                             break;
                     }
                 }
             }
-            catch
-            {
-            }
+            catch { }
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public async override Task GetListOfOldContentIDs(GetListOfOldContentIDsRequest request, IServerStreamWriter<GetListOfOldContentIDsResponse> responseStream, ServerCallContext context)
+        public override async Task GetListOfOldContentIDs(
+            GetListOfOldContentIDsRequest request,
+            IServerStreamWriter<GetListOfOldContentIDsResponse> responseStream,
+            ServerCallContext context
+        )
         {
             try
             {
@@ -204,37 +206,46 @@ namespace IT.WebServices.Content.CMS.Services
                     {
                         case AssetRecord.AssetRecordOneofOneofCase.Audio:
                             if (r.Audio.Private.Data.OldAssetID != "")
-                                await responseStream.WriteAsync(new()
-                                {
-                                    AssetID = r.Audio.Public.AssetID,
-                                    OldAssetID = r.Audio.Private.Data.OldAssetID,
-                                    ModifiedOnUTC = r.Audio.Public.ModifiedOnUTC,
-                                });
+                                await responseStream.WriteAsync(
+                                    new()
+                                    {
+                                        AssetID = r.Audio.Public.AssetID,
+                                        OldAssetID = r.Audio.Private.Data.OldAssetID,
+                                        ModifiedOnUTC = r.Audio.Public.ModifiedOnUTC,
+                                    }
+                                );
                             break;
                         case AssetRecord.AssetRecordOneofOneofCase.Image:
                             if (r.Image.Private.Data.OldAssetID != "")
-                                await responseStream.WriteAsync(new()
-                                {
-                                    AssetID = r.Image.Public.AssetID,
-                                    OldAssetID = r.Image.Private.Data.OldAssetID,
-                                    ModifiedOnUTC = r.Image.Public.ModifiedOnUTC,
-                                });
+                                await responseStream.WriteAsync(
+                                    new()
+                                    {
+                                        AssetID = r.Image.Public.AssetID,
+                                        OldAssetID = r.Image.Private.Data.OldAssetID,
+                                        ModifiedOnUTC = r.Image.Public.ModifiedOnUTC,
+                                    }
+                                );
                             break;
                     }
                 }
             }
-            catch
-            {
-            }
+            catch { }
         }
 
         [Authorize(Roles = ONUser.ROLE_CAN_CREATE_CONTENT)]
-        public override async Task<SearchAssetResponse> SearchAsset(SearchAssetRequest request, ServerCallContext context)
+        public override async Task<SearchAssetResponse> SearchAsset(
+            SearchAssetRequest request,
+            ServerCallContext context
+        )
         {
             var searchQueryBits = Array.Empty<string>();
 
             if (!string.IsNullOrWhiteSpace(request.Query))
-                searchQueryBits = request.Query.ToLower().Replace("\"", " ").Split(' ', StringSplitOptions.RemoveEmptyEntries).ToArray();
+                searchQueryBits = request
+                    .Query.ToLower()
+                    .Replace("\"", " ")
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .ToArray();
 
             var res = new SearchAssetResponse();
 
@@ -277,11 +288,59 @@ namespace IT.WebServices.Content.CMS.Services
             {
                 res.PageOffsetStart = request.PageOffset;
 
-                var page = res.Records.Skip((int)request.PageOffset).Take((int)request.PageSize).ToList();
+                var page = res
+                    .Records.Skip((int)request.PageOffset)
+                    .Take((int)request.PageSize)
+                    .ToList();
                 res.Records.Clear();
                 res.Records.AddRange(page);
             }
 
+            res.PageOffsetEnd = res.PageOffsetStart + (uint)res.Records.Count;
+
+            return res;
+        }
+
+        [AllowAnonymous]
+        public override async Task<SearchAssetResponse> GetImageAssets(
+            GetImageAssetsRequest request,
+            ServerCallContext context
+        )
+        {
+            var searchQueryBits = Array.Empty<string>();
+
+            if (!string.IsNullOrWhiteSpace(request.Query))
+                searchQueryBits = request
+                    .Query.ToLower()
+                    .Replace("\"", " ")
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .ToArray();
+
+            var res = new SearchAssetResponse();
+            var list = await this.dataProvider.GetByAssetTypeAsync(AssetType.Image);
+
+            if (list == null)
+                return res;
+
+            var filtered = list.Where(r =>
+                    searchQueryBits.Length == 0 || MeetsQuery(searchQueryBits, r)
+                )
+                .OrderByDescending(r => r.CreatedOnUTC)
+                .ToList();
+
+            res.PageTotalItems = (uint)filtered.Count;
+
+            // Pagination
+            if (request.PageSize > 0)
+            {
+                res.PageOffsetStart = request.PageOffset;
+                filtered = filtered
+                    .Skip((int)request.PageOffset)
+                    .Take((int)request.PageSize)
+                    .ToList();
+            }
+
+            res.Records.AddRange(filtered);
             res.PageOffsetEnd = res.PageOffsetStart + (uint)res.Records.Count;
 
             return res;
