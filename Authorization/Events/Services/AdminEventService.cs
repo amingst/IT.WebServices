@@ -1,4 +1,10 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Events.Data;
@@ -9,17 +15,11 @@ using IT.WebServices.Helpers;
 using IT.WebServices.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace IT.WebServices.Authorization.Events.Services.Services
 {
     [Authorize]
-    public class AdminEventService :  AdminEventInterface.AdminEventInterfaceBase
+    public class AdminEventService : AdminEventInterface.AdminEventInterfaceBase
     {
         private readonly ILogger<EventService> _logger;
         private readonly IEventDataProvider _eventProvider;
@@ -28,7 +28,14 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         private readonly EventTicketClassHelper _ticketClassHelper;
         private readonly EventVenueHelper _venueHelper;
 
-        public AdminEventService(ILogger<EventService> logger, ITicketDataProvider ticketDataProvider,IEventDataProvider eventProvider, ONUserHelper userHelper, EventTicketClassHelper eventTicketClassHelper,  EventVenueHelper venueHelper)
+        public AdminEventService(
+            ILogger<EventService> logger,
+            ITicketDataProvider ticketDataProvider,
+            IEventDataProvider eventProvider,
+            ONUserHelper userHelper,
+            EventTicketClassHelper eventTicketClassHelper,
+            EventVenueHelper venueHelper
+        )
         {
             _logger = logger;
             _eventProvider = eventProvider;
@@ -124,11 +131,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             string recurrenceHash = RecurrenceHelper.GenerateRecurrenceHash(combinedString);
 
             var userId = _userHelper.MyUserId; // Extension/middleware required
-            var baseRecord = new EventRecord(
-                request,
-                userId.ToString(),
-                recurrenceHash
-            );
+            var baseRecord = new EventRecord(request, userId.ToString(), recurrenceHash);
             baseRecord.RecurringPublic.MaxTickets = request.Data.MaxTickets;
             // Expand the base into individual recurring records
             var instances = RecurrenceHelper.GenerateInstances(baseRecord);
@@ -179,7 +182,6 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             return response;
         }
 
-
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventResponse> AdminGetEvent(
             AdminGetEventRequest request,
@@ -200,12 +202,12 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             var found = await _eventProvider.GetById(eventId);
             return new AdminGetEventResponse() { Event = found.Item1 };
         }
-        
+
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventsResponse> AdminGetEvents(
-    AdminGetEventsRequest request,
-    ServerCallContext context
-)
+            AdminGetEventsRequest request,
+            ServerCallContext context
+        )
         {
             var res = new AdminGetEventsResponse();
             var enumerator = _eventProvider.GetEvents();
@@ -216,7 +218,10 @@ namespace IT.WebServices.Authorization.Events.Services.Services
                 var singles = await GetSingleEvents(enumerator, request.IncludeCanceled);
 
                 // Get template recurring events (need a new enumerator)
-                var recurringTemplates = await GetTemplateRecurringEvents(_eventProvider.GetEvents(), request.IncludeCanceled);
+                var recurringTemplates = await GetTemplateRecurringEvents(
+                    _eventProvider.GetEvents(),
+                    request.IncludeCanceled
+                );
 
                 res.Events.AddRange(singles);
                 res.Events.AddRange(recurringTemplates);
@@ -481,7 +486,10 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override async Task<AdminGetTicketResponse> AdminGetTicket(AdminGetTicketRequest request, ServerCallContext context)
+        public override async Task<AdminGetTicketResponse> AdminGetTicket(
+            AdminGetTicketRequest request,
+            ServerCallContext context
+        )
         {
             Guid.TryParse(request.TicketId, out var ticketId);
             if (ticketId == Guid.Empty)
@@ -512,16 +520,23 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override async Task<AdminCancelOtherTicketResponse> AdminCancelOtherTicket(AdminCancelOtherTicketRequest request, ServerCallContext context)
+        public override async Task<AdminCancelOtherTicketResponse> AdminCancelOtherTicket(
+            AdminCancelOtherTicketRequest request,
+            ServerCallContext context
+        )
         {
             return new();
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override Task<AdminReserveEventTicketForUserResponse> AdminReserveEventTicketForUser(AdminReserveEventTicketForUserRequest request, ServerCallContext context)
+        public override Task<AdminReserveEventTicketForUserResponse> AdminReserveEventTicketForUser(
+            AdminReserveEventTicketForUserRequest request,
+            ServerCallContext context
+        )
         {
             return base.AdminReserveEventTicketForUser(request, context);
         }
+
         private async Task<List<EventRecord>> GetSingleEvents(
             IAsyncEnumerable<EventRecord> events,
             bool includeCanceled = false
@@ -530,7 +545,10 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             var res = new List<EventRecord>();
             await foreach (var item in events)
             {
-                if (item.OneOfType != EventRecordOneOfType.EventOneOfSingle || item.SinglePublic == null)
+                if (
+                    item.OneOfType != EventRecordOneOfType.EventOneOfSingle
+                    || item.SinglePublic == null
+                )
                     continue;
 
                 if (includeCanceled && item.SinglePublic.IsCanceled == true)
@@ -588,7 +606,10 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             var templates = new Dictionary<string, EventRecord>();
             await foreach (var item in events)
             {
-                if (item.OneOfType != EventRecordOneOfType.EventOneOfRecurring || item.RecurringPublic == null)
+                if (
+                    item.OneOfType != EventRecordOneOfType.EventOneOfRecurring
+                    || item.RecurringPublic == null
+                )
                     continue;
 
                 var hash = item.RecurringPublic.RecurrenceHash;
@@ -596,8 +617,11 @@ namespace IT.WebServices.Authorization.Events.Services.Services
                     continue;
 
                 // Only add the first (earliest) event for each recurrence hash
-                if (!templates.ContainsKey(hash) ||
-                    item.RecurringPublic.TemplateStartOnUTC < templates[hash].RecurringPublic.TemplateStartOnUTC)
+                if (
+                    !templates.ContainsKey(hash)
+                    || item.RecurringPublic.TemplateStartOnUTC
+                        < templates[hash].RecurringPublic.TemplateStartOnUTC
+                )
                 {
                     if (includeCanceled || !item.RecurringPublic.IsCanceled)
                         templates[hash] = item;

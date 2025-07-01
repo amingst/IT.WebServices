@@ -4,6 +4,7 @@ package IT.WebServices.Fragments.Authorization.Events;
 
 import "google/protobuf/timestamp.proto";
 import "Protos/IT/WebServices/Fragments/CommonTypes.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Events/TicketClassRecord.proto";
 
 //
 // ENUMS
@@ -97,7 +98,7 @@ message SingleEventPublicRecord {
 	google.protobuf.Timestamp EndOnUTC = 6;           // When the event ends (UTC)
 
 	repeated string Tags = 7;                         // Optional tags for categorization
-	repeated string TicketClasses = 8;      // Tickets available for this event
+	repeated EventTicketClass TicketClasses = 8;      // Tickets available for this event
 
 	bool IsCanceled = 9;                              // Whether the event was canceled
 	EventVenue Venue = 10; // Venue where the recurring event takes place
@@ -135,7 +136,7 @@ message RecurringEventPublicRecord {
 	google.protobuf.Timestamp TemplateEndOnUTC = 7;  // Example/template end time
 
 	repeated string Tags = 8;
-	repeated string TicketClasses = 9;
+	repeated EventTicketClass TicketClasses = 9;
 
 	EventRecurrenceRule Recurrence = 10;
 	
