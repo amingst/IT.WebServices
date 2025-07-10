@@ -681,7 +681,10 @@ namespace IT.WebServices.Settings.Services
                         Subscription = new()
                         {
                             AllowOther = true,
-                            Fortis = new() { Enabled = false },
+                            Fortis = new()
+                            {
+                                Enabled = false,
+                            },
                             //Stripe = new()
                             //{
                             //    Enabled = false,
