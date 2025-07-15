@@ -2,6 +2,8 @@
 using FortisAPI.Standard.Exceptions;
 using FortisAPI.Standard.Models;
 using IT.WebServices.Authorization.Payment.Fortis.Clients;
+using IT.WebServices.Fragments.Authorization.Payment;
+using IT.WebServices.Fragments.Authorization.Payment.Fortis;
 using IT.WebServices.Helpers;
 using System;
 using System.Collections.Generic;
@@ -22,16 +24,18 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             this.settingsHelper = settingsHelper;
         }
 
-        public async Task<ResponseTransaction?> CreateFromAccountValut(string accountVaultId, int fixAmount)
+        public async Task<GenericPaymentRecord?> CreateFromAccountValut(string accountVaultId, int fixAmount)
         {
             try
             {
-                return await client.Client.TransactionsCreditCardController.CCSaleTokenizedAsync(new V1TransactionsCcSaleTokenRequest()
+                var res = await client.Client.TransactionsCreditCardController.CCSaleTokenizedAsync(new V1TransactionsCcSaleTokenRequest()
                 {
                     AccountVaultId = accountVaultId,
                     TransactionAmount = fixAmount,
                     Description = "Amount Fix",
                 });
+
+                return res.ToPaymentRecord();
             }
             catch (Exception ex)
             {
@@ -41,9 +45,9 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return null;
         }
 
-        public async Task<List<List11>> GetAllPerWeek(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
+        public async Task<List<GenericPaymentRecord>> GetAllPerWeek(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
         {
-            List<List11> ret = new List<List11>();
+            List<GenericPaymentRecord> ret = new List<GenericPaymentRecord>();
 
             for (var d = lower; d < upper; d = d.AddDays(7))
             {
@@ -60,9 +64,9 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return ret;
         }
 
-        public async Task<List<List11>> GetAllPerDay(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
+        public async Task<List<GenericPaymentRecord>> GetAllPerDay(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
         {
-            List<List11> ret = new List<List11>();
+            List<GenericPaymentRecord> ret = new List<GenericPaymentRecord>();
 
             for (var d = lower; d < upper; d = d.AddDays(1))
             {
@@ -79,9 +83,9 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return ret;
         }
 
-        public async Task<List<List11>> GetAllPerHour(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
+        public async Task<List<GenericPaymentRecord>> GetAllPerHour(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
         {
-            List<List11> ret = new List<List11>();
+            List<GenericPaymentRecord> ret = new List<GenericPaymentRecord>();
 
             for (var d = lower; d < upper; d = d.AddHours(1))
             {
@@ -98,7 +102,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return ret;
         }
 
-        public async Task<List<List11>> GetAll(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
+        public async Task<List<GenericPaymentRecord>> GetAll(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
         {
             int errors = 0;
             int page = 1;
@@ -159,14 +163,16 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
                     throw;
             }
 
-            return ret;
+            return ret.Select(p => p.ToPaymentRecord()).ToList();
         }
 
-        public async Task<ResponseTransaction?> Get(string tranId)
+        public async Task<GenericPaymentRecord?> Get(string tranId)
         {
             try
             {
-                return await client.Client.TransactionsReadController.GetTransactionAsync(tranId);
+                var res = await client.Client.TransactionsReadController.GetTransactionAsync(tranId);
+
+                return res.Data.ToPaymentRecord();
             }
             catch (Exception ex)
             {
@@ -176,21 +182,23 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return null;
         }
 
-        public async Task<ResponseTransactionsCollection?> GetByApiId(long tranId)
+        public async Task<List<GenericPaymentRecord>> GetByApiId(long tranId)
         {
             try
             {
-                return await client.Client.TransactionsReadController.ListTransactionsAsync(new Page() { Number = 1, Size = 1 }, null, new Filter11()
+                var res = await client.Client.TransactionsReadController.ListTransactionsAsync(new Page() { Number = 1, Size = 1 }, null, new Filter11()
                 {
                     TransactionApiId = "\"" + tranId.ToString() + "\""
                 }, null);
+
+                return res.ToPaymentRecords();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
             }
 
-            return null;
+            return [];
         }
 
         public async Task<string> GetNewPaymentIntent(uint amount)
@@ -222,15 +230,17 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             }
         }
 
-        public async Task<ResponseTransaction?> ProcessOneTimeSale(string ccTokenId, uint cents)
+        public async Task<GenericPaymentRecord?> ProcessOneTimeSale(string ccTokenId, uint cents)
         {
             try
             {
-                return await client.Client.TransactionsCreditCardController.CCSaleTokenizedAsync(new V1TransactionsCcSaleTokenRequest()
+                var res = await client.Client.TransactionsCreditCardController.CCSaleTokenizedAsync(new V1TransactionsCcSaleTokenRequest()
                 {
                     TransactionApiId = ccTokenId,
                     TransactionAmount = (int)cents,
                 });
+
+                return res.ToPaymentRecord();
             }
             catch (Exception ex)
             {

@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Base\IT.WebServices.Base.csproj" />
-    <ProjectReference Include="..\..\..\..\Settings\Shared\IT.WebServices.Settings.Shared.csproj" />
+    <ProjectReference Include="..\..\Base\IT.WebServices.Authorization.Payment.Base\IT.WebServices.Authorization.Payment.Base.csproj" />
     <ProjectReference Include="..\Nugets\FortisAPI.Standard\FortisAPI.Standard.csproj" />
   </ItemGroup>
 

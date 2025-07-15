@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Payment;
+
+import "google/api/annotations.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/PaymentInterface.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
+
+service AdminPaymentInterface {
+  rpc BulkActionCancel (BulkActionCancelRequest) returns (BulkActionCancelResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/admin/bulk/cancel"
+      body: "*"
+    };
+  }
+
+  rpc BulkActionStart (BulkActionStartRequest) returns (BulkActionStartResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/admin/bulk/start"
+      body: "*"
+    };
+  }
+
+  rpc BulkActionStatus (BulkActionStatusRequest) returns (BulkActionStatusResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/admin/bulk"
+    };
+  }
+
+  rpc CancelOtherSubscription (CancelOtherSubscriptionRequest) returns (CancelSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/admin/user/{UserID}/subscription/{InternalSubscriptionID}/cancel"
+      body: "*"
+    };
+  }
+
+  rpc GetOtherSubscriptionRecord (GetOtherSubscriptionRecordRequest) returns (GetSubscriptionRecordResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/admin/user/{UserID}/subscription/{InternalSubscriptionID}"
+    };
+  }
+
+  rpc GetOtherSubscriptionRecords (GetOtherSubscriptionRecordsRequest) returns (GetSubscriptionRecordsResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/admin/user/{UserID}/subscription"
+    };
+  }
+
+  rpc GetOtherOneTimeRecord (GetOtherOneTimeRecordRequest) returns (GetOneTimeRecordResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/admin/user/{UserID}/single/{InternalSubscriptionID}"
+    };
+  }
+
+  rpc GetOtherOneTimeRecords (GetOtherOneTimeRecordsRequest) returns (GetOneTimeRecordsResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/admin/user/{UserID}/single"
+    };
+  }
+
+  rpc ReconcileOtherSubscription (ReconcileOtherSubscriptionRequest) returns (ReconcileSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/admin/user/{UserID}/subscription/{InternalSubscriptionID}/reconcile"
+    };
+  }
+}
+
+message BulkActionCancelRequest {
+  PaymentBulkAction Action = 1;
+}
+
+message BulkActionCancelResponse {
+  repeated PaymentBulkActionProgress RunningActions = 1;
+}
+
+message BulkActionStartRequest {
+  PaymentBulkAction Action = 1;
+}
+
+message BulkActionStartResponse {
+  repeated PaymentBulkActionProgress RunningActions = 1;
+}
+
+message BulkActionStatusRequest {
+}
+
+message BulkActionStatusResponse {
+  repeated PaymentBulkActionProgress RunningActions = 1;
+}
+
+message CancelOtherSubscriptionRequest {
+  string UserID = 1;
+  string InternalSubscriptionID = 2;
+  string Reason = 11;
+}
+
+message GetOtherSubscriptionRecordRequest {
+  string UserID = 1;
+  string InternalSubscriptionID = 2;
+}
+
+message GetOtherSubscriptionRecordsRequest {
+  string UserID = 1;
+}
+
+message GetOtherOneTimeRecordRequest {
+  string UserID = 1;
+  string InternalPaymentID = 2;
+}
+
+message GetOtherOneTimeRecordsRequest {
+  string UserID = 1;
+}
+
+message ReconcileOtherSubscriptionRequest {
+  string UserID = 1;
+  string InternalSubscriptionID = 2;
+}

@@ -56,7 +56,7 @@ namespace IT.WebServices.Content.CMS.Services.Data
 
                     foreach (var file in files)
                     {
-                        AssetRecord? record = null; // Declare record outside try
+                        AssetRecord record = null; // Declare record outside try
                         try
                         {
                             record = AssetRecord.Parser.ParseFrom(

@@ -11,23 +11,19 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddStripeClasses(this IServiceCollection services)
         {
+            services.AddPaymentBaseClasses();
             services.AddSettingsHelpers();
 
             services.AddSingleton<MySQLHelper>();
 
             services.AddSingleton<StripeClient>();
-            services.AddSingleton<IOneTimeRecordProvider, FileSystemOneTimeRecordProvider>();
-            services.AddSingleton<IPaymentRecordProvider, SqlPaymentRecordProvider>();
             services.AddSingleton<IProductRecordProvider, FileSystemProductRecordProvider>();
-            services.AddSingleton<ISubscriptionRecordProvider, SqlSubscriptionRecordProvider>();
-            services.AddSingleton<ISubscriptionFullRecordProvider, SubscriptionFullRecordProvider>();
 
             return services;
         }
 
         public static void MapStripeGrpcServices(this IEndpointRouteBuilder endpoints)
         {
-            endpoints.MapGrpcService<BackupService>();
             endpoints.MapGrpcService<StripeService>();
         }
     }

@@ -9,7 +9,7 @@ service ManualPaymentInterface {
   rpc ManualCancelOtherSubscription (ManualCancelOtherSubscriptionRequest) returns (ManualCancelOtherSubscriptionResponse)
   {
     option (google.api.http) = {
-      post: "/api/payment/manual/admin/subscription/{UserID}/{SubscriptionID}/cancel"
+      post: "/api/payment/manual/admin/user/{UserID}/subscription/{SubscriptionID}/cancel"
       body: "*"
     };
   }
@@ -22,17 +22,17 @@ service ManualPaymentInterface {
     };
   }
 
-  rpc ManualGetOtherSubscriptionRecords (ManualGetOtherSubscriptionRecordsRequest) returns (ManualGetOtherSubscriptionRecordsResponse)
-  {
-    option (google.api.http) = {
-      get: "/api/payment/manual/admin/subscription/{UserID}"
-    };
-  }
-
   rpc ManualGetOtherSubscriptionRecord (ManualGetOtherSubscriptionRecordRequest) returns (ManualGetOtherSubscriptionRecordResponse)
   {
     option (google.api.http) = {
-      get: "/api/payment/manual/admin/subscription/{UserID}/{SubscriptionID}"
+      get: "/api/payment/manual/admin/user/{UserID}/subscription/{SubscriptionID}"
+    };
+  }
+
+  rpc ManualGetOtherSubscriptionRecords (ManualGetOtherSubscriptionRecordsRequest) returns (ManualGetOtherSubscriptionRecordsResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/manual/admin/user/{UserID}/subscription"
     };
   }
 
@@ -53,7 +53,7 @@ service ManualPaymentInterface {
   rpc ManualNewOtherSubscription (ManualNewOtherSubscriptionRequest) returns (ManualNewOtherSubscriptionResponse)
   {
     option (google.api.http) = {
-      post: "/api/payment/manual/admin/subscription/new"
+      post: "/api/payment/manual/admin/user/{UserID}/subscription/new"
       body: "*"
     };
   }

@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package IT.WebServices.Fragments.Authorization.Payment;
+
+import "google/protobuf/timestamp.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
+
+message GenericOneTimePaymentRecord {
+  string UserID = 1; // Guid for the user
+  string InternalContentID = 2; // Guid for the Internal object that was purchased, ex: Guid of video
+  string InternalPaymentID = 3; // Guid for the Payment
+  string ProcessorPaymentID = 4; // Id for the Payment with Processor
+  PaymentStatus Status = 5;
+  uint32 AmountCents = 11;
+  uint32 TaxCents = 12;
+  uint32 TaxRateThousandPercents = 13; //Tax rate 1.234% = 1234 or taxrate * 100000
+  uint32 TotalCents = 14;
+  google.protobuf.Timestamp CreatedOnUTC = 21;
+  google.protobuf.Timestamp ModifiedOnUTC = 22;
+  google.protobuf.Timestamp PaidOnUTC = 23;
+  google.protobuf.Timestamp PaidThruUTC = 24;
+  string CreatedBy = 31;
+  string ModifiedBy = 32;
+}
+
+message GenericPaymentRecord {
+  string UserID = 1; // Guid for the user
+  string InternalSubscriptionID = 2; // Guid for the Subscription
+  string InternalPaymentID = 3; // Guid for the Payment
+  string ProcessorPaymentID = 4; // Id for the Payment with Processor
+  PaymentStatus Status = 5;
+  uint32 AmountCents = 11;
+  uint32 TaxCents = 12;
+  uint32 TaxRateThousandPercents = 13; //Tax rate 1.234% = 1234 or taxrate * 100000
+  uint32 TotalCents = 14;
+  google.protobuf.Timestamp CreatedOnUTC = 21;
+  google.protobuf.Timestamp ModifiedOnUTC = 22;
+  google.protobuf.Timestamp PaidOnUTC = 23;
+  google.protobuf.Timestamp PaidThruUTC = 24;
+  string CreatedBy = 31;
+  string ModifiedBy = 32;
+}
+
+message GenericSubscriptionFullRecord {
+  GenericSubscriptionRecord SubscriptionRecord = 1;
+  repeated GenericPaymentRecord Payments = 2;
+
+  google.protobuf.Timestamp LastPaidUTC = 11;
+  google.protobuf.Timestamp PaidThruUTC = 12;
+  google.protobuf.Timestamp RenewsOnUTC = 13;
+}
+
+message GenericSubscriptionRecord {
+  string UserID = 1; // Guid for the user
+  string InternalSubscriptionID = 2; // Guid for the Subscription
+  string ProcessorName = 3; // Processor Name
+  string ProcessorCustomerID = 4; // Id for the Customer with Processor
+  string ProcessorSubscriptionID = 5; // Id for the Subscription with Processor
+  SubscriptionStatus Status = 6;
+  uint32 AmountCents = 11;
+  uint32 TaxCents = 12;
+  uint32 TaxRateThousandPercents = 13; //Tax rate 1.234% = 1234 or taxrate * 100000
+  uint32 TotalCents = 14;
+  google.protobuf.Timestamp CreatedOnUTC = 21;
+  google.protobuf.Timestamp ModifiedOnUTC = 22;
+  google.protobuf.Timestamp CanceledOnUTC = 23;
+  string CreatedBy = 31;
+  string ModifiedBy = 32;
+  string CanceledBy = 33;
+}

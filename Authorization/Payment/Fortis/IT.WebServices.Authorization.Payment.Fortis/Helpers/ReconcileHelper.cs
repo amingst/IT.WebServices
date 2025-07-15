@@ -1,32 +1,21 @@
-﻿using Grpc.Core;
-using IT.WebServices.Authentication;
-using IT.WebServices.Authorization.Payment.Fortis.Clients;
-using IT.WebServices.Authorization.Payment.Fortis.Data;
+﻿using IT.WebServices.Authentication;
+using IT.WebServices.Authorization.Payment.Generic.Data;
 using IT.WebServices.Fragments.Authorization.Payment;
-using IT.WebServices.Fragments.Authorization.Payment.Paypal;
-using IT.WebServices.Fragments.Generic;
 using Microsoft.Extensions.Logging;
-using MySqlX.XDevAPI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
 {
     public class ReconcileHelper
     {
         private readonly ILogger logger;
-        private readonly ISubscriptionRecordProvider subProvider;
-        private readonly IPaymentRecordProvider paymentProvider;
+        private readonly IGenericSubscriptionRecordProvider subProvider;
+        private readonly IGenericPaymentRecordProvider paymentProvider;
         private readonly FortisSubscriptionHelper fortisSubscriptionHelper;
         private readonly FortisTransactionHelper fortisTransactionHelper;
 
         private const int YEARS_TO_GO_BACK_FOR_RECONCILE_ALL = 10;
 
-        public ReconcileHelper(ILogger<ReconcileHelper> logger, ISubscriptionRecordProvider subProvider, IPaymentRecordProvider paymentProvider, FortisSubscriptionHelper fortisSubscriptionHelper, FortisTransactionHelper fortisTransactionHelper)
+        public ReconcileHelper(ILogger<ReconcileHelper> logger, IGenericSubscriptionRecordProvider subProvider, IGenericPaymentRecordProvider paymentProvider, FortisSubscriptionHelper fortisSubscriptionHelper, FortisTransactionHelper fortisTransactionHelper)
         {
             this.logger = logger;
             this.subProvider = subProvider;
@@ -35,37 +24,39 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             this.fortisTransactionHelper = fortisTransactionHelper;
         }
 
-        public async Task ReconcileAll(ONUser user, PaymentBulkActionProgress progress, CancellationToken cancellationToken)
+        public Task ReconcileAll(ONUser user, PaymentBulkActionProgress progress, CancellationToken cancellationToken)
         {
-            try
-            {
-                //float stepsToComplete = 12 * YEARS_TO_GO_BACK_FOR_RECONCILE_ALL;
-                //var stepsCompleted = 0;
+            throw new NotImplementedException();
+            //try
+            //{
+            //    var subs = await fortisSubscriptionHelper.GetAll();
+            //    if (subs == null)
+            //        throw new Exception("Error pulling subscriptions");
 
-                //var subs = await fortisSubscriptionHelper.GetAll();
+            //    var numSubs = subs.Count();
 
-                //progress.Progress = 0.01F;
+            //    progress.Progress = 0.01F;
 
-                //while (monthFrom < to)
-                //{
-                //    cancellationToken.ThrowIfCancellationRequested();
+            //    var i = 0;
+            //    foreach (var sub in subs)
+            //    {
+            //        i++;
+            //        cancellationToken.ThrowIfCancellationRequested();
 
-                //    progress.Progress = stepsCompleted / stepsToComplete;
+            //        await ReconcileSubscription(sub);
 
-                //    monthFrom = monthTo;
-                //    stepsCompleted += 1;
-                //}
+            //        progress.Progress = 0.99F * i / numSubs + 0.01F;
+            //    }
 
-
-                //progress.StatusMessage = "Completed Successfully";
-                //progress.CompletedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                //progress.Progress = 1;
-            }
-            catch (Exception ex)
-            {
-                progress.StatusMessage = ex.Message;
-                progress.CompletedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-            }
+            //    progress.StatusMessage = "Completed Successfully";
+            //    progress.CompletedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+            //    progress.Progress = 1;
+            //}
+            //catch (Exception ex)
+            //{
+            //    progress.StatusMessage = ex.Message;
+            //    progress.CompletedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+            //}
 
         }
 
@@ -77,18 +68,18 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
         //        if (localSub == null)
         //            return "SubscriptionId not valid";
 
-        //        List<PaypalPaymentRecord> localPayments = new();
+        //        List<FortisPaymentRecord> localPayments = new();
         //        var paymentEnumerable = paymentProvider.GetAllBySubscriptionId(userId, subscriptionId);
         //        await foreach (var payment in paymentEnumerable)
         //            localPayments.Add(payment);
 
-        //        var paypalSub = await client.GetSubscription(localSub.PaypalSubscriptionID);
-        //        if (paypalSub == null)
+        //        var fortisSub = await fortisSubscriptionHelper.Get(localSub.FortisSubscriptionID, true);
+        //        if (fortisSub == null)
         //            return "SubscriptionId not valid";
 
-        //        var paypalPayments = await client.GetTransactionsForSubscription(localSub.PaypalSubscriptionID);
+        //        var fortisPayments = fortisSub.Transactions;
 
-        //        await EnsureSubscription(localSub, paypalSub, user);
+        //        await EnsureSubscription(localSub, fortisSub, user);
 
         //        return null;
         //    }
@@ -98,20 +89,44 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
         //    }
         //}
 
-        //private async Task EnsureSubscription(PaypalSubscriptionRecord localSub, SubscriptionModel paypalSub, ONUser user)
+        //public async Task DoOne(Subscription dbSub)
+        //{
+        //    var dbTrans = await Transaction.GetAllBySubscription(mysql, dbSub);
+        //    var dbTransIds = dbTrans.Select(t => t.TransNum).ToList();
+
+        //    var fSub = await subHelper.Get(dbSub.SubscriptionId, true);
+        //    if (fSub == null)
+        //        return;
+
+        //    var missingTrans = fSub.Transactions.Where(t => !dbTransIds.Contains(t.Id)).ToList();
+        //    if (missingTrans.Count == 0)
+        //        return;
+
+        //    foreach (var t in missingTrans)
+        //    {
+        //        var newTran = new Transaction(t, dbSub);
+        //        await newTran.Insert(mysql);
+
+        //        Console.WriteLine($"Subscription: {dbSub.Id} - Trans: {t.Id} Fixed");
+        //    }
+
+        //    await memFixer.FixUser(dbSub.UserId);
+        //}
+
+        //private async Task EnsureSubscription(FortisSubscriptionRecord localSub, SubscriptionModel fortisSub, ONUser user)
         //{
         //    bool changed = false;
 
-        //    if (paypalSub.StatusEnum == SubscriptionStatus.SubscriptionUnknown)
+        //    if (fortisSub.StatusEnum == SubscriptionStatus.SubscriptionUnknown)
         //        return;
 
-        //    if (localSub.Status != paypalSub.StatusEnum)
+        //    if (localSub.Status != fortisSub.StatusEnum)
         //    {
-        //        localSub.Status = paypalSub.StatusEnum;
+        //        localSub.Status = fortisSub.StatusEnum;
         //        changed = true;
         //    }
 
-        //    var amountStr = paypalSub.billing_info?.last_payment?.amount?.value;
+        //    var amountStr = fortisSub.billing_info?.last_payment?.amount?.value;
         //    if (!double.TryParse(amountStr, out var amount))
         //        return;
 
