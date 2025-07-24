@@ -244,14 +244,14 @@ namespace IT.WebServices.Content.CMS.Services
                 AssetListRecord listRec = null;
                 switch (rec.AssetType)
                 {
-                    case AssetType.Audio:
-                        if (request.AssetType == AssetType.Image)
+                    case AssetType.AssetAudio:
+                        if (request.AssetType == AssetType.AssetImage)
                             continue;
 
                         listRec = rec;
                         break;
-                    case AssetType.Image:
-                        if (request.AssetType == AssetType.Audio)
+                    case AssetType.AssetImage:
+                        if (request.AssetType == AssetType.AssetImage)
                             continue;
 
                         listRec = rec;
