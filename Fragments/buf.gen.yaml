@@ -1,0 +1,12 @@
+version: v1
+plugins:
+    - plugin: es
+      out: ts-gen/gen
+      opt:
+          - target=ts
+          - import_extension=none
+    - plugin: connect-es
+      out: ts-gen/gen
+      opt:
+          - target=ts
+          - import_extension=none

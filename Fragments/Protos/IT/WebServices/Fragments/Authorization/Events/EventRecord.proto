@@ -4,6 +4,7 @@ package IT.WebServices.Fragments.Authorization.Events;
 
 import "google/protobuf/timestamp.proto";
 import "Protos/IT/WebServices/Fragments/CommonTypes.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Events/TicketClassRecord.proto";
 
 //
 // ENUMS

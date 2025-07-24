@@ -1,0 +1,23 @@
+{
+	"name": "@invertedtech/protos",
+	"version": "1.0.0",
+	"description": "TypeScript definitions for invertedtech protocol buffers",
+	"main": "index.ts",
+	"types": "index.ts",
+	"scripts": {
+		"build": "bash ./generate-ts.sh",
+		"clean": "rm -rf gen/*",
+		"rebuild": "npm run clean && npm run build",
+		"compile": "tsc"
+	},
+	"devDependencies": {
+		"@bufbuild/buf": "^1.28.1",
+		"@bufbuild/protobuf": "^1.10.1",
+		"@bufbuild/protoc-gen-es": "^1.10.0",
+		"@bufbuild/protoc-gen-connect-es": "^0.13.0",
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {
+		"@bufbuild/protobuf": "^1.10.1"
+	}
+}
