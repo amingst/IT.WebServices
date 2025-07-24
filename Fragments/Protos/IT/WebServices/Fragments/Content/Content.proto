@@ -319,11 +319,11 @@ message UnpublishContentResponse {
 }
   
 enum ContentType {
-  None = 0;
-  Audio = 1;
-  Picture = 2;
-  Video = 3;
-  Written = 4;
+  CONTENT_NONE = 0;
+  CONTENT_AUDIO = 1;
+  CONTENT_PICTURE = 2;
+  CONTENT_VIDEO = 3;
+  CONTENT_WRITTEN = 4;
 }
 
 message SubscriptionLevelSearch {

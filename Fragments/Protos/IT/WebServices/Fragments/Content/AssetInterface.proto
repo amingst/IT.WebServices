@@ -121,9 +121,9 @@ message SearchAssetResponse {
 }
 
 enum AssetType {
-  None = 0;
-  Audio = 1;
-  Image = 2;
+  ASSET_NONE = 0;
+  ASSET_AUDIO = 1;
+  ASSET_IMAGE = 2;
 }
 
 message AssetListRecord {
