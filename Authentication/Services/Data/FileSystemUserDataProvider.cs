@@ -150,6 +150,15 @@ namespace IT.WebServices.Authentication.Services.Data
             return null;
         }
 
+        public async Task<UserRecord> GetByOldUserID(string oldUserId)
+        {
+            await foreach(var record in GetAll())
+                if (record.Normal.Private.Data.OldUserID == oldUserId)
+                    return record;
+
+            return null;
+        }
+
         public async Task Save(UserRecord user)
         {
             user.Normal.Public.Data.UserName = user.Normal.Public.Data.UserName.ToLower();

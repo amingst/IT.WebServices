@@ -12,6 +12,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             {
                 ProcessorName = PaymentConstants.PROCESSOR_NAME_FORTIS,
                 ProcessorSubscriptionID = fRec.Id,
+                ProcessorCustomerID = fRec.ContactId,
                 CreatedOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.FromUnixTimeSeconds(fRec.CreatedTs).UtcDateTime),
                 Status = ConvertStatus(fRec.Status),
             };
@@ -23,9 +24,23 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             {
                 ProcessorName = PaymentConstants.PROCESSOR_NAME_FORTIS,
                 ProcessorSubscriptionID = fRec.Id,
+                ProcessorCustomerID = fRec.ContactId,
                 CreatedOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.FromUnixTimeSeconds(fRec.CreatedTs).UtcDateTime),
                 Status = ConvertStatus(fRec.Status),
             };
+        }
+
+        public static GenericSubscriptionFullRecord ToSubscriptionFullRecord(this List6 fRec)
+        {
+            var record = new GenericSubscriptionFullRecord()
+            {
+                SubscriptionRecord = fRec.ToSubscriptionRecord(),
+            };
+
+            foreach (var t in fRec.Transactions)
+                record.Payments.Add(t.ToPaymentRecord());
+
+            return record;
         }
 
         public static GenericSubscriptionRecord? ToSubscriptionRecord(this ResponseRecurring fRec) => fRec?.Data?.ToSubscriptionRecord();

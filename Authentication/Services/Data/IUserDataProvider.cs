@@ -20,6 +20,7 @@ namespace IT.WebServices.Authentication.Services.Data
         Task<UserRecord> GetById(Guid userId);
         Task<UserRecord> GetByEmail(string email);
         Task<UserRecord> GetByLogin(string loginName);
+        Task<UserRecord> GetByOldUserID(string oldUserId);
         Task Save(UserRecord user);
     }
 }

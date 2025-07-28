@@ -783,6 +783,12 @@ namespace IT.WebServices.Authentication.Services
             return new() { Record = record?.Normal };
         }
 
+        public async Task<GetOtherPublicUserResponse> GetUserByOldUserID(string oldUserId)
+        {
+            var record = await dataProvider.GetByOldUserID(oldUserId);
+            return new() { Record = record?.Normal?.Public };
+        }
+
         [AllowAnonymous]
         public override Task<GetUserIdListResponse> GetUserIdList(GetUserIdListRequest request, ServerCallContext context)
         {

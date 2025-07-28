@@ -6,33 +6,42 @@ using Microsoft.Extensions.Options;
 
 namespace IT.WebServices.Authorization.Payment.Generic.Data
 {
-    public class FileSystemSubscriptionRecordProvider : IGenericSubscriptionRecordProvider
+    public class FileSystemOneTimePaymentRecordProvider : IGenericOneTimePaymentRecordProvider
     {
         private readonly DirectoryInfo dataDir;
 
-        public FileSystemSubscriptionRecordProvider(IOptions<AppSettings> settings)
+        public FileSystemOneTimePaymentRecordProvider(IOptions<AppSettings> settings)
         {
             var root = new DirectoryInfo(settings.Value.DataStore);
             root.Create();
-            dataDir = root.CreateSubdirectory(PaymentConstants.PAYMENT_DIR_NAME).CreateSubdirectory(PaymentConstants.GENERIC_TYPE).CreateSubdirectory("sub");
+            dataDir = root.CreateSubdirectory(PaymentConstants.PAYMENT_DIR_NAME).CreateSubdirectory(PaymentConstants.GENERIC_TYPE).CreateSubdirectory("one");
         }
 
-        public Task Delete(Guid userId, Guid subId)
+        public Task Delete(Guid userId, Guid internalPaymentId)
         {
-            var fi = GetDataFilePath(userId, subId);
+            var fi = GetDataFilePath(userId, internalPaymentId);
             if (fi.Exists)
                 fi.Delete();
 
             return Task.CompletedTask;
         }
 
-        public Task<bool> Exists(Guid userId, Guid subId)
+        public Task DeleteAll(Guid userId)
         {
-            var fi = GetDataFilePath(userId, subId);
+            var di = GetDataDirPath(userId);
+            if (di.Exists)
+                di.Delete(true);
+
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> Exists(Guid userId, Guid internalPaymentId)
+        {
+            var fi = GetDataFilePath(userId, internalPaymentId);
             return Task.FromResult(fi.Exists);
         }
 
-        public async IAsyncEnumerable<GenericSubscriptionRecord> GetAll()
+        public async IAsyncEnumerable<GenericOneTimePaymentRecord> GetAll()
         {
             await foreach (var tuple in GetAllSubscriptionIds())
             {
@@ -42,7 +51,7 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
             }
         }
 
-        public async IAsyncEnumerable<GenericSubscriptionRecord> GetAllByUserId(Guid userId)
+        public async IAsyncEnumerable<GenericOneTimePaymentRecord> GetAllByUserId(Guid userId)
         {
             var dir = GetDataDirPath(userId);
 
@@ -70,22 +79,17 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
             }
         }
 
-        public Task<GenericSubscriptionRecord?> GetById(Guid userId, Guid subId)
+        public Task<GenericOneTimePaymentRecord?> GetById(Guid userId, Guid internalPaymentId)
         {
-            var fi = GetDataFilePath(userId, subId);
+            var fi = GetDataFilePath(userId, internalPaymentId);
             return ReadLastOfFile(fi);
         }
 
-        public Task<GenericSubscriptionRecord?> GetByProcessorId(string processorSubId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task Save(GenericSubscriptionRecord rec)
+        public async Task Save(GenericOneTimePaymentRecord rec)
         {
             var userId = rec.UserID.ToGuid();
-            var subId = rec.InternalSubscriptionID.ToGuid();
-            var fi = GetDataFilePath(userId, subId);
+            var intPayId = rec.InternalPaymentID.ToGuid();
+            var fi = GetDataFilePath(userId, intPayId);
             await File.AppendAllTextAsync(fi.FullName, Convert.ToBase64String(rec.ToByteArray()) + "\n");
         }
 
@@ -96,15 +100,15 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
             return dir;
         }
 
-        private FileInfo GetDataFilePath(Guid userId, Guid subId)
+        private FileInfo GetDataFilePath(Guid userId, Guid internalPaymentId)
         {
             var userIdStr = userId.ToString();
-            var subIdStr = subId.ToString();
+            var internalPaymentIdStr = internalPaymentId.ToString();
             var dir = GetDataDirPath(userId);
-            return new FileInfo(dir.FullName + "/" + subIdStr);
+            return new FileInfo(dir.FullName + "/" + internalPaymentIdStr);
         }
 
-        private async IAsyncEnumerable<GenericSubscriptionRecord> ReadHistoryFromFile(FileInfo fi)
+        private async IAsyncEnumerable<GenericOneTimePaymentRecord> ReadHistoryFromFile(FileInfo fi)
         {
             if (!fi.Exists)
                 yield break;
@@ -114,11 +118,11 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
 
-                yield return GenericSubscriptionRecord.Parser.ParseFrom(Convert.FromBase64String(line));
+                yield return GenericOneTimePaymentRecord.Parser.ParseFrom(Convert.FromBase64String(line));
             }
         }
 
-        private async Task<GenericSubscriptionRecord?> ReadLastOfFile(FileInfo fi)
+        private async Task<GenericOneTimePaymentRecord?> ReadLastOfFile(FileInfo fi)
         {
             if (!fi.Exists)
                 return null;
@@ -127,7 +131,7 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
             if (last == null)
                 return null;
 
-            return GenericSubscriptionRecord.Parser.ParseFrom(Convert.FromBase64String(last));
+            return GenericOneTimePaymentRecord.Parser.ParseFrom(Convert.FromBase64String(last));
         }
     }
 }

@@ -2,7 +2,6 @@
 using IT.WebServices.Authorization.Payment.Fortis.Clients;
 using IT.WebServices.Authorization.Payment.Fortis.Models;
 using IT.WebServices.Fragments.Authorization.Payment;
-using IT.WebServices.Fragments.Authorization.Payment.Fortis;
 using IT.WebServices.Helpers;
 
 namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
@@ -141,13 +140,43 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return null;
         }
 
-        public async Task<GenericSubscriptionRecord?> Get(string subscriptionId, bool includeTransactions = false, int triesLeft = 5)
+        public async Task<GenericSubscriptionRecord?> Get(string subscriptionId, int triesLeft = 5)
+        {
+            try
+            {
+                var list = await client.Client.RecurringController.ListAllRecurringRecordAsync(
+                        new Page() { Number = 1, Size = 1 },
+                        null,
+                        new Filter6()
+                        {
+                            LocationId = settingsHelper.Owner.Subscription.Fortis.LocationID,
+                            ProductTransactionId = settingsHelper.Owner.Subscription.Fortis.ProductID,
+                            Id = subscriptionId,
+                        },
+                        new List<string>()
+                    );
+
+                var sub = list?.List?.FirstOrDefault();
+
+                return sub?.ToSubscriptionRecord();
+            }
+            catch (Exception ex)
+            {
+                if (triesLeft > 0)
+                    return await Get(subscriptionId, triesLeft - 1);
+                else
+                    Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
+            }
+
+            return null;
+        }
+
+        public async Task<GenericSubscriptionFullRecord?> GetWithTransactions(string subscriptionId, int triesLeft = 10)
         {
             try
             {
                 var expand = new List<string>();
-                if (includeTransactions)
-                    expand.Add("transactions");
+                expand.Add("transactions");
 
                 var list = await client.Client.RecurringController.ListAllRecurringRecordAsync(
                         new Page() { Number = 1, Size = 1 },
@@ -163,12 +192,12 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
 
                 var sub = list?.List?.FirstOrDefault();
 
-                return sub?.ToSubscriptionRecord();
+                return sub?.ToSubscriptionFullRecord();
             }
             catch (Exception ex)
             {
                 if (triesLeft > 0)
-                    return await Get(subscriptionId, includeTransactions, triesLeft - 1);
+                    return await GetWithTransactions(subscriptionId, triesLeft - 1);
                 else
                     Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
             }
@@ -176,7 +205,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return null;
         }
 
-        public async Task<Dictionary<string, GenericSubscriptionRecord>?> GetAll(bool? active = null, int? amount = null, int triesLeft = 100)
+        public async Task<List<GenericSubscriptionRecord>> GetAll(bool? active = null, int? amount = null, int triesLeft = 100)
         {
             int errors = 0;
             int page = 1;
@@ -232,26 +261,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             if (ret.Count % size == 0)
                 throw new Exception($"{ret.Count} is divisible by {size} this normally indicates an error. Aborting!");
 
-            return ret.Select(r => r.ToSubscriptionRecord()).ToDictionary(i => i.ProcessorSubscriptionID);
-        }
-
-        public async Task<Dictionary<string, GenericSubscriptionRecord>?> GetAllActiveAndCancelled()
-        {
-            var dict = await GetAll(true);
-            if (dict == null)
-                return null;
-
-            var inactive = await GetAll(false);
-            if (inactive == null)
-                return null;
-
-            var overlap = dict.Values.Where(r => inactive.ContainsKey(r.ProcessorSubscriptionID)).ToList();
-
-            foreach (var i in inactive)
-                if (!dict.ContainsKey(i.Key))
-                    dict.Add(i.Key, i.Value);
-
-            return dict;
+            return ret.Select(r => r.ToSubscriptionRecord()).ToList();
         }
 
         public async Task<List<GenericSubscriptionRecord>> GetByContactId(string contactId)

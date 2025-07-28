@@ -11,6 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<MySQLHelper>();
 
+            services.AddSingleton<IGenericOneTimePaymentRecordProvider, FileSystemOneTimePaymentRecordProvider>();
             services.AddSingleton<IGenericPaymentRecordProvider, SqlPaymentRecordProvider>();
             services.AddSingleton<IGenericSubscriptionRecordProvider, SqlSubscriptionRecordProvider>();
             services.AddSingleton<IGenericSubscriptionFullRecordProvider, SubscriptionFullRecordProvider>();

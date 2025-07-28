@@ -2,6 +2,7 @@
 using FortisAPI.Standard.Exceptions;
 using FortisAPI.Standard.Models;
 using IT.WebServices.Authorization.Payment.Fortis.Clients;
+using IT.WebServices.Authorization.Payment.Helpers.Models;
 using IT.WebServices.Fragments.Authorization.Payment;
 using IT.WebServices.Fragments.Authorization.Payment.Fortis;
 using IT.WebServices.Helpers;
@@ -45,64 +46,21 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return null;
         }
 
-        public async Task<List<GenericPaymentRecord>> GetAllPerWeek(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
+        public async IAsyncEnumerable<GenericPaymentRecord> GetAllForRange(DateTimeOffsetRange range, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
         {
-            List<GenericPaymentRecord> ret = new List<GenericPaymentRecord>();
-
-            for (var d = lower; d < upper; d = d.AddDays(7))
+            var ranges = range.BreakIntoHours();
+            foreach (var r in ranges)
             {
-                var d2 = d.AddDays(7);
+                Console.Write(r.Begin.ToString() + "-" + r.End.ToString() + ": ");
 
-                if (d2 > upper)
-                    d2 = upper;
+                var payments = await GetAll(r, amount, contactId, triesLeft, state);
 
-                Console.Write(d.ToString() + "-" + d2.ToString() + ": ");
-
-                ret.AddRange(await GetAll(d, d2, amount, contactId, triesLeft, state));
+                foreach (var p in payments)
+                    yield return p;
             }
-
-            return ret;
         }
 
-        public async Task<List<GenericPaymentRecord>> GetAllPerDay(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
-        {
-            List<GenericPaymentRecord> ret = new List<GenericPaymentRecord>();
-
-            for (var d = lower; d < upper; d = d.AddDays(1))
-            {
-                var d2 = d.AddDays(1);
-
-                if (d2 > upper)
-                    d2 = upper;
-
-                Console.Write(d.ToString() + "-" + d2.ToString() + ": ");
-
-                ret.AddRange(await GetAll(d, d2, amount, contactId, triesLeft, state));
-            }
-
-            return ret;
-        }
-
-        public async Task<List<GenericPaymentRecord>> GetAllPerHour(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
-        {
-            List<GenericPaymentRecord> ret = new List<GenericPaymentRecord>();
-
-            for (var d = lower; d < upper; d = d.AddHours(1))
-            {
-                var d2 = d.AddHours(1);
-
-                if (d2 > upper)
-                    d2 = upper;
-
-                Console.Write(d.ToString() + "-" + d2.ToString() + ": ");
-
-                ret.AddRange(await GetAll(d, d2, amount, contactId, triesLeft, state));
-            }
-
-            return ret;
-        }
-
-        public async Task<List<GenericPaymentRecord>> GetAll(DateTimeOffset lower, DateTimeOffset upper, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
+        private async Task<List<GenericPaymentRecord>> GetAll(DateTimeOffsetRange range, int? amount = null, string? contactId = null, int triesLeft = 5, string? state = null)
         {
             int errors = 0;
             int page = 1;
@@ -121,8 +79,8 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
                                 {
                                     CreatedTs = new()
                                     {
-                                        Lower = lower.ToUnixTimeSeconds(),
-                                        Upper = upper.ToUnixTimeSeconds(),
+                                        Lower = range.Begin.ToUnixTimeSeconds(),
+                                        Upper = range.End.ToUnixTimeSeconds(),
                                     },
                                     TransactionAmount = amount,
                                     ContactId = contactId,
@@ -158,7 +116,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
                 Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
 
                 if (triesLeft > 0)
-                    return await GetAll(lower, upper, amount, contactId, triesLeft - 1, state);
+                    return await GetAll(range, amount, contactId, triesLeft - 1, state);
                 else
                     throw;
             }

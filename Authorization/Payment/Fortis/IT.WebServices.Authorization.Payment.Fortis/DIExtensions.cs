@@ -1,6 +1,7 @@
 ﻿using IT.WebServices.Authorization.Payment.Fortis;
 using IT.WebServices.Authorization.Payment.Fortis.Clients;
 using IT.WebServices.Authorization.Payment.Fortis.Helpers;
+using IT.WebServices.Authorization.Payment.Generic;
 using IT.WebServices.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -22,6 +23,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<FortisSubscriptionHelper>();
             services.AddSingleton<FortisTokenHelper>();
             services.AddSingleton<FortisTransactionHelper>();
+
+            services.AddSingleton<IGenericPaymentProcessor, FortisGenericPaymentProcessor>();
 
             return services;
         }

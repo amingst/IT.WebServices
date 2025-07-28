@@ -317,6 +317,41 @@ namespace IT.WebServices.Authentication.Services.Data
             }
         }
 
+        public async Task<UserRecord> GetByOldUserID(string oldUserId)
+        {
+            try
+            {
+                const string query = @"
+                    SELECT
+                        *
+                    FROM
+                        Auth_User
+                    WHERE
+                        OldUserID = @OldUserID;
+                ";
+
+                var parameters = new MySqlParameter[]
+                {
+                    new MySqlParameter("OldUserID", oldUserId)
+                };
+
+                using var rdr = await sql.ReturnReader(query, parameters);
+
+                if (await rdr.ReadAsync())
+                {
+                    var record = rdr.ParseUserRecord();
+
+                    return record;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public async Task<bool> LoginExists(string loginName)
         {
             try

@@ -8,6 +8,7 @@ namespace IT.WebServices.Authorization.Payment
 {
     public class PaymentConstants
     {
+        public const string PAYMENT_DIR_NAME = "payment";
         public const string GENERIC_TYPE = "generic";
         public const string PROCESSOR_NAME_FORTIS = "fortis";
         public const string PROCESSOR_NAME_PAYPAL = "paypal";

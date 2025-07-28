@@ -1,6 +1,7 @@
 ﻿using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Payment.Helpers.BulkJobs;
 using IT.WebServices.Fragments.Authorization.Payment;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -14,11 +15,14 @@ namespace IT.WebServices.Authorization.Payment.Helpers
     public class BulkHelper
     {
         private readonly ILogger log;
+        private readonly ServiceProvider serviceProvider;
+
         private readonly ConcurrentDictionary<PaymentBulkAction, IBulkJob> runningJobs = new();
 
-        public BulkHelper(ILogger<BulkHelper> log)
+        public BulkHelper(ILogger<BulkHelper> log, ServiceProvider serviceProvider)
         {
             this.log = log;
+            this.serviceProvider = serviceProvider;
         }
 
         public List<PaymentBulkActionProgress> CancelAction(PaymentBulkAction action, ONUser user)
@@ -70,9 +74,9 @@ namespace IT.WebServices.Authorization.Payment.Helpers
             switch (action)
             {
                 case PaymentBulkAction.LookForNewPayments:
-                    return null;
+                    return serviceProvider.GetService<LookForNewPayments>();
                 case PaymentBulkAction.ReconcileAll:
-                    return new ReconcileAll();
+                    return serviceProvider.GetService<ReconcileAll>();
             }
 
             return null;

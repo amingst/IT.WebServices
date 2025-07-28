@@ -13,9 +13,11 @@ namespace IT.WebServices.Authorization.Payment.Helpers.BulkJobs
     {
         private Task? task;
         private CancellationTokenSource cancelToken = new();
+        private readonly ReconcileHelper reconcileHelper;
 
-        public ReconcileAll()
+        public ReconcileAll(ReconcileHelper reconcileHelper)
         {
+            this.reconcileHelper = reconcileHelper;
         }
 
         public PaymentBulkActionProgress Progress { get; init; } = new() { Action = PaymentBulkAction.ReconcileAll };
@@ -37,8 +39,7 @@ namespace IT.WebServices.Authorization.Payment.Helpers.BulkJobs
             Progress.Progress = 0;
             Progress.StatusMessage = "Starting";
 
-            //task = reconcileHelper.ReconcileAll(user, Progress, cancelToken.Token);
-            task = Task.Delay(100000);
+            task = reconcileHelper.ReconcileAll(user, Progress, cancelToken.Token);
         }
     }
 }

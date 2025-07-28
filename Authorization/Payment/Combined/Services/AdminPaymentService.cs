@@ -24,7 +24,8 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
         private readonly IGenericSubscriptionRecordProvider genericSubProvider;
         private readonly IGenericSubscriptionFullRecordProvider genericFullProvider;
         private readonly ManualD.ISubscriptionRecordProvider manualProvider;
-        private readonly List<IGenericPaymentProvider> genericPaymentProviders;
+        private readonly GenericPaymentProcessorProvider genericProcessorProvider;
+        private readonly ReconcileHelper reconcileHelper;
 
         public AdminPaymentService(
             ILogger<PaymentService> logger,
@@ -35,7 +36,8 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             IGenericSubscriptionRecordProvider genericSubProvider,
             IGenericSubscriptionFullRecordProvider genericFullProvider,
             ManualD.ISubscriptionRecordProvider manualProvider,
-            IEnumerable<IGenericPaymentProvider> genericPaymentProviders
+            GenericPaymentProcessorProvider genericProcessorProvider,
+            ReconcileHelper reconcileHelper
         )
         {
             this.logger = logger;
@@ -46,7 +48,8 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             this.genericSubProvider = genericSubProvider;
             this.genericFullProvider = genericFullProvider;
             this.manualProvider = manualProvider;
-            this.genericPaymentProviders = genericPaymentProviders.ToList();
+            this.genericProcessorProvider = genericProcessorProvider;
+            this.reconcileHelper = reconcileHelper;
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
@@ -126,7 +129,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
                 if (record == null)
                     return new() { Error = "Record not found" };
 
-                var provider = GetProvider(record);
+                var provider = genericProcessorProvider.GetProcessor(record);
                 return await provider.CancelSubscription(record, userToken);
             }
             catch (Exception ex)
@@ -281,27 +284,18 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
                 if (intSubId == Guid.Empty)
                     return new() { Error = "No InternalSubscriptionID specified" };
 
-                var record = await genericSubProvider.GetById(userId, intSubId);
+                var record = await genericFullProvider.GetBySubscriptionId(userId, intSubId);
                 if (record == null)
                     return new() { Error = "Record not found" };
 
-                var provider = GetProvider(record);
-                return await provider.ReconcileSubscription(record, userToken);
+                var provider = genericProcessorProvider.GetProcessor(record);
+                return await reconcileHelper.ReconcileSubscription(record, userToken);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
                 return new() { Error = "Unknown error" };
             }
-        }
-
-        private IGenericPaymentProvider GetProvider(GenericSubscriptionRecord record)
-        {
-            var provider = genericPaymentProviders.FirstOrDefault(p => p.ProcessorName == record.ProcessorName);
-            if (provider == null)
-                throw new NotImplementedException($"GenericPaymentProvider {record.ProcessorName} not found");
-
-            return provider;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace IT.WebServices.Authorization.Payment.Manual.Data
         {
             var root = new DirectoryInfo(settings.Value.DataStore);
             root.Create();
-            dataDir = root.CreateSubdirectory("payment").CreateSubdirectory("manual");
+            dataDir = root.CreateSubdirectory(PaymentConstants.PAYMENT_DIR_NAME).CreateSubdirectory("manual");
         }
 
         public Task Delete(Guid userId, Guid subId)
