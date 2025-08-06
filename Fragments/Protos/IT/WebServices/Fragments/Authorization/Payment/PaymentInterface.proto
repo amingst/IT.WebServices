@@ -49,7 +49,7 @@ service PaymentInterface {
   rpc GetOwnOneTimeRecord (GetOwnOneTimeRecordRequest) returns (GetOneTimeRecordResponse)
   {
     option (google.api.http) = {
-      get: "/api/payment/single/{InternalSubscriptionID}"
+      get: "/api/payment/single/{InternalPaymentID}"
     };
   }
 

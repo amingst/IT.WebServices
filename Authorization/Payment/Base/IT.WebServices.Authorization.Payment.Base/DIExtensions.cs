@@ -1,4 +1,5 @@
-﻿using IT.WebServices.Authorization.Payment.Generic.Data;
+﻿using IT.WebServices.Authorization.Payment.Generic;
+using IT.WebServices.Authorization.Payment.Generic.Data;
 using IT.WebServices.Helpers;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -11,6 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<MySQLHelper>();
 
+            services.AddSingleton<GenericPaymentProcessorProvider>();
             services.AddSingleton<IGenericOneTimePaymentRecordProvider, FileSystemOneTimePaymentRecordProvider>();
             services.AddSingleton<IGenericPaymentRecordProvider, SqlPaymentRecordProvider>();
             services.AddSingleton<IGenericSubscriptionRecordProvider, SqlSubscriptionRecordProvider>();

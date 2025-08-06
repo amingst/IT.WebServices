@@ -11,6 +11,7 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
             {
                 InternalSubscriptionID = rdr["InternalSubscriptionID"] as string,
                 UserID = rdr["UserID"] as string,
+                ProcessorName = rdr["ProcessorName"] as string,
                 ProcessorCustomerID = rdr["ProcessorCustomerID"] as string,
                 ProcessorSubscriptionID = rdr["ProcessorSubscriptionID"] as string,
                 Status = (SubscriptionStatus)(byte)rdr["Status"],

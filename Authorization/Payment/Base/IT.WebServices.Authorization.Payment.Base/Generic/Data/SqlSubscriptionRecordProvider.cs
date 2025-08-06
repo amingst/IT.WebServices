@@ -199,14 +199,15 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
             {
                 const string query = @"
                     INSERT INTO Payment_Generic_Subscription
-                            (InternalSubscriptionID,  UserID,  ProcessorCustomerID,  ProcessorSubscriptionID,  Status,
-                             AmountCents,  TaxCents,  TaxRateThousandPercents,  TotalCents,
+                            (InternalSubscriptionID,  UserID,  ProcessorName,  ProcessorCustomerID,  ProcessorSubscriptionID,
+                             Status,  AmountCents,  TaxCents,  TaxRateThousandPercents,  TotalCents,
                              CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  CanceledOnUTC,  CanceledBy)
-                    VALUES (@InternalSubscriptionID, @UserID, @ProcessorCustomerID, @ProcessorSubscriptionID, @Status,
-                            @AmountCents, @TaxCents, @TaxRateThousandPercents, @TotalCents,
+                    VALUES (@InternalSubscriptionID, @UserID, @ProcessorName, @ProcessorCustomerID, @ProcessorSubscriptionID,
+                            @Status, @AmountCents, @TaxCents, @TaxRateThousandPercents, @TotalCents,
                             @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @CanceledOnUTC, @CanceledBy)
                     ON DUPLICATE KEY UPDATE
                             UserID = @UserID,
+                            ProcessorName = @ProcessorName,
                             ProcessorCustomerID = @ProcessorCustomerID,
                             ProcessorSubscriptionID = @ProcessorSubscriptionID,
                             Status = @Status,
@@ -224,6 +225,7 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                 {
                     new MySqlParameter("InternalSubscriptionID", record.InternalSubscriptionID),
                     new MySqlParameter("UserID", record.UserID),
+                    new MySqlParameter("ProcessorName", record.ProcessorName),
                     new MySqlParameter("ProcessorCustomerID", record.ProcessorCustomerID),
                     new MySqlParameter("ProcessorSubscriptionID", record.ProcessorSubscriptionID),
                     new MySqlParameter("Status", record.Status),

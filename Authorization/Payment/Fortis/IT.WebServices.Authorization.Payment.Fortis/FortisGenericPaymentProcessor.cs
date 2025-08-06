@@ -92,7 +92,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis
                 return Guid.Empty;
 
             var user = await GetUser(apiId);
-            if (user == null)
+            if (user?.Record == null)
                 return Guid.Empty;
 
             return user.Record.UserIDGuid;
@@ -103,6 +103,13 @@ namespace IT.WebServices.Authorization.Payment.Fortis
             if (Guid.TryParse(id, out var guid))
             {
                 var user = await userService.GetOtherPublicUserInternal(guid);
+                if (user != null)
+                    return user;
+            }
+
+            if (id.StartsWith("u"))
+            {
+                var user = await userService.GetUserByOldUserID(id.Substring(1));
                 if (user != null)
                     return user;
             }

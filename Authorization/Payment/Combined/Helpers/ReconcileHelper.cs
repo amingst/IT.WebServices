@@ -53,6 +53,7 @@ namespace IT.WebServices.Authorization.Payment.Helpers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error in ReconcileAll");
                 progress.StatusMessage = ex.Message;
                 progress.CompletedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
             }
@@ -89,10 +90,10 @@ namespace IT.WebServices.Authorization.Payment.Helpers
             var localSubs = await subProvider.GetAll().ToList();
             var processorSubs = await GetAllSubscriptionsFromAllProcessors();
 
-            var existingProcessorSubIds = localSubs.Select(s => s.InternalSubscriptionID);
-            var missingSubs = processorSubs.Where(s => !existingProcessorSubIds.Contains(s.InternalSubscriptionID)).ToList();
+            var existingProcessorSubIds = localSubs.Select(s => s.ProcessorSubscriptionID);
+            var missingSubs = processorSubs.Where(s => !existingProcessorSubIds.Contains(s.ProcessorSubscriptionID)).ToList();
 
-            var numSubs = localSubs.Count();
+            var numSubs = missingSubs.Count();
 
             progress.Progress = PROGRESS_PERCENT_TO_GRAB_ALL_SUBS;
 
@@ -104,14 +105,6 @@ namespace IT.WebServices.Authorization.Payment.Helpers
 
                 await CreateMissingSubscription(missingSub, user);
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var fullLocalSub = await fullProvider.GetBySubscription(missingSub);
-                if (fullLocalSub != null)
-                {
-                    await ReconcileSubscription(fullLocalSub, user);
-                }
-
                 progress.Progress = PROGRESS_PERCENT_NEW_INCREASE * i / numSubs + PROGRESS_PERCENT_TO_GRAB_ALL_SUBS;
             }
         }
@@ -121,6 +114,9 @@ namespace IT.WebServices.Authorization.Payment.Helpers
             try
             {
                 var processor = genericProcessorProvider.GetProcessor(localSub);
+                if (processor == null)
+                    return new() { Error = $"Processor ({localSub.ProcessorName}) not found" };
+
                 var processorSub = await processor.GetSubscriptionFull(localSub.SubscriptionRecord.ProcessorSubscriptionID);
                 if (processorSub == null)
                     return new() { Error = "SubscriptionId not valid" };
@@ -238,7 +234,7 @@ namespace IT.WebServices.Authorization.Payment.Helpers
                 processorPayment.TaxCents = localSub.TaxCents;
                 processorPayment.TaxRateThousandPercents = localSub.TaxRateThousandPercents;
                 processorPayment.TotalCents = localSub.TotalCents;
-            };
+            }
 
             await paymentProvider.Save(processorPayment);
         }

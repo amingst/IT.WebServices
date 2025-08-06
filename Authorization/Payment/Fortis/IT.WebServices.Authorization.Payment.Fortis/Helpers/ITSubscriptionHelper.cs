@@ -15,6 +15,10 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
                 ProcessorCustomerID = fRec.ContactId,
                 CreatedOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.FromUnixTimeSeconds(fRec.CreatedTs).UtcDateTime),
                 Status = ConvertStatus(fRec.Status),
+                AmountCents = (uint)fRec.TransactionAmount,
+                TaxCents = 0,
+                TaxRateThousandPercents = 0,
+                TotalCents = (uint)fRec.TransactionAmount,
             };
         }
 
@@ -23,10 +27,14 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return new()
             {
                 ProcessorName = PaymentConstants.PROCESSOR_NAME_FORTIS,
-                ProcessorSubscriptionID = fRec.Id,
-                ProcessorCustomerID = fRec.ContactId,
+                ProcessorSubscriptionID = fRec.Id ?? "",
+                ProcessorCustomerID = fRec.ContactId ?? "",
                 CreatedOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.FromUnixTimeSeconds(fRec.CreatedTs).UtcDateTime),
                 Status = ConvertStatus(fRec.Status),
+                AmountCents = (uint)fRec.TransactionAmount,
+                TaxCents = 0,
+                TaxRateThousandPercents = 0,
+                TotalCents = (uint)fRec.TransactionAmount,
             };
         }
 

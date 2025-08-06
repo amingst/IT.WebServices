@@ -14,23 +14,35 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
     {
         public static GenericPaymentRecord ToPaymentRecord(this Data14 fRec)
         {
+            var createdOn = DateTimeOffset.FromUnixTimeSeconds(fRec.CreatedTs);
+            var paidThru = createdOn.AddMonths(1).AddDays(2);
             return new()
             {
                 ProcessorPaymentID = fRec.Id,
-                AmountCents = (uint)(fRec.SubtotalAmount ?? 0),
-                PaidOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.FromUnixTimeSeconds(fRec.CreatedTs).UtcDateTime),
                 Status = ConvertStatus(fRec.StatusCode),
+                AmountCents = (uint)(fRec.TransactionAmount),
+                TaxCents = 0,
+                TaxRateThousandPercents = 0,
+                TotalCents = (uint)(fRec.TransactionAmount),
+                PaidOnUTC = Timestamp.FromDateTimeOffset(createdOn.UtcDateTime),
+                PaidThruUTC = Timestamp.FromDateTimeOffset(paidThru.UtcDateTime),
             };
         }
 
         public static GenericPaymentRecord ToPaymentRecord(this List11 fRec)
         {
+            var paidOn = DateTimeOffset.FromUnixTimeSeconds(fRec.CreatedTs);
+            var paidThru = paidOn.AddMonths(1).AddDays(2);
             return new()
             {
                 ProcessorPaymentID = fRec.Id,
-                AmountCents = (uint)(fRec.SubtotalAmount ?? 0),
-                PaidOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.FromUnixTimeSeconds(fRec.CreatedTs).UtcDateTime),
                 Status = ConvertStatus(fRec.StatusId),
+                AmountCents = (uint)(fRec.TransactionAmountInt),
+                TaxCents = 0,
+                TaxRateThousandPercents = 0,
+                TotalCents = (uint)(fRec.TransactionAmountInt),
+                PaidOnUTC = Timestamp.FromDateTimeOffset(paidOn.UtcDateTime),
+                PaidThruUTC = Timestamp.FromDateTimeOffset(paidThru.UtcDateTime),
             };
         }
 

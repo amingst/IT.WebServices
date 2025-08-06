@@ -15,11 +15,11 @@ namespace IT.WebServices.Authorization.Payment.Helpers
     public class BulkHelper
     {
         private readonly ILogger log;
-        private readonly ServiceProvider serviceProvider;
+        private readonly IServiceProvider serviceProvider;
 
         private readonly ConcurrentDictionary<PaymentBulkAction, IBulkJob> runningJobs = new();
 
-        public BulkHelper(ILogger<BulkHelper> log, ServiceProvider serviceProvider)
+        public BulkHelper(ILogger<BulkHelper> log, IServiceProvider serviceProvider)
         {
             this.log = log;
             this.serviceProvider = serviceProvider;

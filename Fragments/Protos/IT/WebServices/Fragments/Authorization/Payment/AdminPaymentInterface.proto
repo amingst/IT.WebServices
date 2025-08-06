@@ -55,7 +55,7 @@ service AdminPaymentInterface {
   rpc GetOtherOneTimeRecord (GetOtherOneTimeRecordRequest) returns (GetOneTimeRecordResponse)
   {
     option (google.api.http) = {
-      get: "/api/payment/admin/user/{UserID}/single/{InternalSubscriptionID}"
+      get: "/api/payment/admin/user/{UserID}/single/{InternalPaymentID}"
     };
   }
 

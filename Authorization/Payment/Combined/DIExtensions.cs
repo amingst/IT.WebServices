@@ -1,5 +1,6 @@
 ﻿using IT.WebServices.Authorization.Payment.Combined.Services;
 using IT.WebServices.Authorization.Payment.Helpers;
+using IT.WebServices.Authorization.Payment.Helpers.BulkJobs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
@@ -15,6 +16,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddStripeClasses();
 
             services.AddSingleton<BulkHelper>();
+            services.AddSingleton<ReconcileHelper>();
+
+            services.AddSingleton<LookForNewPayments>();
+            services.AddSingleton<ReconcileAll>();
 
             return services;
         }

@@ -18,8 +18,6 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
     {
         private readonly ILogger logger;
         private readonly BulkHelper bulkHelper;
-        private readonly Paypal.Clients.PaypalClient paypalClient;
-        private readonly Stripe.Clients.StripeClient stripeClient;
         private readonly IGenericOneTimePaymentRecordProvider genericOneTimeProvider;
         private readonly IGenericSubscriptionRecordProvider genericSubProvider;
         private readonly IGenericSubscriptionFullRecordProvider genericFullProvider;
@@ -30,8 +28,6 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
         public AdminPaymentService(
             ILogger<PaymentService> logger,
             BulkHelper bulkHelper,
-            Paypal.Clients.PaypalClient paypalClient,
-            Stripe.Clients.StripeClient stripeClient,
             IGenericOneTimePaymentRecordProvider genericOneTimeProvider,
             IGenericSubscriptionRecordProvider genericSubProvider,
             IGenericSubscriptionFullRecordProvider genericFullProvider,
@@ -42,8 +38,6 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
         {
             this.logger = logger;
             this.bulkHelper = bulkHelper;
-            this.paypalClient = paypalClient;
-            this.stripeClient = stripeClient;
             this.genericOneTimeProvider = genericOneTimeProvider;
             this.genericSubProvider = genericSubProvider;
             this.genericFullProvider = genericFullProvider;

@@ -23,13 +23,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static Google.Rpc.Context.AttributeContext.Types;
 using IT.WebServices.Helpers;
 
 namespace IT.WebServices.Authentication.Services
 {
     [Authorize]
-    public class UserService : UserInterface.UserInterfaceBase, IUserService
+    public class UserService : UserInterface.UserInterfaceBase
     {
         private readonly OfflineHelper offlineHelper;
         private readonly ILogger<UserService> logger;
@@ -38,10 +37,11 @@ namespace IT.WebServices.Authentication.Services
         private readonly IUserDataProvider dataProvider;
         private readonly ClaimsClient claimsClient;
         private readonly ISettingsService settingsService;
+        private readonly UserServiceInternal userServiceInternal;
         private static readonly HashAlgorithm hasher = SHA256.Create();
         private static readonly RandomNumberGenerator rng = RandomNumberGenerator.Create();
 
-        public UserService(OfflineHelper offlineHelper, ILogger<UserService> logger, IProfilePicDataProvider picProvider, IUserDataProvider dataProvider, ClaimsClient claimsClient, ISettingsService settingsService)
+        public UserService(OfflineHelper offlineHelper, ILogger<UserService> logger, IProfilePicDataProvider picProvider, IUserDataProvider dataProvider, ClaimsClient claimsClient, ISettingsService settingsService, UserServiceInternal userServiceInternal)
         {
             this.offlineHelper = offlineHelper;
             this.logger = logger;
@@ -49,6 +49,7 @@ namespace IT.WebServices.Authentication.Services
             this.dataProvider = dataProvider;
             this.claimsClient = claimsClient;
             this.settingsService = settingsService;
+            this.userServiceInternal = userServiceInternal;
 
             creds = new SigningCredentials(JwtExtensions.GetPrivateKey(), SecurityAlgorithms.EcdsaSha256);
 
@@ -680,7 +681,7 @@ namespace IT.WebServices.Authentication.Services
             var id = request.UserID.ToGuid();
 
             var record = await dataProvider.GetById(id);
-            await AddInProfilePic(record);
+            await userServiceInternal.AddInProfilePic(record);
 
             return new() { Record = record?.Normal };
         }
@@ -691,15 +692,7 @@ namespace IT.WebServices.Authentication.Services
             if (offlineHelper.IsOffline)
                 return Task.FromResult(new GetOtherPublicUserResponse());
 
-            return GetOtherPublicUserInternal(request.UserID.ToGuid());
-        }
-
-        public async Task<GetOtherPublicUserResponse> GetOtherPublicUserInternal(Guid userId)
-        {
-            var record = await dataProvider.GetById(userId);
-            await AddInProfilePic(record);
-
-            return new() { Record = record?.Normal.Public };
+            return userServiceInternal.GetOtherPublicUserInternal(request.UserID.ToGuid());
         }
 
         [AllowAnonymous]
@@ -709,7 +702,7 @@ namespace IT.WebServices.Authentication.Services
                 return new();
 
             var record = await dataProvider.GetByLogin(request.UserName);
-            await AddInProfilePic(record);
+            await userServiceInternal.AddInProfilePic(record);
 
             return new() { Record = record?.Normal.Public };
         }
@@ -778,41 +771,15 @@ namespace IT.WebServices.Authentication.Services
                 return new();
 
             var record = await dataProvider.GetById(userToken.Id);
-            await AddInProfilePic(record);
+            await userServiceInternal.AddInProfilePic(record);
 
             return new() { Record = record?.Normal };
-        }
-
-        public async Task<GetOtherPublicUserResponse> GetUserByOldUserID(string oldUserId)
-        {
-            var record = await dataProvider.GetByOldUserID(oldUserId);
-            return new() { Record = record?.Normal?.Public };
         }
 
         [AllowAnonymous]
         public override Task<GetUserIdListResponse> GetUserIdList(GetUserIdListRequest request, ServerCallContext context)
         {
-            return GetUserIdListInternal();
-        }
-
-        public async Task<GetUserIdListResponse> GetUserIdListInternal()
-        {
-            var ret = new GetUserIdListResponse();
-            try
-            {
-                await foreach (var r in dataProvider.GetAll())
-                    ret.Records.Add(new UserIdRecord()
-                    {
-                        UserID = r.Normal.Public.UserID,
-                        DisplayName = r.Normal.Public.Data.DisplayName,
-                        UserName = r.Normal.Public.Data.UserName,
-                    });
-            }
-            catch
-            {
-            }
-
-            return ret;
+            return userServiceInternal.GetUserIdListInternal();
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
@@ -1136,16 +1103,6 @@ namespace IT.WebServices.Authentication.Services
                 logger.LogError(ex, "Error in VerifyOwnTotp");
                 return new();
             }
-        }
-
-        private async Task AddInProfilePic(UserRecord record)
-        {
-            if (record == null)
-                return;
-
-            var pic = await picProvider.GetById(record.UserIDGuid);
-            if (pic != null)
-                record.Normal.Public.Data.ProfileImagePNG = ByteString.CopyFrom(pic);
         }
 
         private async Task<bool> AmIReallyAdmin(ServerCallContext context)
