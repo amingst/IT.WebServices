@@ -21,6 +21,8 @@ message GenericOneTimePaymentRecord {
   google.protobuf.Timestamp PaidThruUTC = 24;
   string CreatedBy = 31;
   string ModifiedBy = 32;
+
+  string OldPaymentID = 101; // Id for the Payment in a previous system
 }
 
 message GenericPaymentRecord {
@@ -39,6 +41,8 @@ message GenericPaymentRecord {
   google.protobuf.Timestamp PaidThruUTC = 24;
   string CreatedBy = 31;
   string ModifiedBy = 32;
+
+  string OldPaymentID = 101; // Id for the Payment in a previous system
 }
 
 message GenericSubscriptionFullRecord {
@@ -67,4 +71,6 @@ message GenericSubscriptionRecord {
   string CreatedBy = 31;
   string ModifiedBy = 32;
   string CanceledBy = 33;
+
+  string OldSubscriptionID = 101; // Id for the Subscription in a previous system
 }

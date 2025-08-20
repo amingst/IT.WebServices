@@ -22,6 +22,7 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                 CreatedBy = rdr["CreatedBy"] as string ?? "",
                 ModifiedBy = rdr["ModifiedBy"] as string ?? "",
                 CanceledBy = rdr["CanceledBy"] as string ?? "",
+                OldSubscriptionID = rdr["OldSubscriptionID"] as string ?? "",
             };
 
             DateTime d;
@@ -61,6 +62,7 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                 TotalCents = (uint)rdr["TotalCents"],
                 CreatedBy = rdr["CreatedBy"] as string ?? "",
                 ModifiedBy = rdr["ModifiedBy"] as string ?? "",
+                OldPaymentID = rdr["OldPaymentID"] as string ?? "",
             };
 
             DateTime d;

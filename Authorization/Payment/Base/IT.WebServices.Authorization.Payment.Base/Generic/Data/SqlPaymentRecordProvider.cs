@@ -227,10 +227,12 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                     INSERT INTO Payment_Generic_Payment
                             (InternalPaymentID,  InternalSubscriptionID,  UserID,  ProcessorPaymentID,  Status,
                              AmountCents,  TaxCents,  TaxRateThousandPercents,  TotalCents,
-                             CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  PaidOnUTC,  PaidThruUTC)
+                             CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  PaidOnUTC,  PaidThruUTC,
+                             OldPaymentID)
                     VALUES (@InternalPaymentID, @InternalSubscriptionID, @UserID, @ProcessorPaymentID, @Status,
                             @AmountCents, @TaxCents, @TaxRateThousandPercents, @TotalCents,
-                            @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @PaidOnUTC, @PaidThruUTC)
+                            @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @PaidOnUTC, @PaidThruUTC,
+                            @OldPaymentID)
                     ON DUPLICATE KEY UPDATE
                             InternalSubscriptionID = @InternalSubscriptionID,
                             UserID = @UserID,
@@ -243,7 +245,8 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                             ModifiedOnUTC = @ModifiedOnUTC,
                             ModifiedBy = @ModifiedBy,
                             PaidOnUTC = @PaidOnUTC,
-                            PaidThruUTC = @PaidThruUTC
+                            PaidThruUTC = @PaidThruUTC,
+                            OldPaymentID = @OldPaymentID
                 ";
 
                 var parameters = new List<MySqlParameter>()
@@ -263,6 +266,7 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                     new MySqlParameter("ModifiedBy", record.ModifiedBy.Length == 36 ? record.ModifiedBy : null),
                     new MySqlParameter("PaidOnUTC", record.PaidOnUTC?.ToDateTime()),
                     new MySqlParameter("PaidThruUTC", record.PaidThruUTC?.ToDateTime()),
+                    new MySqlParameter("OldPaymentID", record.OldPaymentID),
                 };
 
                 await sql.RunCmd(query, parameters.ToArray());

@@ -201,10 +201,12 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                     INSERT INTO Payment_Generic_Subscription
                             (InternalSubscriptionID,  UserID,  ProcessorName,  ProcessorCustomerID,  ProcessorSubscriptionID,
                              Status,  AmountCents,  TaxCents,  TaxRateThousandPercents,  TotalCents,
-                             CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  CanceledOnUTC,  CanceledBy)
+                             CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  CanceledOnUTC,  CanceledBy,
+                             OldSubscriptionID)
                     VALUES (@InternalSubscriptionID, @UserID, @ProcessorName, @ProcessorCustomerID, @ProcessorSubscriptionID,
                             @Status, @AmountCents, @TaxCents, @TaxRateThousandPercents, @TotalCents,
-                            @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @CanceledOnUTC, @CanceledBy)
+                            @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @CanceledOnUTC, @CanceledBy,
+                            @OldSubscriptionID)
                     ON DUPLICATE KEY UPDATE
                             UserID = @UserID,
                             ProcessorName = @ProcessorName,
@@ -218,7 +220,8 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                             ModifiedOnUTC = @ModifiedOnUTC,
                             ModifiedBy = @ModifiedBy,
                             CanceledOnUTC = @CanceledOnUTC,
-                            CanceledBy = @CanceledBy
+                            CanceledBy = @CanceledBy,
+                            OldSubscriptionID = @OldSubscriptionID
                 ";
 
                 var parameters = new List<MySqlParameter>()
@@ -238,7 +241,8 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                     new MySqlParameter("ModifiedOnUTC", record.ModifiedOnUTC?.ToDateTime()),
                     new MySqlParameter("ModifiedBy", record.ModifiedBy.Length == 36 ? record.ModifiedBy : null),
                     new MySqlParameter("CanceledOnUTC", record.CanceledOnUTC?.ToDateTime()),
-                    new MySqlParameter("CanceledBy", record.CanceledBy.Length == 36 ? record.CanceledBy : null)
+                    new MySqlParameter("CanceledBy", record.CanceledBy.Length == 36 ? record.CanceledBy : null),
+                    new MySqlParameter("OldSubscriptionID", record.OldSubscriptionID),
                 };
 
                 await sql.RunCmd(query, parameters.ToArray());
