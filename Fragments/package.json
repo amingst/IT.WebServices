@@ -1,23 +1,68 @@
 {
-	"name": "@invertedtech/protos",
-	"version": "1.0.0",
-	"description": "TypeScript definitions for invertedtech protocol buffers",
-	"main": "index.ts",
-	"types": "index.ts",
-	"scripts": {
-		"build": "bash ./generate-ts.sh",
-		"clean": "rm -rf gen/*",
-		"rebuild": "npm run clean && npm run build",
-		"compile": "tsc"
-	},
-	"devDependencies": {
-		"@bufbuild/buf": "^1.28.1",
-		"@bufbuild/protobuf": "^1.10.1",
-		"@bufbuild/protoc-gen-es": "^1.10.0",
-		"@bufbuild/protoc-gen-connect-es": "^0.13.0",
-		"typescript": "^5.0.0"
-	},
-	"dependencies": {
-		"@bufbuild/protobuf": "^1.10.1"
-	}
+    "name": "@inverted-tech/fragments",
+    "version": "0.1.1",
+    "description": "Types and JS runtime for Inverted protocol buffers (Fragments)",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "exports": {
+        ".": {
+            "types": "./dist/types/index.d.ts",
+            "import": "./dist/esm/index.js",
+            "require": "./dist/cjs/index.js",
+            "default": "./dist/esm/index.js"
+        },
+        "./protos": {
+            "types": "./dist/protos/index.d.ts",
+            "import": "./dist/esm/protos/index.js",
+            "require": "./dist/cjs/protos/index.js"
+        },
+        "./schemas": {
+            "types": "./dist/schemas/index.d.ts",
+            "import": "./dist/esm/schemas/index.js",
+            "require": "./dist/cjs/schemas/index.js"
+        },
+        "./*": {
+            "types": "./dist/types/*",
+            "import": "./dist/esm/*",
+            "require": "./dist/cjs/*"
+        }
+    },
+    "scripts": {
+        "build": "npm run build:gen && npm run build:esm && npm run build:cjs && npm run build:types && node ./scripts/postbuild.mjs",
+        "build:gen": "node ./generate-ts.mjs && node ./scripts/generate-zod-schemas.mjs",
+        "build:esm": "tsc -p tsconfig.esm.json",
+        "build:cjs": "tsc -p tsconfig.cjs.json",
+        "build:types": "tsc -p tsconfig.types.json",
+        "clean": "node -e \"const fs=require('fs');['ts-gen','dist'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}))\"",
+        "rebuild": "npm run clean && npm run build",
+        "compile": "tsc",
+        "prepack": "npm run rebuild && node ./scripts/prepack-readme.mjs",
+        "postpack": "node ./scripts/postpack-readme.mjs",
+        "changeset": "changeset",
+        "release:version": "changeset version",
+        "release:version:patch": "node ./scripts/make-changeset.mjs patch && changeset version",
+        "release:version:minor": "node ./scripts/make-changeset.mjs minor && changeset version",
+        "release:version:major": "node ./scripts/make-changeset.mjs major && changeset version",
+        "release:publish": "npm run rebuild && changeset publish"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "devDependencies": {
+        "@bufbuild/buf": "^1.28.1",
+        "@bufbuild/protoc-gen-connect-es": "^0.13.0",
+        "@bufbuild/protoc-gen-es": "^1.10.0",
+        "@changesets/cli": "^2.27.7",
+        "ts-proto": "^2.7.7",
+        "ts-proto-descriptors": "^1.16.0",
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "@bufbuild/protobuf": "^1.10.1",
+        "zod": "^3.25.0"
+    }
 }

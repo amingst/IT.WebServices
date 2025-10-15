@@ -1,0 +1,17 @@
+version: v1
+plugins:
+  # Use locally installed ts-proto plugin discovered on PATH
+  # Buf will search for an executable named "protoc-gen-ts_proto"
+  - name: ts_proto
+    out: ts-gen/_meta
+    opt:
+      - env=both
+      - outputServices=none
+      - outputClientImpl=false
+      - outputEncodeMethods=false
+      - useOptionals=all
+      - oneof=unions
+      - outputSchema=true
+      - emitSchema=true
+      - onlyTypes=true
+      - outputJsonMethods=false

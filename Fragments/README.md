@@ -1,132 +1,80 @@
-# IT.WebServices.Fragments TypeScript Generation
+# IT.WebServices.Fragments - Types
 
-This directory contains protobuf definitions and generates TypeScript definitions for the IT WebServices Fragments.
+Types-only package generation for IT WebServices Fragments published as `@inverted-tech/fragments`.
 
 ## Structure
+- `Protos/` - protobuf sources
+- `ts-gen/` - generated TypeScript and barrel indexes
+- `generate-ts.mjs` - cross-platform generator (Node.js)
+- `buf.yaml` / `buf.gen.yaml` - Buf config
 
--   `Protos/` - Contains the protobuf definition files
--   `ts-gen/` - Generated TypeScript files and index
--   `generate-ts.sh` - Script to generate TypeScript from protobuf files
--   `buf.yaml` - Buf configuration for protobuf generation
--   `buf.gen.yaml` - Buf generation configuration
--   `package.json` - Node.js dependencies for generation
-
-## Usage
-
-### Generate TypeScript Files
-
+## Generate
 ```bash
-# Run the generation script
-bash generate-ts.sh
-
-# Or use npm script
-npm run build
+# From the Fragments directory
+npm run build   # generates TS and emits .d.ts to dist/, plus JS to dist/esm and dist/cjs
 ```
 
-### Clean Generated Typescript Files
-
+Clean and rebuild:
 ```bash
-# Clean all generated files
-npm run clean
-
-# Clean and regenerate
 npm run rebuild
 ```
 
-## Generated Files
+## Import Patterns
+Published as `@inverted-tech/fragments`. This package ships declaration files and dual JS runtimes (ESM/CJS).
 
-The script generates:
-
-1. **TypeScript Protobuf Files** (`*_pb.ts`) - Message definitions
-2. **Connect-ES Service Files** (`*_connect.ts`) - gRPC service definitions
-3. **Hierarchical Index Files** (`index.ts`) - Clean imports at every level
-4. **Main Index File** (`ts-gen/index.ts`) - Single entry point for all exports
-
-## Hierarchical Import Structure
-
-The new structure provides clean, conflict-free imports at multiple levels:
-
-### Method 1: Full Hierarchy Access
-
-```typescript
-import * as Fragments from '@invertedtech/protos';
-const userRecord =
-	new Fragments.IT.WebServices.Fragments.Authentication.UserRecord();
+- Deep import for specific types (recommended):
+```ts
+import type { UserRecord } from '@inverted-tech/fragments/gen/Protos/IT/WebServices/Fragments/Authentication/UserRecord_pb';
 ```
 
-### Method 2: Import at Module Level
-
-```typescript
-import { IT } from '@invertedtech/protos/gen/Protos';
-const userRecord = new IT.WebServices.Fragments.Authentication.UserRecord();
+- Namespaced imports via generated indexes (avoids symbol collisions):
+```ts
+import { Authentication } from '@inverted-tech/fragments/gen/Protos/IT/WebServices/Fragments';
+type User = Authentication.UserRecord_pb.UserRecord;
 ```
 
-### Method 3: Import Specific Modules
+- Convenience subpaths for app usage:
+  - Protobuf-es/connect-es code (services + messages):
+    ```ts
+    // Protos namespace re-export
+    import { Authentication } from '@inverted-tech/fragments/protos/gen/Protos/IT/WebServices/Fragments';
+    // Or deep messages
+    import { UserRecord } from '@inverted-tech/fragments/protos/gen/Protos/IT/WebServices/Fragments/Authentication/UserRecord_pb';
+    ```
+  - Zod schemas for runtime validation (data messages only):
+    ```ts
+    // Namespaced
+    import { Authentication as AuthSchemas } from '@inverted-tech/fragments/schemas/IT/WebServices/Fragments';
+    const UserRecordSchema = AuthSchemas.Authentication.UserRecordSchema;
 
-```typescript
-import * as Authentication from '@invertedtech/protos/gen/Protos/IT/WebServices/Fragments/Authentication';
-const userRecord = new Authentication.UserRecord();
+    // Or deep import
+    import { UserRecordSchema } from '@inverted-tech/fragments/schemas/IT/WebServices/Fragments/Authentication/UserRecord';
+    ```
+
+## Modules
+Authentication, Authorization, Comment, Content, Generic, Notification, Page, Settings
+
+Indexes use namespaced re-exports to prevent symbol collisions across files.
+
+## Releases (Changesets)
+This package uses Changesets to manage versions and publish to npm.
+
+Prerequisites:
+- Logged in to npm with rights for the `@inverted-tech` scope (`npm login`).
+- 2FA configured if required (`npm profile enable-2fa auth-and-writes`).
+
+Workflow (run from the `Fragments` directory):
+```bash
+# 1) Create a changeset (choose patch/minor/major)
+npm run changeset
+
+# 2) Apply versions and update CHANGELOG.md
+npm run release:version
+
+# 3) Build (ESM, CJS, types) and publish via Changesets
+npm run release:publish
 ```
 
-### Method 4: Import Classes Directly (Recommended)
-
-```typescript
-import {
-	UserRecord,
-	UserPublicRecord,
-} from '@invertedtech/protos/gen/Protos/IT/WebServices/Fragments/Authentication';
-const userRecord = new UserRecord();
-const publicRecord = new UserPublicRecord();
-```
-
-### Method 5: Import Services
-
-```typescript
-import { UserInterfaceService } from '@invertedtech/protos/gen/Protos/IT/WebServices/Fragments/Authentication';
-// Use for gRPC service calls
-```
-
-## Available Modules
-
-Currently generating TypeScript for these modules:
-
--   ✅ Authentication
--   ✅ Authorization
--   ✅ Comment
--   ✅ Content
--   ✅ CreatorDashboard
--   ✅ Generic
--   ✅ Notification
--   ✅ Page
--   ✅ Settings
-
-## Known Issues
-
-### Content Module
-
-The Content module has enum value conflicts between `Content.proto` and `AssetInterface.proto`:
-
--   `None` and `Audio` enum values are defined in both files
--   This causes protobuf compilation to fail due to C++ scoping rules
-
-**Resolution**: The proto files need to be updated to use unique enum values or proper namespacing.
-
-## Dependencies
-
--   `@bufbuild/buf` - Protobuf build tool
--   `@bufbuild/protobuf` - Protobuf runtime
--   `@bufbuild/protoc-gen-es` - TypeScript protobuf generator
--   `@bufbuild/protoc-gen-connect-es` - Connect-ES service generator
-
-## Import Usage
-
-```typescript
-// Import everything
-import * as Fragments from '@invertedtech/protos';
-
-// Import specific modules
-import { Authentication_UserRecord } from '@invertedtech/protos';
-
-// Import services
-import { UserInterfaceService } from '@invertedtech/protos';
-```
+Notes:
+- Scripts: `changeset`, `release:version`, `release:publish`.
+- CI can be added later with `changesets/action` for automated releases on main.
