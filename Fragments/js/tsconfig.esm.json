@@ -4,8 +4,8 @@
     "emitDeclarationOnly": false,
     "declaration": false,
     "outDir": "./dist/esm",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ES2020",
+    "moduleResolution": "Node",
     "sourceMap": false
   },
   "include": ["ts-gen/**/*"],

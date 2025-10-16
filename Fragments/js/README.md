@@ -11,7 +11,7 @@ Types-only package generation for IT WebServices Fragments published as `@invert
 ## Generate
 ```bash
 # From the Fragments directory
-npm run build   # generates TS and emits .d.ts to dist/, plus JS to dist/esm and dist/cjs
+npm run build   # generates TS and emits .d.ts to dist/, plus JS to dist/esm (ESM-only)
 ```
 
 Clean and rebuild:
@@ -20,7 +20,7 @@ npm run rebuild
 ```
 
 ## Import Patterns
-Published as `@inverted-tech/fragments`. This package ships declaration files and dual JS runtimes (ESM/CJS).
+Published as `@inverted-tech/fragments`. This package ships declaration files and an ESM runtime (ESM-only).
 
 - Deep import for specific types (recommended):
 ```ts
@@ -71,7 +71,7 @@ npm run changeset
 # 2) Apply versions and update CHANGELOG.md
 npm run release:version
 
-# 3) Build (ESM, CJS, types) and publish via Changesets
+# 3) Build (ESM + types) and publish via Changesets
 npm run release:publish
 ```
 

@@ -7,6 +7,8 @@ Fragments/ts-gen
 Fragments/js/dist
 Fragments/js/ts-gen
 Fragments/js/node_modules
+Fragments/js/__pack_extract__
+Fragments/js/*.tgz
 # User-specific files
 *.rsuser
 *.suo
