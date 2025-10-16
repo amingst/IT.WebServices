@@ -31,10 +31,6 @@
             "types": "./dist/schemas/*.d.ts",
             "import": "./dist/esm/schemas/*.js"
         },
-        "./gen/*": {
-            "types": "./dist/gen/*.d.ts",
-            "import": "./dist/esm/gen/*.js"
-        },
         "./*": {
             "types": "./dist/*",
             "import": "./dist/esm/*"
