@@ -242,6 +242,11 @@ function schemaName(fqName) {
   await ensureDir(targetRoot);
   await buildIndexes(targetRoot);
 
+  // Flatten top-level export to Fragments namespace so consumers can import
+  // directly from `@inverted-tech/fragments/schemas` without deep paths.
+  const flattened = `// Auto-generated - DO NOT EDIT\nexport * from './IT/WebServices/Fragments';\n`;
+  await fsp.writeFile(path.join(targetRoot, 'index.ts'), flattened, 'utf8');
+
   log(`Generated ${schemaFiles.size} schema files.`);
 
   // Cleanup meta directory to avoid clutter / duplicates

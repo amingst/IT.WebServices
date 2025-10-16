@@ -240,7 +240,7 @@ async function generateIndexes() {
   const protosDir = path.join(cwd, 'ts-gen', 'protos');
   await ensureDir(protosDir);
   const protosIndex = path.join(protosDir, 'index.ts');
-  const protosContent = `// Auto-generated - DO NOT EDIT\n// Re-exports protobuf-es/connect-es generated types\n// Generated on: ${new Date().toString()}\n\nexport * from '../gen/Protos';\n`;
+  const protosContent = `// Auto-generated - DO NOT EDIT\n// Re-exports protobuf-es/connect-es generated types\n// Generated on: ${new Date().toString()}\n\nexport * from '../gen/Protos/IT/WebServices/Fragments';\n`;
   await fsp.writeFile(protosIndex, protosContent, 'utf8');
 
   // Subpath entry: schemas is built by scripts/generate-zod-schemas.mjs

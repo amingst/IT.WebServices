@@ -1,5 +1,12 @@
 # @inverted-tech/fragments
 
+## 0.2.4
+
+### Patch Changes
+
+- DX: flatten exports for protos and schemas so consumers can import modules directly from @inverted-tech/fragments/protos and /schemas without deep paths (Authentication, Content, etc.).
+- Automated patch bump
+
 ## 0.2.3
 
 ### Patch Changes
