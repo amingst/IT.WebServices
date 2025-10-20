@@ -5,6 +5,7 @@ package IT.WebServices.Fragments.Content;
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "Protos/IT/WebServices/Fragments/Content/ContentRecord.proto";
+import "Protos/IT/WebServices/Fragments/CommonTypes.proto";
 
 // Service for Content fragment interface
 service ContentInterface {
@@ -132,6 +133,7 @@ message CreateContentRequest {
   
 message CreateContentResponse {
   ContentRecord Record = 1;
+  repeated FieldValidationError ValidationErrors = 2;
 }
 
 message DeleteContentRequest {
