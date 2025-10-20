@@ -50,14 +50,22 @@ namespace IT.WebServices.Content.CMS.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_CAN_CREATE_CONTENT)]
-        public override async Task<CreateContentResponse> CreateContent(CreateContentRequest request, ServerCallContext context)
+        public override async Task<CreateContentResponse> CreateContent(
+     CreateContentRequest request,
+     ServerCallContext context)
         {
-            if (!IsValid(request.Public, request.Private))
-                return new();
+            var res = new CreateContentResponse();
+
+            CreateContentValidators.Validate(request, res);
+            if (res.HasErrors())
+                return res;
+
+            //if (!IsValid(request.Public, request.Private))
+            //    return new CreateContentResponse { Error = "Invalid content data" };
 
             var user = ONUserHelper.ParseUser(context.GetHttpContext());
             if (user == null)
-                return new();
+                return new CreateContentResponse { Error = "Not logged in" };
 
             var record = new ContentRecord
             {
@@ -65,20 +73,22 @@ namespace IT.WebServices.Content.CMS.Services
                 {
                     ContentID = Guid.NewGuid().ToString(),
                     CreatedOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.UtcNow),
+                    ModifiedOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.UtcNow),
                     Data = request.Public,
                 },
                 Private = new()
                 {
                     CreatedBy = user.Id.ToString(),
+                    ModifiedBy = user.Id.ToString(),
                     Data = request.Private,
                 },
             };
 
             await dataProvider.Save(record);
 
-            return new() { Record = record };
+            res.Record = record;
+            return res;
         }
-
         [Authorize(Roles = ONUser.ROLE_CAN_PUBLISH)]
         public override async Task<DeleteContentResponse> DeleteContent(DeleteContentRequest request, ServerCallContext context)
         {
@@ -447,26 +457,37 @@ namespace IT.WebServices.Content.CMS.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_CAN_CREATE_CONTENT)]
-        public override async Task<ModifyContentResponse> ModifyContent(ModifyContentRequest request, ServerCallContext context)
+        public override async Task<ModifyContentResponse> ModifyContent(
+      ModifyContentRequest request,
+      ServerCallContext context)
         {
+            var res = new ModifyContentResponse();
+
+            ModifyContentValidators.Validate(request, res);
+            if (res.HasErrors())
+                return res;
+
             if (!IsValid(request.Public, request.Private))
-                return new();
+                return new ModifyContentResponse { Error = "Invalid content data" };
 
             var user = ONUserHelper.ParseUser(context.GetHttpContext());
+            if (user == null)
+                return new ModifyContentResponse { Error = "Not logged in" };
 
             var contentId = request.ContentID.ToGuid();
             var record = await dataProvider.GetById(contentId);
             if (record == null)
-                return new();
+                return new ModifyContentResponse { Error = "Content not found" };
 
-            record.Public.Data = request.Public;
-            record.Private.Data = request.Private;
+            record.Public.Data = request.Public ?? record.Public.Data;
+            record.Private.Data = request.Private ?? record.Private.Data;
             record.Public.ModifiedOnUTC = Timestamp.FromDateTimeOffset(DateTimeOffset.UtcNow);
             record.Private.ModifiedBy = user.Id.ToString();
 
             await dataProvider.Save(record);
 
-            return new() { Record = record };
+            res.Record = record;
+            return res;
         }
 
         [Authorize(Roles = ONUser.ROLE_CAN_PUBLISH)]

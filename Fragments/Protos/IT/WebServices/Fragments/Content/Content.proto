@@ -133,7 +133,8 @@ message CreateContentRequest {
   
 message CreateContentResponse {
   ContentRecord Record = 1;
-  repeated FieldValidationError ValidationErrors = 2;
+  string Error = 10;
+  repeated FieldValidationError ValidationErrors = 11;
 }
 
 message DeleteContentRequest {
@@ -247,6 +248,8 @@ message ModifyContentRequest {
   
 message ModifyContentResponse {
   ContentRecord Record = 1;
+  repeated FieldValidationError ValidationErrors = 10;
+  string Error = 11;
 }
 
 message ContentListRecord {

@@ -39,4 +39,12 @@ namespace IT.WebServices.Fragments.Content
         public CreateContentResponse AddError(string field, string message) =>
             ValidationHelper.AddError(this, field, message);
     }
+
+    public partial class ModifyContentResponse : IHasValidationErrors
+    {
+        public bool HasErrors() => ValidationHelper.HasErrors(this);
+
+        public ModifyContentResponse AddError(string field, string message) =>
+            ValidationHelper.AddError(this, field, message);
+    }
 }
