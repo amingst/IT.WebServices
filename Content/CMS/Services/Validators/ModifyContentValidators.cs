@@ -33,8 +33,8 @@ internal class ModifyContentValidators
         if (Provided(d.AuthorID) && !Guid.TryParse(d.AuthorID, out _))
             res.AddError("AuthorID", "AuthorID must be a valid GUID");
 
-        if (Provided(d.URL) && !IsHttpUrl(d.URL))
-            res.AddError("URL", "URL must be an absolute http(s) URL");
+        if (Provided(d.URL) && !IsRelativeUrl(d.URL))
+            res.AddError("URL", "URL must be a realative URL");
 
         if (Provided(d.FeaturedImageAssetID) && !Guid.TryParse(d.FeaturedImageAssetID, out _))
             res.AddError("FeaturedImageAssetID", "FeaturedImageAssetID must be a valid GUID");
@@ -112,11 +112,20 @@ internal class ModifyContentValidators
 
     private static bool Provided(string s) => !string.IsNullOrWhiteSpace(s);
 
-    private static bool IsHttpUrl(string url)
+    private static bool IsRelativeUrl(string url)
     {
-        return Uri.TryCreate(url, UriKind.Absolute, out var uri)
-            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
+
+        if (!url.StartsWith("/"))
+            return false;
+
+        if (Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var uri))
+            return !uri.IsAbsoluteUri;
+
+        return false;
     }
+
 
     private static void ValidateGuidList(System.Collections.Generic.IEnumerable<string> list, string field, ModifyContentResponse res)
     {

@@ -50,9 +50,7 @@ namespace IT.WebServices.Content.CMS.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_CAN_CREATE_CONTENT)]
-        public override async Task<CreateContentResponse> CreateContent(
-     CreateContentRequest request,
-     ServerCallContext context)
+        public override async Task<CreateContentResponse> CreateContent(CreateContentRequest request, ServerCallContext context)
         {
             var res = new CreateContentResponse();
 
@@ -89,6 +87,7 @@ namespace IT.WebServices.Content.CMS.Services
             res.Record = record;
             return res;
         }
+
         [Authorize(Roles = ONUser.ROLE_CAN_PUBLISH)]
         public override async Task<DeleteContentResponse> DeleteContent(DeleteContentRequest request, ServerCallContext context)
         {
@@ -457,9 +456,7 @@ namespace IT.WebServices.Content.CMS.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_CAN_CREATE_CONTENT)]
-        public override async Task<ModifyContentResponse> ModifyContent(
-      ModifyContentRequest request,
-      ServerCallContext context)
+        public override async Task<ModifyContentResponse> ModifyContent(ModifyContentRequest request, ServerCallContext context)
         {
             var res = new ModifyContentResponse();
 

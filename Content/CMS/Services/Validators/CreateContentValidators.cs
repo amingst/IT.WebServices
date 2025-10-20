@@ -45,8 +45,8 @@ namespace IT.WebServices.Fragments.Content
 
             if (string.IsNullOrWhiteSpace(d.URL))
                 res.AddError("URL", "URL is required");
-            else if (!IsHttpUrl(d.URL))
-                res.AddError("URL", "URL must be an absolute http(s) URL");
+            else if (!IsRelativeUrl(d.URL))
+                res.AddError("URL", "URL must be a realative URL");
 
             if (
                 !string.IsNullOrWhiteSpace(d.FeaturedImageAssetID)
@@ -157,12 +157,20 @@ namespace IT.WebServices.Fragments.Content
                 res.AddError("Written.HtmlBody", "HtmlBody is too large");
         }
 
-        private static bool IsHttpUrl(string url)
+        private static bool IsRelativeUrl(string url)
         {
-            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            if (string.IsNullOrWhiteSpace(url))
                 return false;
-            return uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
+
+            if (!url.StartsWith("/"))
+                return false;
+
+            if (Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var uri))
+                return !uri.IsAbsoluteUri;
+
+            return false;
         }
+
 
         private static void ValidateGuidList(
             System.Collections.Generic.IEnumerable<string> list,
