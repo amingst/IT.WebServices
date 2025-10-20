@@ -3,6 +3,11 @@
 package IT.WebServices.Fragments;
 import "google/protobuf/timestamp.proto";
 
+message FieldValidationError {
+	string Field = 1;
+	repeated string Errors = 2;
+}
+
 enum WeekdayEnum {
 	Sunday = 0;
 	Monday = 1;

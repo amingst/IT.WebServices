@@ -5,6 +5,7 @@ package IT.WebServices.Fragments.Authentication;
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "Protos/IT/WebServices/Fragments/Authentication/UserRecord.proto";
+import "Protos/IT/WebServices/Fragments/CommonTypes.proto";
 
 // Service for Authentication user fragment interface
 service UserInterface {
@@ -242,6 +243,18 @@ message AuthenticateUserRequest {
 message AuthenticateUserResponse {
   string BearerToken = 1;
   UserNormalRecord UserRecord = 2;
+  repeated FieldValidationError ValidationErrors = 3;
+  AuthenticateUserResponseErrorType Error = 4;
+
+  enum AuthenticateUserResponseErrorType {
+      NoError = 0;
+      UnknownError = -1;
+      InvalidCredentials = 1;
+      MFARequired = 2;
+      InvalidMFACode = 3;
+      ServiceUnavailible = 4;
+      UserNotFound = 5;
+  }
 }
   
 message ChangeOtherPasswordRequest {
@@ -251,6 +264,7 @@ message ChangeOtherPasswordRequest {
   
 message ChangeOtherPasswordResponse {
   ChangeOtherPasswordResponseErrorType Error = 1;
+  repeated FieldValidationError ValidationErrors = 2;
 
   enum ChangeOtherPasswordResponseErrorType {
     NoError = 0;
@@ -283,6 +297,7 @@ message ChangeOwnPasswordRequest {
   
 message ChangeOwnPasswordResponse {
   ChangeOwnPasswordResponseErrorType Error = 1;
+  repeated FieldValidationError ValidationErrors = 2;
 
   enum ChangeOwnPasswordResponseErrorType {
     NoError = 0;
@@ -317,6 +332,7 @@ message CreateUserRequest {
 message CreateUserResponse {
   string BearerToken = 1;
   CreateUserResponseErrorType Error = 2;
+  repeated FieldValidationError ValidationErrors = 3;
 
   enum CreateUserResponseErrorType {
     NoError = 0;
@@ -366,6 +382,7 @@ message GenerateOtherTotpResponse {
   string Key = 2;
   string QRCode = 3;
   string Error = 10;
+  repeated FieldValidationError ValidationErrors = 11;
 }
 
 message GenerateOwnTotpRequest {
@@ -377,6 +394,7 @@ message GenerateOwnTotpResponse {
   string Key = 2;
   string QRCode = 3;
   string Error = 10;
+  repeated FieldValidationError ValidationErrors = 11;
 }
 
 message GetAllUsersRequest {
@@ -469,7 +487,18 @@ message ModifyOtherUserRequest {
 }
   
 message ModifyOtherUserResponse {
-  string Error = 1;
+  ModifyOtherUserResponseErrorType Error = 1;
+  repeated FieldValidationError ValidationErrors = 2;
+
+  enum ModifyOtherUserResponseErrorType {
+    NoError = 0;
+    UnknownError = -1;
+    ServiceOffline = 2;
+    Unauthorized = 3;
+    UserNotFound = 4;
+    UserNameTaken = 5;
+    EmailTaken = 6;
+  }
 }
 
 message ModifyOtherUserRolesRequest {
@@ -491,6 +520,7 @@ message ModifyOwnUserRequest {
 message ModifyOwnUserResponse {
   string Error = 1;
   string BearerToken = 2;
+  repeated FieldValidationError ValidationErrors = 3;
 }
 
 message RenewTokenRequest {
@@ -543,6 +573,7 @@ message VerifyOtherTotpRequest {
 
 message VerifyOtherTotpResponse {
   string Error = 10;
+  repeated FieldValidationError ValidationErrors = 11;
 }
 
 message VerifyOwnTotpRequest {
@@ -552,4 +583,5 @@ message VerifyOwnTotpRequest {
 
 message VerifyOwnTotpResponse {
   string Error = 10;
+  repeated FieldValidationError ValidationErrors = 11;
 }

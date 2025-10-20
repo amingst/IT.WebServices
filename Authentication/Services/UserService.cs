@@ -1,18 +1,3 @@
-using Google.Authenticator;
-using Google.Protobuf;
-using Grpc.Core;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using IT.WebServices.Authentication.Services.Data;
-using IT.WebServices.Authentication.Services.Helpers;
-using IT.WebServices.Fragments.Authentication;
-using IT.WebServices.Fragments.Authorization;
-using IT.WebServices.Fragments.Content;
-using IT.WebServices.Fragments.Generic;
-using IT.WebServices.Settings;
-using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -23,7 +8,25 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Google.Authenticator;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
+using IT.WebServices.Authentication.Services.Data;
+using IT.WebServices.Authentication.Services.Helpers;
+using IT.WebServices.Fragments;
+using IT.WebServices.Fragments.Authentication;
+using IT.WebServices.Fragments.Authorization;
+using IT.WebServices.Fragments.Content;
+using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Helpers;
+using IT.WebServices.Settings;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using SkiaSharp;
+using static IT.WebServices.Authentication.Services.Validation.ChangePasswordValidators;
 
 namespace IT.WebServices.Authentication.Services
 {
@@ -41,7 +44,15 @@ namespace IT.WebServices.Authentication.Services
         private static readonly HashAlgorithm hasher = SHA256.Create();
         private static readonly RandomNumberGenerator rng = RandomNumberGenerator.Create();
 
-        public UserService(OfflineHelper offlineHelper, ILogger<UserService> logger, IProfilePicDataProvider picProvider, IUserDataProvider dataProvider, ClaimsClient claimsClient, ISettingsService settingsService, UserServiceInternal userServiceInternal)
+        public UserService(
+            OfflineHelper offlineHelper,
+            ILogger<UserService> logger,
+            IProfilePicDataProvider picProvider,
+            IUserDataProvider dataProvider,
+            ClaimsClient claimsClient,
+            ISettingsService settingsService,
+            UserServiceInternal userServiceInternal
+        )
         {
             this.offlineHelper = offlineHelper;
             this.logger = logger;
@@ -51,7 +62,10 @@ namespace IT.WebServices.Authentication.Services
             this.settingsService = settingsService;
             this.userServiceInternal = userServiceInternal;
 
-            creds = new SigningCredentials(JwtExtensions.GetPrivateKey(), SecurityAlgorithms.EcdsaSha256);
+            creds = new SigningCredentials(
+                JwtExtensions.GetPrivateKey(),
+                SecurityAlgorithms.EcdsaSha256
+            );
 
             //if (Program.IsDevelopment)
             //{
@@ -60,94 +74,195 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [AllowAnonymous]
-        public override async Task<AuthenticateUserResponse> AuthenticateUser(AuthenticateUserRequest request, ServerCallContext context)
+        public override async Task<AuthenticateUserResponse> AuthenticateUser(
+            AuthenticateUserRequest request,
+            ServerCallContext context
+        )
         {
-            if (offlineHelper.IsOffline)
-                return new AuthenticateUserResponse();
+            var res = new AuthenticateUserResponse();
 
-            if (string.IsNullOrWhiteSpace(request.UserName) || string.IsNullOrWhiteSpace(request.Password))
-                return new AuthenticateUserResponse();
+            if (offlineHelper.IsOffline)
+            {
+                res.Error = AuthenticateUserResponse
+                    .Types
+                    .AuthenticateUserResponseErrorType
+                    .ServiceUnavailible;
+                return res;
+            }
+
+            AuthenticateUserValidators.Validate(request, res);
+            if (res.HasErrors())
+            {
+                res.Error = AuthenticateUserResponse
+                    .Types
+                    .AuthenticateUserResponseErrorType
+                    .InvalidCredentials;
+                return res;
+            }
 
             var user = await dataProvider.GetByLogin(request.UserName);
             if (user == null)
-            {
                 user = await dataProvider.GetByEmail(request.UserName);
-                if (user == null)
-                    return new AuthenticateUserResponse();
+
+            if (user == null)
+            {
+                res.Error = AuthenticateUserResponse
+                    .Types
+                    .AuthenticateUserResponseErrorType
+                    .UserNotFound;
+                return res;
             }
 
             bool isCorrect = await IsPasswordCorrect(request.Password, user);
-
             if (!isCorrect)
-                return new AuthenticateUserResponse();
+            {
+                res.Error = AuthenticateUserResponse
+                    .Types
+                    .AuthenticateUserResponseErrorType
+                    .InvalidCredentials;
+                return res;
+            }
 
             if (!ValidateTotp(user.Server?.TOTPDevices, request.MFACode))
-                return new AuthenticateUserResponse();
+            {
+                res.Error = AuthenticateUserResponse
+                    .Types
+                    .AuthenticateUserResponseErrorType
+                    .Mfarequired;
+                return res;
+            }
 
             var otherClaims = await claimsClient.GetOtherClaims(user.UserIDGuid);
+            res.BearerToken = GenerateToken(user.Normal, otherClaims);
+            res.UserRecord = user.Normal;
 
-            return new AuthenticateUserResponse()
-            {
-                BearerToken = GenerateToken(user.Normal, otherClaims),
-                UserRecord = user.Normal,
-            };
+            return res;
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ChangeOtherPasswordResponse> ChangeOtherPassword(ChangeOtherPasswordRequest request, ServerCallContext context)
+        public override async Task<ChangeOtherPasswordResponse> ChangeOtherPassword(
+            ChangeOtherPasswordRequest request,
+            ServerCallContext context
+        )
         {
+            var response = new ChangeOtherPasswordResponse();
+
             if (offlineHelper.IsOffline)
-                return new ChangeOtherPasswordResponse { Error = ChangeOtherPasswordResponse.Types.ChangeOtherPasswordResponseErrorType.UnknownError };
+            {
+                response.Error = ChangeOtherPasswordResponse
+                    .Types
+                    .ChangeOtherPasswordResponseErrorType
+                    .UnknownError;
+                return response;
+            }
+
+            ChangeOtherPasswordValidators.Validate(request, response);
+            if (response.HasErrors())
+            {
+                response.Error = ChangeOtherPasswordResponse
+                    .Types
+                    .ChangeOtherPasswordResponseErrorType
+                    .BadNewPassword;
+                return response;
+            }
 
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new ChangeOtherPasswordResponse { Error = ChangeOtherPasswordResponse.Types.ChangeOtherPasswordResponseErrorType.UnknownError };
+                {
+                    response.Error = ChangeOtherPasswordResponse
+                        .Types
+                        .ChangeOtherPasswordResponseErrorType
+                        .UnknownError;
+                    return response;
+                }
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
                 var record = await dataProvider.GetById(request.UserID.ToGuid());
                 if (record == null)
-                    return new ChangeOtherPasswordResponse { Error = ChangeOtherPasswordResponse.Types.ChangeOtherPasswordResponseErrorType.UserNotFound };
+                {
+                    response.Error = ChangeOtherPasswordResponse
+                        .Types
+                        .ChangeOtherPasswordResponseErrorType
+                        .UserNotFound;
+                    return response;
+                }
 
                 byte[] salt = RandomNumberGenerator.GetBytes(16);
                 record.Server.PasswordSalt = ByteString.CopyFrom(salt);
-                record.Server.PasswordHash = ByteString.CopyFrom(ComputeSaltedHash(request.NewPassword, salt));
+                record.Server.PasswordHash = ByteString.CopyFrom(
+                    ComputeSaltedHash(request.NewPassword, salt)
+                );
 
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
 
-                return new ChangeOtherPasswordResponse { Error = ChangeOtherPasswordResponse.Types.ChangeOtherPasswordResponseErrorType.NoError };
+                response.Error = ChangeOtherPasswordResponse
+                    .Types
+                    .ChangeOtherPasswordResponseErrorType
+                    .NoError;
+                return response;
             }
             catch
             {
-                return new ChangeOtherPasswordResponse { Error = ChangeOtherPasswordResponse.Types.ChangeOtherPasswordResponseErrorType.UnknownError };
+                response.Error = ChangeOtherPasswordResponse
+                    .Types
+                    .ChangeOtherPasswordResponseErrorType
+                    .UnknownError;
+                return response;
             }
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ChangeOtherProfileImageResponse> ChangeOtherProfileImage(ChangeOtherProfileImageRequest request, ServerCallContext context)
+        public override async Task<ChangeOtherProfileImageResponse> ChangeOtherProfileImage(
+            ChangeOtherProfileImageRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
-                return new ChangeOtherProfileImageResponse { Error = ChangeOtherProfileImageResponse.Types.ChangeOtherProfileImageResponseErrorType.UnknownError };
+                return new ChangeOtherProfileImageResponse
+                {
+                    Error = ChangeOtherProfileImageResponse
+                        .Types
+                        .ChangeOtherProfileImageResponseErrorType
+                        .UnknownError,
+                };
 
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new() { Error = ChangeOtherProfileImageResponse.Types.ChangeOtherProfileImageResponseErrorType.UnknownError };
+                    return new()
+                    {
+                        Error = ChangeOtherProfileImageResponse
+                            .Types
+                            .ChangeOtherProfileImageResponseErrorType
+                            .UnknownError,
+                    };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
                 var record = await dataProvider.GetById(request.UserID.ToGuid());
                 if (record == null)
-                    return new() { Error = ChangeOtherProfileImageResponse.Types.ChangeOtherProfileImageResponseErrorType.UnknownError };
+                    return new()
+                    {
+                        Error = ChangeOtherProfileImageResponse
+                            .Types
+                            .ChangeOtherProfileImageResponseErrorType
+                            .UnknownError,
+                    };
 
                 if (request?.ProfileImage == null || request.ProfileImage.IsEmpty)
-                    return new() { Error = ChangeOtherProfileImageResponse.Types.ChangeOtherProfileImageResponseErrorType.BadFormat };
-
-
+                    return new()
+                    {
+                        Error = ChangeOtherProfileImageResponse
+                            .Types
+                            .ChangeOtherProfileImageResponseErrorType
+                            .BadFormat,
+                    };
 
                 using var ms = new MemoryStream();
                 ms.Write(request.ProfileImage.ToArray());
@@ -155,13 +270,18 @@ namespace IT.WebServices.Authentication.Services
                 using var image = SKBitmap.Decode(ms);
 
                 if (image == null)
-                    return new ChangeOtherProfileImageResponse { Error = ChangeOtherProfileImageResponse.Types.ChangeOtherProfileImageResponseErrorType.BadFormat };
+                    return new ChangeOtherProfileImageResponse
+                    {
+                        Error = ChangeOtherProfileImageResponse
+                            .Types
+                            .ChangeOtherProfileImageResponseErrorType
+                            .BadFormat,
+                    };
 
                 var newInfo = image.Info;
                 newInfo.Width = 200;
                 newInfo.Height = 200;
                 using var newImage = image.Resize(newInfo, SKFilterQuality.Medium);
-
 
                 using MemoryStream memStream = new MemoryStream();
                 using SKManagedWStream wstream = new SKManagedWStream(memStream);
@@ -170,69 +290,153 @@ namespace IT.WebServices.Authentication.Services
 
                 await picProvider.Save(request.UserID.ToGuid(), memStream.ToArray());
 
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
 
-                return new ChangeOtherProfileImageResponse { Error = ChangeOtherProfileImageResponse.Types.ChangeOtherProfileImageResponseErrorType.NoError };
+                return new ChangeOtherProfileImageResponse
+                {
+                    Error = ChangeOtherProfileImageResponse
+                        .Types
+                        .ChangeOtherProfileImageResponseErrorType
+                        .NoError,
+                };
             }
             catch
             {
-                return new ChangeOtherProfileImageResponse { Error = ChangeOtherProfileImageResponse.Types.ChangeOtherProfileImageResponseErrorType.BadFormat };
+                return new ChangeOtherProfileImageResponse
+                {
+                    Error = ChangeOtherProfileImageResponse
+                        .Types
+                        .ChangeOtherProfileImageResponseErrorType
+                        .BadFormat,
+                };
             }
         }
 
-        public override async Task<ChangeOwnPasswordResponse> ChangeOwnPassword(ChangeOwnPasswordRequest request, ServerCallContext context)
+        public override async Task<ChangeOwnPasswordResponse> ChangeOwnPassword(
+            ChangeOwnPasswordRequest request,
+            ServerCallContext context
+        )
         {
+            var response = new ChangeOwnPasswordResponse();
+
             if (offlineHelper.IsOffline)
-                return new ChangeOwnPasswordResponse { Error = ChangeOwnPasswordResponse.Types.ChangeOwnPasswordResponseErrorType.UnknownError };
+            {
+                response.Error = ChangeOwnPasswordResponse
+                    .Types
+                    .ChangeOwnPasswordResponseErrorType
+                    .UnknownError;
+                return response;
+            }
+
+            ChangeOwnPasswordValidators.Validate(request, response);
+            if (response.HasErrors())
+            {
+                response.Error = ChangeOwnPasswordResponse
+                    .Types
+                    .ChangeOwnPasswordResponseErrorType
+                    .BadNewPassword;
+                return response;
+            }
 
             try
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new ChangeOwnPasswordResponse { Error = ChangeOwnPasswordResponse.Types.ChangeOwnPasswordResponseErrorType.UnknownError };
+                {
+                    response.Error = ChangeOwnPasswordResponse
+                        .Types
+                        .ChangeOwnPasswordResponseErrorType
+                        .UnknownError;
+                    return response;
+                }
 
                 var record = await dataProvider.GetById(userToken.Id);
                 if (record == null)
-                    return new ChangeOwnPasswordResponse { Error = ChangeOwnPasswordResponse.Types.ChangeOwnPasswordResponseErrorType.UnknownError };
+                {
+                    response.Error = ChangeOwnPasswordResponse
+                        .Types
+                        .ChangeOwnPasswordResponseErrorType
+                        .UnknownError;
+                    return response;
+                }
 
                 var hash = ComputeSaltedHash(request.OldPassword, record.Server.PasswordSalt.Span);
                 if (!CryptographicOperations.FixedTimeEquals(record.Server.PasswordHash.Span, hash))
-                    return new ChangeOwnPasswordResponse { Error = ChangeOwnPasswordResponse.Types.ChangeOwnPasswordResponseErrorType.BadOldPassword };
+                {
+                    response.Error = ChangeOwnPasswordResponse
+                        .Types
+                        .ChangeOwnPasswordResponseErrorType
+                        .BadOldPassword;
+                    return response;
+                }
 
                 byte[] salt = RandomNumberGenerator.GetBytes(16);
                 record.Server.PasswordSalt = ByteString.CopyFrom(salt);
-                record.Server.PasswordHash = ByteString.CopyFrom(ComputeSaltedHash(request.NewPassword, salt));
+                record.Server.PasswordHash = ByteString.CopyFrom(
+                    ComputeSaltedHash(request.NewPassword, salt)
+                );
 
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
 
-                return new ChangeOwnPasswordResponse { Error = ChangeOwnPasswordResponse.Types.ChangeOwnPasswordResponseErrorType.NoError };
+                response.Error = ChangeOwnPasswordResponse
+                    .Types
+                    .ChangeOwnPasswordResponseErrorType
+                    .NoError;
+                return response;
             }
             catch
             {
-                return new ChangeOwnPasswordResponse { Error = ChangeOwnPasswordResponse.Types.ChangeOwnPasswordResponseErrorType.UnknownError };
+                response.Error = ChangeOwnPasswordResponse
+                    .Types
+                    .ChangeOwnPasswordResponseErrorType
+                    .UnknownError;
+                return response;
             }
         }
 
-        public override async Task<ChangeOwnProfileImageResponse> ChangeOwnProfileImage(ChangeOwnProfileImageRequest request, ServerCallContext context)
+        public override async Task<ChangeOwnProfileImageResponse> ChangeOwnProfileImage(
+            ChangeOwnProfileImageRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
-                return new() { Error = ChangeOwnProfileImageResponse.Types.ChangeOwnProfileImageResponseErrorType.UnknownError };
+                return new()
+                {
+                    Error = ChangeOwnProfileImageResponse
+                        .Types
+                        .ChangeOwnProfileImageResponseErrorType
+                        .UnknownError,
+                };
 
             try
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = ChangeOwnProfileImageResponse.Types.ChangeOwnProfileImageResponseErrorType.UnknownError };
+                    return new()
+                    {
+                        Error = ChangeOwnProfileImageResponse
+                            .Types
+                            .ChangeOwnProfileImageResponseErrorType
+                            .UnknownError,
+                    };
 
                 var record = await dataProvider.GetById(userToken.Id);
                 if (record == null)
-                    return new() { Error = ChangeOwnProfileImageResponse.Types.ChangeOwnProfileImageResponseErrorType.UnknownError };
+                    return new()
+                    {
+                        Error = ChangeOwnProfileImageResponse
+                            .Types
+                            .ChangeOwnProfileImageResponseErrorType
+                            .UnknownError,
+                    };
 
                 using var ms = new MemoryStream();
                 ms.Write(request.ProfileImage.ToArray());
@@ -240,13 +444,18 @@ namespace IT.WebServices.Authentication.Services
                 using var image = SKBitmap.Decode(ms);
 
                 if (image == null)
-                    return new() { Error = ChangeOwnProfileImageResponse.Types.ChangeOwnProfileImageResponseErrorType.BadFormat };
+                    return new()
+                    {
+                        Error = ChangeOwnProfileImageResponse
+                            .Types
+                            .ChangeOwnProfileImageResponseErrorType
+                            .BadFormat,
+                    };
 
                 var newInfo = image.Info;
                 newInfo.Width = 200;
                 newInfo.Height = 200;
                 using var newImage = image.Resize(newInfo, SKFilterQuality.Medium);
-
 
                 using MemoryStream memStream = new MemoryStream();
                 using SKManagedWStream wstream = new SKManagedWStream(memStream);
@@ -255,35 +464,76 @@ namespace IT.WebServices.Authentication.Services
 
                 await picProvider.Save(userToken.Id, memStream.ToArray());
 
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
 
-                return new() { Error = ChangeOwnProfileImageResponse.Types.ChangeOwnProfileImageResponseErrorType.NoError };
+                return new()
+                {
+                    Error = ChangeOwnProfileImageResponse
+                        .Types
+                        .ChangeOwnProfileImageResponseErrorType
+                        .NoError,
+                };
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error in ChangeOwnProfileImage");
-                return new() { Error = ChangeOwnProfileImageResponse.Types.ChangeOwnProfileImageResponseErrorType.BadFormat };
+                return new()
+                {
+                    Error = ChangeOwnProfileImageResponse
+                        .Types
+                        .ChangeOwnProfileImageResponseErrorType
+                        .BadFormat,
+                };
             }
         }
 
         [AllowAnonymous]
-        public override async Task<CreateUserResponse> CreateUser(CreateUserRequest request, ServerCallContext context)
+        public override async Task<CreateUserResponse> CreateUser(
+            CreateUserRequest request,
+            ServerCallContext context
+        )
         {
-            if (offlineHelper.IsOffline)
-                return new() { Error = CreateUserResponse.Types.CreateUserResponseErrorType.UnknownError };
+            var response = new CreateUserResponse();
 
-            if (request == null)
-                return new() { Error = CreateUserResponse.Types.CreateUserResponseErrorType.UnknownError };
+            if (offlineHelper.IsOffline || request == null)
+            {
+                response.Error = CreateUserResponse.Types.CreateUserResponseErrorType.UnknownError;
+                return response;
+            }
+
+            CreateUserValidators.Validate(request, response);
+            if (response.HasErrors())
+            {
+                response.Error = CreateUserResponse.Types.CreateUserResponseErrorType.UnknownError;
+                return response;
+            }
+
+            var usernameLower = request.UserName.Trim().ToLowerInvariant();
+            var emailTrimmed = request.Email.Trim();
+
+            if (await dataProvider.LoginExists(usernameLower))
+            {
+                response.AddError("UserName", "Username is already taken");
+                response.Error = CreateUserResponse.Types.CreateUserResponseErrorType.UserNameTaken;
+                return response;
+            }
+
+            if (await dataProvider.EmailExists(emailTrimmed))
+            {
+                response.AddError("Email", "Email is already taken");
+                response.Error = CreateUserResponse.Types.CreateUserResponseErrorType.EmailTaken;
+                return response;
+            }
 
             var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
-
             var newGuid = Guid.NewGuid();
-            var now = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+            var now = Timestamp.FromDateTime(DateTime.UtcNow);
 
-            var user = new UserRecord()
+            var user = new UserRecord
             {
                 Normal = new()
                 {
@@ -294,7 +544,7 @@ namespace IT.WebServices.Authentication.Services
                         ModifiedOnUTC = now,
                         Data = new()
                         {
-                            UserName = request.UserName.ToLower(),
+                            UserName = usernameLower,
                             DisplayName = request.DisplayName,
                             Bio = request.Bio,
                         },
@@ -303,83 +553,103 @@ namespace IT.WebServices.Authentication.Services
                     {
                         CreatedBy = (userToken?.Id ?? newGuid).ToString(),
                         ModifiedBy = (userToken?.Id ?? newGuid).ToString(),
-                        Data = new()
-                        {
-                            Email = request.Email
-                        },
+                        Data = new() { Email = emailTrimmed },
                     },
                 },
-                Server = new()
-                {
-                }
+                Server = new(),
             };
+
+            if (!IsValid(user.Normal))
+            {
+                response.Error = CreateUserResponse.Types.CreateUserResponseErrorType.UnknownError;
+                return response;
+            }
 
             byte[] salt = RandomNumberGenerator.GetBytes(16);
             user.Server.PasswordSalt = ByteString.CopyFrom(salt);
-            user.Server.PasswordHash = ByteString.CopyFrom(ComputeSaltedHash(request.Password, salt));
+            user.Server.PasswordHash = ByteString.CopyFrom(
+                ComputeSaltedHash(request.Password, salt)
+            );
 
-            if (!IsValid(user.Normal))
-                return new CreateUserResponse
-                {
-                    Error = CreateUserResponse.Types.CreateUserResponseErrorType.UnknownError
-                };
-
-            if (await dataProvider.LoginExists(user.Normal.Public.Data.UserName.ToLower()))
-                return new CreateUserResponse
-                {
-                    Error = CreateUserResponse.Types.CreateUserResponseErrorType.UserNameTaken
-                };
-
-            if (await dataProvider.EmailExists(user.Normal.Private.Data.Email))
-                return new CreateUserResponse
-                {
-                    Error = CreateUserResponse.Types.CreateUserResponseErrorType.EmailTaken
-                };
-
-            var res = await dataProvider.Create(user);
-            if (!res)
-                return new CreateUserResponse
-                {
-                    Error = CreateUserResponse.Types.CreateUserResponseErrorType.UnknownError
-                };
-
-            return new CreateUserResponse
+            var created = await dataProvider.Create(user);
+            if (!created)
             {
-                BearerToken = GenerateToken(user.Normal, null)
-            };
+                response.Error = CreateUserResponse.Types.CreateUserResponseErrorType.UnknownError;
+                return response;
+            }
+
+            response.BearerToken = GenerateToken(user.Normal, null);
+            return response;
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<DisableEnableOtherUserResponse> DisableOtherUser(DisableEnableOtherUserRequest request, ServerCallContext context)
+        public override async Task<DisableEnableOtherUserResponse> DisableOtherUser(
+            DisableEnableOtherUserRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
-                return new() { Error = DisableEnableOtherUserResponse.Types.DisableEnableOtherUserResponseErrorType.UnknownError };
+                return new()
+                {
+                    Error = DisableEnableOtherUserResponse
+                        .Types
+                        .DisableEnableOtherUserResponseErrorType
+                        .UnknownError,
+                };
 
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new() { Error = DisableEnableOtherUserResponse.Types.DisableEnableOtherUserResponseErrorType.UnknownError };
+                    return new()
+                    {
+                        Error = DisableEnableOtherUserResponse
+                            .Types
+                            .DisableEnableOtherUserResponseErrorType
+                            .UnknownError,
+                    };
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
                 var record = await dataProvider.GetById(request.UserID.ToGuid());
                 if (record == null)
-                    return new() { Error = DisableEnableOtherUserResponse.Types.DisableEnableOtherUserResponseErrorType.UnknownError };
+                    return new()
+                    {
+                        Error = DisableEnableOtherUserResponse
+                            .Types
+                            .DisableEnableOtherUserResponseErrorType
+                            .UnknownError,
+                    };
 
-                record.Normal.Public.DisabledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Normal.Public.DisabledOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.DisabledBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
 
-                return new() { Error = DisableEnableOtherUserResponse.Types.DisableEnableOtherUserResponseErrorType.NoError };
+                return new()
+                {
+                    Error = DisableEnableOtherUserResponse
+                        .Types
+                        .DisableEnableOtherUserResponseErrorType
+                        .NoError,
+                };
             }
             catch
             {
-                return new() { Error = DisableEnableOtherUserResponse.Types.DisableEnableOtherUserResponseErrorType.UnknownError };
+                return new()
+                {
+                    Error = DisableEnableOtherUserResponse
+                        .Types
+                        .DisableEnableOtherUserResponseErrorType
+                        .UnknownError,
+                };
             }
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<DisableOtherTotpResponse> DisableOtherTotp(DisableOtherTotpRequest request, ServerCallContext context)
+        public override async Task<DisableOtherTotpResponse> DisableOtherTotp(
+            DisableOtherTotpRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return new();
@@ -397,12 +667,17 @@ namespace IT.WebServices.Authentication.Services
                 if (record == null)
                     return new() { Error = "User not found" };
 
-                var totp = record.Server.TOTPDevices.FirstOrDefault(r => r.TotpID == request.TotpID);
+                var totp = record.Server.TOTPDevices.FirstOrDefault(r =>
+                    r.TotpID == request.TotpID
+                );
                 if (totp == null)
                     return new() { Error = "Device not found" };
 
-                totp.DisabledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                totp.DisabledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
+                record.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -416,7 +691,10 @@ namespace IT.WebServices.Authentication.Services
             }
         }
 
-        public override async Task<DisableOwnTotpResponse> DisableOwnTotp(DisableOwnTotpRequest request, ServerCallContext context)
+        public override async Task<DisableOwnTotpResponse> DisableOwnTotp(
+            DisableOwnTotpRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return new();
@@ -431,12 +709,17 @@ namespace IT.WebServices.Authentication.Services
                 if (record == null)
                     return new() { Error = "Not logged in" };
 
-                var totp = record.Server.TOTPDevices.FirstOrDefault(r => r.TotpID == request.TotpID);
+                var totp = record.Server.TOTPDevices.FirstOrDefault(r =>
+                    r.TotpID == request.TotpID
+                );
                 if (totp == null)
                     return new() { Error = "Device not found" };
 
-                totp.DisabledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                totp.DisabledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
+                record.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -451,49 +734,88 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<DisableEnableOtherUserResponse> EnableOtherUser(DisableEnableOtherUserRequest request, ServerCallContext context)
+        public override async Task<DisableEnableOtherUserResponse> EnableOtherUser(
+            DisableEnableOtherUserRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
-                return new DisableEnableOtherUserResponse { Error = DisableEnableOtherUserResponse.Types.DisableEnableOtherUserResponseErrorType.UnknownError };
+                return new DisableEnableOtherUserResponse
+                {
+                    Error = DisableEnableOtherUserResponse
+                        .Types
+                        .DisableEnableOtherUserResponseErrorType
+                        .UnknownError,
+                };
 
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new DisableEnableOtherUserResponse { Error = DisableEnableOtherUserResponse.Types.DisableEnableOtherUserResponseErrorType.UnknownError };
+                    return new DisableEnableOtherUserResponse
+                    {
+                        Error = DisableEnableOtherUserResponse
+                            .Types
+                            .DisableEnableOtherUserResponseErrorType
+                            .UnknownError,
+                    };
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
                 var record = await dataProvider.GetById(request.UserID.ToGuid());
                 if (record == null)
-                    return new DisableEnableOtherUserResponse { Error = DisableEnableOtherUserResponse.Types.DisableEnableOtherUserResponseErrorType.UnknownError };
+                    return new DisableEnableOtherUserResponse
+                    {
+                        Error = DisableEnableOtherUserResponse
+                            .Types
+                            .DisableEnableOtherUserResponseErrorType
+                            .UnknownError,
+                    };
 
                 record.Normal.Public.DisabledOnUTC = null;
                 record.Normal.Private.DisabledBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
 
-                return new DisableEnableOtherUserResponse { Error = DisableEnableOtherUserResponse.Types.DisableEnableOtherUserResponseErrorType.NoError };
+                return new DisableEnableOtherUserResponse
+                {
+                    Error = DisableEnableOtherUserResponse
+                        .Types
+                        .DisableEnableOtherUserResponseErrorType
+                        .NoError,
+                };
             }
             catch
             {
-                return new DisableEnableOtherUserResponse { Error = DisableEnableOtherUserResponse.Types.DisableEnableOtherUserResponseErrorType.UnknownError };
+                return new DisableEnableOtherUserResponse
+                {
+                    Error = DisableEnableOtherUserResponse
+                        .Types
+                        .DisableEnableOtherUserResponseErrorType
+                        .UnknownError,
+                };
             }
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<GenerateOtherTotpResponse> GenerateOtherTotp(GenerateOtherTotpRequest request, ServerCallContext context)
+        public override async Task<GenerateOtherTotpResponse> GenerateOtherTotp(
+            GenerateOtherTotpRequest request,
+            ServerCallContext context
+        )
         {
+            var res = new GenerateOtherTotpResponse();
+
             if (offlineHelper.IsOffline)
                 return new() { Error = "Offline" };
+
+            GenerateOtherTotpValidators.Validate(request, res);
+            if (res.HasErrors())
+                return res;
 
             try
             {
                 if (!await AmIReallyAdmin(context))
                     return new() { Error = "Admin only" };
 
-                var deviceName = request.DeviceName?.Trim();
-                if (string.IsNullOrWhiteSpace(deviceName))
-                    return new() { Error = "Device Name required" };
-
+                var deviceName = request.DeviceName.Trim();
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
                     return new() { Error = "Not logged in" };
@@ -502,8 +824,13 @@ namespace IT.WebServices.Authentication.Services
                 if (record == null)
                     return new() { Error = "User not found" };
 
-
-                if (record.Server.TOTPDevices.Where(r => r.IsValid).Where(r => r.DeviceName.ToLower() == deviceName.ToLower()).Any())
+                if (
+                    record
+                        .Server.TOTPDevices.Where(r => r.IsValid)
+                        .Any(r =>
+                            r.DeviceName.Equals(deviceName, StringComparison.OrdinalIgnoreCase)
+                        )
+                )
                     return new() { Error = "Device Name already exists" };
 
                 byte[] key = new byte[10];
@@ -514,12 +841,11 @@ namespace IT.WebServices.Authentication.Services
                     TotpID = Guid.NewGuid().ToString(),
                     DeviceName = deviceName,
                     Key = ByteString.CopyFrom(key),
-                    CreatedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow)
+                    CreatedOnUTC = Timestamp.FromDateTime(DateTime.UtcNow),
                 };
 
                 record.Server.TOTPDevices.Add(totp);
-
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Normal.Public.ModifiedOnUTC = Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -527,33 +853,43 @@ namespace IT.WebServices.Authentication.Services
                 var settingsData = await settingsService.GetAdminDataInternal();
 
                 TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
-                SetupCode setupInfo = tfa.GenerateSetupCode(settingsData.Public.Personalization.Title, record.Normal.Public.Data.UserName, key);
+                SetupCode setupInfo = tfa.GenerateSetupCode(
+                    settingsData.Public.Personalization.Title,
+                    record.Normal.Public.Data.UserName,
+                    key
+                );
 
                 return new()
                 {
                     TotpID = totp.TotpID,
                     Key = setupInfo.ManualEntryKey,
-                    QRCode = setupInfo.QrCodeSetupImageUrl
+                    QRCode = setupInfo.QrCodeSetupImageUrl,
                 };
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error in GenerateOwnTotp");
+                logger.LogError(ex, "Error in GenerateOtherTotp");
                 return new() { Error = "Unknown Error" };
             }
         }
 
-        public override async Task<GenerateOwnTotpResponse> GenerateOwnTotp(GenerateOwnTotpRequest request, ServerCallContext context)
+        public override async Task<GenerateOwnTotpResponse> GenerateOwnTotp(
+            GenerateOwnTotpRequest request,
+            ServerCallContext context
+        )
         {
+            var res = new GenerateOwnTotpResponse();
+
             if (offlineHelper.IsOffline)
                 return new() { Error = "Offline" };
 
+            GenerateOwnTotpValidators.Validate(request, res);
+            if (res.HasErrors())
+                return res;
+
             try
             {
-                var deviceName = request.DeviceName?.Trim();
-                if (string.IsNullOrWhiteSpace(deviceName))
-                    return new() { Error = "Device Name required" };
-
+                var deviceName = request.DeviceName.Trim();
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
                     return new() { Error = "Not logged in" };
@@ -562,8 +898,13 @@ namespace IT.WebServices.Authentication.Services
                 if (record == null)
                     return new() { Error = "Not logged in" };
 
-
-                if (record.Server.TOTPDevices.Where(r => r.IsValid).Where(r => r.DeviceName.ToLower() == deviceName.ToLower()).Any())
+                if (
+                    record
+                        .Server.TOTPDevices.Where(r => r.IsValid)
+                        .Any(r =>
+                            r.DeviceName.Equals(deviceName, StringComparison.OrdinalIgnoreCase)
+                        )
+                )
                     return new() { Error = "Device Name already exists" };
 
                 byte[] key = new byte[10];
@@ -574,12 +915,11 @@ namespace IT.WebServices.Authentication.Services
                     TotpID = Guid.NewGuid().ToString(),
                     DeviceName = deviceName,
                     Key = ByteString.CopyFrom(key),
-                    CreatedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow)
+                    CreatedOnUTC = Timestamp.FromDateTime(DateTime.UtcNow),
                 };
 
                 record.Server.TOTPDevices.Add(totp);
-
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Normal.Public.ModifiedOnUTC = Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
@@ -587,13 +927,17 @@ namespace IT.WebServices.Authentication.Services
                 var settingsData = await settingsService.GetAdminDataInternal();
 
                 TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
-                SetupCode setupInfo = tfa.GenerateSetupCode(settingsData.Public.Personalization.Title, record.Normal.Public.Data.UserName, key);
+                SetupCode setupInfo = tfa.GenerateSetupCode(
+                    settingsData.Public.Personalization.Title,
+                    record.Normal.Public.Data.UserName,
+                    key
+                );
 
                 return new()
                 {
                     TotpID = totp.TotpID,
                     Key = setupInfo.ManualEntryKey,
-                    QRCode = setupInfo.QrCodeSetupImageUrl
+                    QRCode = setupInfo.QrCodeSetupImageUrl,
                 };
             }
             catch (Exception ex)
@@ -604,7 +948,10 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<GetAllUsersResponse> GetAllUsers(GetAllUsersRequest request, ServerCallContext context)
+        public override async Task<GetAllUsersResponse> GetAllUsers(
+            GetAllUsersRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return new();
@@ -621,16 +968,17 @@ namespace IT.WebServices.Authentication.Services
                 await foreach (var r in dataProvider.GetAll())
                     list.Add(r.Normal);
             }
-            catch
-            {
-            }
+            catch { }
 
             ret.Records.AddRange(list.OrderByDescending(r => r.Public.Data.UserName));
             ret.PageTotalItems = (uint)ret.Records.Count;
 
             if (request.PageSize > 0)
             {
-                var page = ret.Records.Skip((int)request.PageOffset).Take((int)request.PageSize).ToList();
+                var page = ret
+                    .Records.Skip((int)request.PageOffset)
+                    .Take((int)request.PageSize)
+                    .ToList();
                 ret.Records.Clear();
                 ret.Records.AddRange(page);
             }
@@ -638,12 +986,15 @@ namespace IT.WebServices.Authentication.Services
             ret.PageOffsetStart = request.PageOffset;
             ret.PageOffsetEnd = ret.PageOffsetStart + (uint)ret.Records.Count;
 
-
             return ret;
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task GetListOfOldUserIDs(GetListOfOldUserIDsRequest request, IServerStreamWriter<GetListOfOldUserIDsResponse> responseStream, ServerCallContext context)
+        public override async Task GetListOfOldUserIDs(
+            GetListOfOldUserIDsRequest request,
+            IServerStreamWriter<GetListOfOldUserIDsResponse> responseStream,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return;
@@ -656,21 +1007,24 @@ namespace IT.WebServices.Authentication.Services
                 await foreach (var r in dataProvider.GetAll())
                 {
                     if (r.Normal.Private.Data.OldUserID != "")
-                        await responseStream.WriteAsync(new()
-                        {
-                            UserID = r.Normal.Public.UserID,
-                            OldUserID = r.Normal.Private.Data.OldUserID,
-                            ModifiedOnUTC = r.Normal.Public.ModifiedOnUTC,
-                        });
+                        await responseStream.WriteAsync(
+                            new()
+                            {
+                                UserID = r.Normal.Public.UserID,
+                                OldUserID = r.Normal.Private.Data.OldUserID,
+                                ModifiedOnUTC = r.Normal.Public.ModifiedOnUTC,
+                            }
+                        );
                 }
             }
-            catch
-            {
-            }
+            catch { }
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<GetOtherUserResponse> GetOtherUser(GetOtherUserRequest request, ServerCallContext context)
+        public override async Task<GetOtherUserResponse> GetOtherUser(
+            GetOtherUserRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return new();
@@ -687,7 +1041,10 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [AllowAnonymous]
-        public override Task<GetOtherPublicUserResponse> GetOtherPublicUser(GetOtherPublicUserRequest request, ServerCallContext context)
+        public override Task<GetOtherPublicUserResponse> GetOtherPublicUser(
+            GetOtherPublicUserRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return Task.FromResult(new GetOtherPublicUserResponse());
@@ -696,7 +1053,10 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [AllowAnonymous]
-        public override async Task<GetOtherPublicUserByUserNameResponse> GetOtherPublicUserByUserName(GetOtherPublicUserByUserNameRequest request, ServerCallContext context)
+        public override async Task<GetOtherPublicUserByUserNameResponse> GetOtherPublicUserByUserName(
+            GetOtherPublicUserByUserNameRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return new();
@@ -708,7 +1068,10 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<GetOtherTotpListResponse> GetOtherTotpList(GetOtherTotpListRequest request, ServerCallContext context)
+        public override async Task<GetOtherTotpListResponse> GetOtherTotpList(
+            GetOtherTotpListRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return new();
@@ -723,7 +1086,9 @@ namespace IT.WebServices.Authentication.Services
                     return new();
 
                 var ret = new GetOtherTotpListResponse();
-                ret.Devices.AddRange(record.Server.TOTPDevices.Where(r => r.IsValid).Select(r => r.ToLimited()));
+                ret.Devices.AddRange(
+                    record.Server.TOTPDevices.Where(r => r.IsValid).Select(r => r.ToLimited())
+                );
 
                 return ret;
             }
@@ -734,7 +1099,10 @@ namespace IT.WebServices.Authentication.Services
             }
         }
 
-        public override async Task<GetOwnTotpListResponse> GetOwnTotpList(GetOwnTotpListRequest request, ServerCallContext context)
+        public override async Task<GetOwnTotpListResponse> GetOwnTotpList(
+            GetOwnTotpListRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return new();
@@ -750,7 +1118,9 @@ namespace IT.WebServices.Authentication.Services
                     return new();
 
                 var ret = new GetOwnTotpListResponse();
-                ret.Devices.AddRange(record.Server.TOTPDevices.Where(r => r.IsValid).Select(r => r.ToLimited()));
+                ret.Devices.AddRange(
+                    record.Server.TOTPDevices.Where(r => r.IsValid).Select(r => r.ToLimited())
+                );
 
                 return ret;
             }
@@ -761,7 +1131,10 @@ namespace IT.WebServices.Authentication.Services
             }
         }
 
-        public override async Task<GetOwnUserResponse> GetOwnUser(GetOwnUserRequest request, ServerCallContext context)
+        public override async Task<GetOwnUserResponse> GetOwnUser(
+            GetOwnUserRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return new();
@@ -777,72 +1150,122 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [AllowAnonymous]
-        public override Task<GetUserIdListResponse> GetUserIdList(GetUserIdListRequest request, ServerCallContext context)
+        public override Task<GetUserIdListResponse> GetUserIdList(
+            GetUserIdListRequest request,
+            ServerCallContext context
+        )
         {
             return userServiceInternal.GetUserIdListInternal();
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyOtherUserResponse> ModifyOtherUser(ModifyOtherUserRequest request, ServerCallContext context)
+        public override async Task<ModifyOtherUserResponse> ModifyOtherUser(
+            ModifyOtherUserRequest request,
+            ServerCallContext context
+        )
         {
+            var res = new ModifyOtherUserResponse();
+
             if (offlineHelper.IsOffline)
-                return new() { Error = "Service Offline" };
-
-            try
             {
-                if (!await AmIReallyAdmin(context))
-                    return new() { Error = "Not an admin" };
-                var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
+                res.Error = ModifyOtherUserResponse
+                    .Types
+                    .ModifyOtherUserResponseErrorType
+                    .ServiceOffline;
+                return res;
+            }
 
-                var userId = request.UserID.ToGuid();
-                var record = await dataProvider.GetById(userId);
-                if (record == null)
-                    return new() { Error = "User not found" };
+            ModifyOtherUserValidators.Validate(request, res);
+            if (res.HasErrors())
+                return res;
 
+            if (!await AmIReallyAdmin(context))
+            {
+                res.Error = ModifyOtherUserResponse
+                    .Types
+                    .ModifyOtherUserResponseErrorType
+                    .Unauthorized;
+                return res;
+            }
 
-                if (!IsUserNameValid(request.UserName))
-                    return new() { Error = "User Name not valid" };
+            var userId = request.UserID.ToGuid();
+            var record = await dataProvider.GetById(userId);
+            if (record == null)
+            {
+                res.Error = ModifyOtherUserResponse
+                    .Types
+                    .ModifyOtherUserResponseErrorType
+                    .UserNotFound;
+                return res;
+            }
 
-                request.UserName = request.UserName.ToLower();
+            var newUserName = request.UserName.Trim().ToLowerInvariant();
+            var newEmail = request.Email.Trim();
 
-                if (!IsDisplayNameValid(request.DisplayName))
-                    return new() { Error = "Display Name not valid" };
-
-                if (record.Normal.Public.Data.UserName != request.UserName)
+            if (
+                !string.Equals(
+                    record.Normal.Public.Data.UserName,
+                    newUserName,
+                    StringComparison.Ordinal
+                )
+            )
+            {
+                var changed = await dataProvider.ChangeLoginIndex(
+                    record.Normal.Public.Data.UserName,
+                    newUserName,
+                    userId
+                );
+                if (!changed)
                 {
-                    if (!await dataProvider.ChangeLoginIndex(record.Normal.Public.Data.UserName, request.UserName, userId))
-                        return new ModifyOtherUserResponse() { Error = "User Name taken" };
-
-                    record.Normal.Public.Data.UserName = request.UserName;
+                    res.Error = ModifyOtherUserResponse
+                        .Types
+                        .ModifyOtherUserResponseErrorType
+                        .UserNameTaken;
+                    res.AddError("UserName", "Username is already taken");
+                    return res;
                 }
 
+                record.Normal.Public.Data.UserName = newUserName;
+            }
 
-                if (record.Normal.Private.Data.Email != request.Email)
+            if (
+                !string.Equals(
+                    record.Normal.Private.Data.Email,
+                    newEmail,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            {
+                var changed = await dataProvider.ChangeEmailIndex(newEmail, userId);
+                if (!changed)
                 {
-                    if (!await dataProvider.ChangeEmailIndex(request.Email, userId))
-                        return new ModifyOtherUserResponse() { Error = "Email address taken" };
-
-                    record.Normal.Private.Data.Email = request.Email;
+                    res.Error = ModifyOtherUserResponse
+                        .Types
+                        .ModifyOtherUserResponseErrorType
+                        .EmailTaken;
+                    res.AddError("Email", "Email is already taken");
+                    return res;
                 }
 
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                record.Normal.Public.Data.DisplayName = request.DisplayName;
-                record.Normal.Public.Data.Bio = request.Bio;
-
-                record.Normal.Private.ModifiedBy = userToken.Id.ToString();
-
-                await dataProvider.Save(record);
-
-                return new();
+                record.Normal.Private.Data.Email = newEmail;
             }
-            catch
-            {
-                return new() { Error = "Unknown error" };
-            }
+
+            record.Normal.Public.ModifiedOnUTC = Timestamp.FromDateTime(DateTime.UtcNow);
+            record.Normal.Public.Data.DisplayName = request.DisplayName;
+            record.Normal.Public.Data.Bio = request.Bio;
+            var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
+            record.Normal.Private.ModifiedBy = userToken.Id.ToString();
+
+            await dataProvider.Save(record);
+
+            return res;
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<ModifyOtherUserRolesResponse> ModifyOtherUserRoles(ModifyOtherUserRolesRequest request, ServerCallContext context)
+        public override async Task<ModifyOtherUserRolesResponse> ModifyOtherUserRoles(
+            ModifyOtherUserRolesRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return new() { Error = "Service Offline" };
@@ -858,8 +1281,8 @@ namespace IT.WebServices.Authentication.Services
                 if (record == null)
                     return new() { Error = "User not found" };
 
-
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
 
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
                 record.Normal.Private.Roles.Clear();
@@ -875,10 +1298,19 @@ namespace IT.WebServices.Authentication.Services
             }
         }
 
-        public override async Task<ModifyOwnUserResponse> ModifyOwnUser(ModifyOwnUserRequest request, ServerCallContext context)
+        public override async Task<ModifyOwnUserResponse> ModifyOwnUser(
+            ModifyOwnUserRequest request,
+            ServerCallContext context
+        )
         {
+            var res = new ModifyOwnUserResponse();
+
             if (offlineHelper.IsOffline)
                 return new() { Error = "Service Offline" };
+
+            ModifyOwnUserValidators.Validate(request, res);
+            if (res.HasErrors())
+                return res;
 
             try
             {
@@ -890,30 +1322,34 @@ namespace IT.WebServices.Authentication.Services
                 if (record == null)
                     return new() { Error = "User not found" };
 
-                if (!IsDisplayNameValid(request.DisplayName))
-                    return new() { Error = "Display Name not valid" };
+                var display = request.DisplayName.Trim();
+                var email = request.Email.Trim();
 
-                record.Normal.Public.Data.DisplayName = request.DisplayName;
+                record.Normal.Public.Data.DisplayName = display;
                 record.Normal.Public.Data.Bio = request.Bio;
 
-                if (record.Normal.Private.Data.Email != request.Email)
+                if (
+                    !string.Equals(
+                        record.Normal.Private.Data.Email,
+                        email,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                )
                 {
-                    if (!await dataProvider.ChangeEmailIndex(request.Email, record.UserIDGuid))
+                    if (!await dataProvider.ChangeEmailIndex(email, record.UserIDGuid))
                         return new() { Error = "Email address taken" };
 
-                    record.Normal.Private.Data.Email = request.Email;
+                    record.Normal.Private.Data.Email = email;
                 }
 
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                record.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
                 var otherClaims = await claimsClient.GetOtherClaims(userToken.Id);
 
-                return new()
-                {
-                    BearerToken = GenerateToken(record.Normal, otherClaims)
-                };
+                return new() { BearerToken = GenerateToken(record.Normal, otherClaims) };
             }
             catch
             {
@@ -921,7 +1357,10 @@ namespace IT.WebServices.Authentication.Services
             }
         }
 
-        public override async Task<RenewTokenResponse> RenewToken(RenewTokenRequest request, ServerCallContext context)
+        public override async Task<RenewTokenResponse> RenewToken(
+            RenewTokenRequest request,
+            ServerCallContext context
+        )
         {
             if (offlineHelper.IsOffline)
                 return new();
@@ -938,10 +1377,7 @@ namespace IT.WebServices.Authentication.Services
 
                 var otherClaims = await claimsClient.GetOtherClaims(userToken.Id);
 
-                return new()
-                {
-                    BearerToken = GenerateToken(record.Normal, otherClaims)
-                };
+                return new() { BearerToken = GenerateToken(record.Normal, otherClaims) };
             }
             catch
             {
@@ -950,7 +1386,10 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<SearchUsersAdminResponse> SearchUsersAdmin(SearchUsersAdminRequest request, ServerCallContext context)
+        public override async Task<SearchUsersAdminResponse> SearchUsersAdmin(
+            SearchUsersAdminRequest request,
+            ServerCallContext context
+        )
         {
             var minDateValue = new DateTime(2000, 1, 1);
 
@@ -978,7 +1417,11 @@ namespace IT.WebServices.Authentication.Services
                         continue;
 
                 if (possibleRoles != null)
-                    if (!possibleRoles.Any(possibleRole => rec.Normal.Private.Roles.Any(role => possibleRole.Contains(role))))
+                    if (
+                        !possibleRoles.Any(possibleRole =>
+                            rec.Normal.Private.Roles.Any(role => possibleRole.Contains(role))
+                        )
+                    )
                         continue;
 
                 if (searchCreatedBefore != null)
@@ -994,7 +1437,16 @@ namespace IT.WebServices.Authentication.Services
                         continue;
 
                 if (searchSearchString != null)
-                    if (!rec.Normal.Public.Data.UserName.Contains(searchSearchString, StringComparison.InvariantCultureIgnoreCase) && !rec.Normal.Public.Data.DisplayName.Contains(searchSearchString, StringComparison.InvariantCultureIgnoreCase))
+                    if (
+                        !rec.Normal.Public.Data.UserName.Contains(
+                            searchSearchString,
+                            StringComparison.InvariantCultureIgnoreCase
+                        )
+                        && !rec.Normal.Public.Data.DisplayName.Contains(
+                            searchSearchString,
+                            StringComparison.InvariantCultureIgnoreCase
+                        )
+                    )
                         continue;
 
                 var listRec = rec.Normal.ToUserSearchRecord();
@@ -1009,7 +1461,10 @@ namespace IT.WebServices.Authentication.Services
             {
                 res.PageOffsetStart = request.PageOffset;
 
-                var page = res.Records.Skip((int)request.PageOffset).Take((int)request.PageSize).ToList();
+                var page = res
+                    .Records.Skip((int)request.PageOffset)
+                    .Take((int)request.PageSize)
+                    .ToList();
                 res.Records.Clear();
                 res.Records.AddRange(page);
             }
@@ -1020,18 +1475,24 @@ namespace IT.WebServices.Authentication.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<VerifyOtherTotpResponse> VerifyOtherTotp(VerifyOtherTotpRequest request, ServerCallContext context)
+        public override async Task<VerifyOtherTotpResponse> VerifyOtherTotp(
+            VerifyOtherTotpRequest request,
+            ServerCallContext context
+        )
         {
+            var res = new VerifyOtherTotpResponse();
+
             if (offlineHelper.IsOffline)
-                return new();
+                return res;
+
+            VerifyOtherTOTPValidators.Validate(request, res);
+            if (res.HasErrors())
+                return res;
 
             try
             {
                 if (!await AmIReallyAdmin(context))
                     return new() { Error = "Admin only" };
-
-                if (string.IsNullOrWhiteSpace(request?.Code))
-                    return new() { Error = "Code is required" };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
@@ -1041,21 +1502,25 @@ namespace IT.WebServices.Authentication.Services
                 if (record == null)
                     return new() { Error = "User not found" };
 
-                var totp = record.Server.TOTPDevices.FirstOrDefault(r => r.TotpID == request.TotpID);
+                var totp = record.Server.TOTPDevices.FirstOrDefault(r =>
+                    r.TotpID == request.TotpID
+                );
                 if (totp == null)
                     return new() { Error = "Device not found" };
 
-                TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
+                var tfa = new TwoFactorAuthenticator();
                 if (!tfa.ValidateTwoFactorPIN(totp.Key.ToByteArray(), request.Code.Trim()))
                     return new() { Error = "Code is not valid" };
 
-                totp.VerifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                totp.VerifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
+                record.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
-
-                return new();
+                return res;
             }
             catch (Exception ex)
             {
@@ -1064,16 +1529,22 @@ namespace IT.WebServices.Authentication.Services
             }
         }
 
-        public override async Task<VerifyOwnTotpResponse> VerifyOwnTotp(VerifyOwnTotpRequest request, ServerCallContext context)
+        public override async Task<VerifyOwnTotpResponse> VerifyOwnTotp(
+            VerifyOwnTotpRequest request,
+            ServerCallContext context
+        )
         {
+            var res = new VerifyOwnTotpResponse();
+
             if (offlineHelper.IsOffline)
-                return new();
+                return res;
+
+            VerifyOwnTOTPValidators.Validate(request, res);
+            if (res.HasErrors())
+                return res;
 
             try
             {
-                if (string.IsNullOrWhiteSpace(request?.Code))
-                    return new() { Error = "Code is required" };
-
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
                     return new() { Error = "Not logged in" };
@@ -1082,21 +1553,25 @@ namespace IT.WebServices.Authentication.Services
                 if (record == null)
                     return new() { Error = "Not logged in" };
 
-                var totp = record.Server.TOTPDevices.FirstOrDefault(r => r.TotpID == request.TotpID);
+                var totp = record.Server.TOTPDevices.FirstOrDefault(r =>
+                    r.TotpID == request.TotpID
+                );
                 if (totp == null)
                     return new() { Error = "Device not found" };
 
-                TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
+                var tfa = new TwoFactorAuthenticator();
                 if (!tfa.ValidateTwoFactorPIN(totp.Key.ToByteArray(), request.Code.Trim()))
                     return new() { Error = "Code is not valid" };
 
-                totp.VerifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                record.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                totp.VerifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
+                    DateTime.UtcNow
+                );
+                record.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Private.ModifiedBy = userToken.Id.ToString();
 
                 await dataProvider.Save(record);
-
-                return new();
+                return res;
             }
             catch (Exception ex)
             {
@@ -1128,7 +1603,10 @@ namespace IT.WebServices.Authentication.Services
             if (CryptographicOperations.FixedTimeEquals(user.Server.PasswordHash.Span, hash))
                 return true;
 
-            if (string.IsNullOrEmpty(user.Server.OldPasswordAlgorithm) || string.IsNullOrEmpty(user.Server.OldPassword))
+            if (
+                string.IsNullOrEmpty(user.Server.OldPasswordAlgorithm)
+                || string.IsNullOrEmpty(user.Server.OldPassword)
+            )
                 return false;
 
             if (user.Server.OldPasswordAlgorithm == "Wordpress")
@@ -1140,7 +1618,8 @@ namespace IT.WebServices.Authentication.Services
                 user.Server.PasswordSalt = ByteString.CopyFrom(salt);
                 user.Server.PasswordHash = ByteString.CopyFrom(ComputeSaltedHash(password, salt));
 
-                user.Normal.Public.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                user.Normal.Public.ModifiedOnUTC =
+                    Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 user.Normal.Private.ModifiedBy = user.Normal.Public.UserID;
 
                 await dataProvider.Save(user);
@@ -1159,7 +1638,6 @@ namespace IT.WebServices.Authentication.Services
             user.Public.Data.DisplayName = user.Public.Data.DisplayName?.Trim() ?? "";
             if (!IsDisplayNameValid(user.Public.Data.DisplayName))
                 return false;
-
 
             user.Public.Data.UserName = user.Public.Data.UserName?.Trim() ?? "";
             if (!IsUserNameValid(user.Public.Data.UserName))
@@ -1224,7 +1702,12 @@ namespace IT.WebServices.Authentication.Services
             if (otherClaims != null)
             {
                 onUser.ExtraClaims.AddRange(otherClaims.Select(c => new Claim(c.Name, c.Value)));
-                onUser.ExtraClaims.AddRange(otherClaims.Select(c => new Claim(c.Name + "Exp", c.ExpiresOnUTC.Seconds.ToString())));
+                onUser.ExtraClaims.AddRange(
+                    otherClaims.Select(c => new Claim(
+                        c.Name + "Exp",
+                        c.ExpiresOnUTC.Seconds.ToString()
+                    ))
+                );
             }
 
             return GenerateToken(onUser);
@@ -1237,7 +1720,15 @@ namespace IT.WebServices.Authentication.Services
             var tokenExpiration = DateTime.UtcNow.AddDays(7);
             var claims = user.ToClaims().ToArray();
             var subject = new ClaimsIdentity(claims);
-            var token = tokenHandler.CreateJwtSecurityToken(null, null, subject, null, tokenExpiration, DateTime.UtcNow, creds);
+            var token = tokenHandler.CreateJwtSecurityToken(
+                null,
+                null,
+                subject,
+                null,
+                tokenExpiration,
+                DateTime.UtcNow,
+                creds
+            );
 
             return tokenHandler.WriteToken(token);
         }
@@ -1282,11 +1773,7 @@ namespace IT.WebServices.Authentication.Services
                         UserID = newId,
                         CreatedOnUTC = date,
                         ModifiedOnUTC = date,
-                        Data = new()
-                        {
-                            UserName = "owner",
-                            DisplayName = "Owner",
-                        }
+                        Data = new() { UserName = "owner", DisplayName = "Owner" },
                     },
                     Private = new()
                     {
