@@ -1,0 +1,23 @@
+version: v2
+
+modules:
+  - path: .
+    excludes:
+      - ts-gen/**
+      - dist/**
+      - node_modules/**
+      - __pack_extract__/**
+      - bin/**
+      - obj/**
+
+deps:
+  - buf.build/googleapis/googleapis
+  - buf.build/bufbuild/protovalidate
+
+lint:
+  use:
+    - STANDARD
+
+breaking:
+  use:
+    - FILE
