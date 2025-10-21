@@ -102,7 +102,7 @@ export * from './validate_pb';
 }
 
 async function generateIndexes() {
-  const genRoot = path.join(cwd, 'ts-gen', 'gen');
+  const genRoot = path.join(cwd, 'ts-gen');
   const allDirs = new Set();
 
   (function collect(d) {
@@ -114,28 +114,36 @@ async function generateIndexes() {
     }
   })(genRoot);
 
-  function hasSuffix(name, suffix) {
-    return name.toLowerCase().endsWith(suffix.toLowerCase());
-  }
+  // helpers
+  const stripTs = (n) => n.replace(/\.ts$/, '');
+  const baseOf = (n) => stripTs(n).replace(/_(pb|connect)$/, '');
+  const hasSuffix = (n, s) => n.toLowerCase().endsWith(s.toLowerCase());
 
   function dedupeBySuffix(files, suffix = '_pb.ts') {
-    const withSuffix = files.filter(f => hasSuffix(f, suffix));
-    const withoutSuffix = files.filter(f => !hasSuffix(f, suffix));
-    const keep = new Set(withoutSuffix);
-    const suffixBucket = [...withSuffix].sort((a, b) => b.length - a.length); // longest first
-    const keptTails = new Set();
-    for (const f of suffixBucket) {
-      const tail = f;
-      if (keptTails.has(tail)) continue;
-      const longerExists = Array.from(keep).some(k => k !== f && hasSuffix(k, suffix) && k.endsWith(tail));
-      if (longerExists) continue;
-      keep.add(f);
-      keptTails.add(tail);
+    // keep longest names first to bias toward more specific files
+    const a = [...files].sort((x, y) => y.length - x.length);
+    const kept = [];
+    const seen = new Set();
+    for (const f of a) {
+      const key = f.toLowerCase();
+      if (seen.has(key)) continue;
+      kept.push(f);
+      seen.add(key);
     }
-    return Array.from(keep).sort();
+    return kept.sort();
   }
 
-  // NEW: detect if a directory (recursively) has any *_connect.ts files
+  // Heuristic: if a generic "Backup_pb.ts" exists alongside any "*Backup_pb.ts",
+  // drop the generic one to avoid re-exporting duplicate symbols.
+  function filterGenericVsQualifiedPb(tsFiles) {
+    const hasQualifiedBackup = tsFiles.some(n => /[A-Za-z0-9]+Backup_pb\.ts$/.test(n) && n !== 'Backup_pb.ts');
+    return tsFiles.filter(n => {
+      if (n === 'Backup_pb.ts' && hasQualifiedBackup) return false;
+      return true;
+    });
+  }
+
+  // returns true if dir or any subdir contains *_connect.ts
   function dirHasConnect(dir) {
     if (!fs.existsSync(dir)) return false;
     const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -148,26 +156,36 @@ async function generateIndexes() {
 
   async function generateIndexFor(dir) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
-    const subdirs = entries.filter(e => e.isDirectory()).map(e => e.name).sort();
+    const subdirs  = entries.filter(e => e.isDirectory()).map(e => e.name).sort();
 
-    const tsFiles = entries
+    // only real TS files (not barrels) here
+    const tsFilesAll = entries
       .filter(e => e.isFile() && e.name.endsWith('.ts') && e.name !== 'index.ts' && e.name !== 'connect.ts')
-      .map(e => e.name)
-      .sort();
+      .map(e => e.name);
 
-    const connectFiles = tsFiles.filter(n => n.endsWith('_connect.ts'));
-    const rawPbFiles   = tsFiles.filter(n => !n.endsWith('_connect.ts'));
+    // Partition
+    const connectFiles = tsFilesAll.filter(n => hasSuffix(n, '_connect.ts'));
+    const rawPbFiles   = tsFilesAll.filter(n => !hasSuffix(n, '_connect.ts'));
 
-    const pbFiles = dedupeBySuffix(rawPbFiles, '_pb.ts');
+    // Avoid generic vs qualified duplicates like Backup_pb vs AssetBackup_pb
+    let pbFiles = filterGenericVsQualifiedPb(rawPbFiles).filter(n => hasSuffix(n, '_pb.ts'));
 
-    // ----- index.ts (PB + non-connect) -----
+    // If there is a *_connect.ts for a base, exclude its *_pb.ts from the index to avoid symbol collisions
+    const connectBases = new Set(connectFiles.map(baseOf));
+    pbFiles = pbFiles.filter(pb => !connectBases.has(baseOf(pb)));
+
+    // Deduplicate by suffix and bias toward longer names
+    pbFiles = dedupeBySuffix(pbFiles, '_pb.ts');
+
+    // ----- Write index.ts (only PB + non-connect helpers that end with _pb.ts) -----
     {
       let idx = `// Auto-generated - DO NOT EDIT\n`;
-      for (const f of pbFiles) {
-        const base = f.replace(/\.ts$/, '');
-        idx += `export * from './${base}';\n`;
+      for (const f of pbFiles.sort()) {
+        idx += `export * from './${stripTs(f)}';\n`;
       }
-      for (const sd of subdirs) idx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from './${sd}';\n`;
+      for (const sd of subdirs) {
+        idx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from './${sd}';\n`;
+      }
       await fsp.writeFile(path.join(dir, 'index.ts'), idx, 'utf8');
     }
 
@@ -175,29 +193,30 @@ async function generateIndexes() {
     const subdirsWithConnect = subdirs.filter(sd => dirHasConnect(path.join(dir, sd)));
     if (connectFiles.length || subdirsWithConnect.length) {
       let cidx = `// Auto-generated - DO NOT EDIT\n`;
-      for (const f of connectFiles) {
-        const base = f.replace(/\.ts$/, '');
-        cidx += `export * from './${base}';\n`;
+      for (const f of connectFiles.sort()) {
+        cidx += `export * from './${stripTs(f)}';\n`;
       }
       for (const sd of subdirsWithConnect) {
         cidx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from './${sd}/connect';\n`;
       }
       await fsp.writeFile(path.join(dir, 'connect.ts'), cidx, 'utf8');
     } else {
-      // If an old connect.ts exists here from a previous run, remove it
       const cpath = path.join(dir, 'connect.ts');
       if (fs.existsSync(cpath)) await fsp.rm(cpath).catch(() => {});
     }
   }
 
+  // Generate barrels bottom-up
   for (const dir of Array.from(allDirs).sort((a, b) => b.length - a.length)) {
-    const entries = fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }) : [];
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
     const hasAnyTs = entries.some(e => e.isFile() && e.name.endsWith('.ts') && e.name !== 'index.ts' && e.name !== 'connect.ts');
     const hasSub   = entries.some(e => e.isDirectory());
-    if (hasAnyTs || hasSub) await generateIndexFor(dir);
+    if (hasAnyTs || hasSub) {
+      await generateIndexFor(dir);
+    }
   }
 
-  // main barrels remain as you had them...
+  // Keep your top-level barrels
   const mainIndex = path.join(cwd, 'ts-gen', 'index.ts');
   const mainContent =
 `// Auto-generated main index file - DO NOT EDIT MANUALLY
@@ -219,81 +238,193 @@ export * from '../gen/Protos/IT/WebServices/Fragments';
 
 
 
+
 async function buildFlatShims() {
   const deepRoot = path.join(cwd, 'ts-gen', 'gen', 'Protos', 'IT', 'WebServices', 'Fragments');
   const flatRoot = path.join(cwd, 'ts-gen');
   if (!fs.existsSync(deepRoot)) return;
 
-  function titleCase(name) { return name.replace(/[^A-Za-z0-9_]/g, ''); }
-  function relDeep(from, to) { return path.relative(from, to).replace(/\\/g, '/'); }
+  const stripTs = (n) => n.replace(/\.ts$/, '');
+  const baseOf = (n) => stripTs(n).replace(/_(pb|connect)$/, '');
+  const hasSuffix = (n, s) => n.toLowerCase().endsWith(s.toLowerCase());
 
-  function shimDir(deepDir, relUnderModule, outDir) {
+  // Prefer qualified "*Backup_pb.ts" over generic "Backup_pb.ts"
+  const filterGenericVsQualifiedPb = (list) => {
+    const hasQualifiedBackup = list.some(n => /[A-Za-z0-9]+Backup_pb\.ts$/.test(n) && n !== 'Backup_pb.ts');
+    return list.filter(n => !(n === 'Backup_pb.ts' && hasQualifiedBackup));
+  };
+
+  const relDeep = (from, to) => path.relative(from, to).replace(/\\/g, '/');
+
+  function shimDir(deepDir, outDir) {
     const entries = fs.readdirSync(deepDir, { withFileTypes: true });
-    let idx = `// Auto-generated - DO NOT EDIT\n`;
-    for (const ent of entries) {
-      const full = path.join(deepDir, ent.name);
-      if (ent.isFile() && ent.name.endsWith('.ts')) {
-        const base = ent.name.replace(/\.ts$/, '');
-        if (base === 'index') continue;
-        const shimPath = path.join(outDir, `${base}.ts`);
-        const importFrom = relDeep(path.dirname(shimPath), full).replace(/\.ts$/, '');
-        fs.mkdirSync(path.dirname(shimPath), { recursive: true });
-        fs.writeFileSync(shimPath, `// Auto-generated - DO NOT EDIT\nexport * from '${importFrom}';\n`);
-        idx += `export * from './${base}';\n`;
-      }
-    }
-    for (const ent of entries) {
-      if (ent.isDirectory()) {
-        const subOut = path.join(outDir, ent.name);
-        const subDeep = path.join(deepDir, ent.name);
-        fs.mkdirSync(subOut, { recursive: true });
-        fs.writeFileSync(path.join(subOut, 'index.ts'), `// Auto-generated - DO NOT EDIT\n`);
-        shimDir(subDeep, path.join(relUnderModule, ent.name), subOut);
-        idx += `export * as ${titleCase(ent.name)} from './${ent.name}';\n`;
-      }
-    }
+    const files = entries.filter(e => e.isFile() && e.name.endsWith('.ts') && e.name !== 'index.ts' && e.name !== 'connect.ts').map(e => e.name);
+    const subdirs = entries.filter(e => e.isDirectory()).map(e => e.name).sort();
+
+    const connectFiles = files.filter(n => hasSuffix(n, '_connect.ts')).sort();
+    let pbFiles = files.filter(n => hasSuffix(n, '_pb.ts')).sort();
+
+    // drop pb if connect exists for same base
+    const connectBases = new Set(connectFiles.map(baseOf));
+    pbFiles = pbFiles.filter(pb => !connectBases.has(baseOf(pb)));
+    // drop generic Backup_pb when a qualified one exists
+    pbFiles = filterGenericVsQualifiedPb(pbFiles);
+
+    // Create shims for PB files in outDir/
     fs.mkdirSync(outDir, { recursive: true });
+    let idx = `// Auto-generated - DO NOT EDIT\n`;
+    for (const f of pbFiles) {
+      const base = stripTs(f);
+      const src = path.join(deepDir, f);
+      const shimPath = path.join(outDir, `${base}.ts`);
+      const importFrom = relDeep(path.dirname(shimPath), src).replace(/\.ts$/, '');
+      fs.writeFileSync(shimPath, `// Auto-generated - DO NOT EDIT\nexport * from '${importFrom}';\n`);
+      idx += `export * from './${base}';\n`;
+    }
+    // Recurse for subdirs
+    for (const sd of subdirs) {
+      const subOut = path.join(outDir, sd);
+      const subDeep = path.join(deepDir, sd);
+      shimDir(subDeep, subOut);
+      idx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from './${sd}';\n`;
+    }
     fs.writeFileSync(path.join(outDir, 'index.ts'), idx);
+
+    // Create connect barrel and shims under outDir/connect/
+    const subdirsWithConnect = subdirs.filter(sd => {
+      // look for any *_connect.ts in that sub-tree
+      const walk = (p) => {
+        const ents = fs.readdirSync(p, { withFileTypes: true });
+        if (ents.some(e => e.isFile() && e.name.endsWith('_connect.ts'))) return true;
+        return ents.some(e => e.isDirectory() && walk(path.join(p, e.name)));
+      };
+      return walk(path.join(deepDir, sd));
+    });
+
+    if (connectFiles.length || subdirsWithConnect.length) {
+const connectDir = path.join(outDir, 'connect');
+fs.mkdirSync(connectDir, { recursive: true });
+let cidx = `// Auto-generated - DO NOT EDIT\n`;
+for (const f of connectFiles) {
+  const base = stripTs(f);
+  const src = path.join(deepDir, f);
+  const shimPath = path.join(connectDir, `${base}.ts`);
+  const importFrom = relDeep(path.dirname(shimPath), src).replace(/\.ts$/, '');
+  fs.writeFileSync(shimPath, `// Auto-generated - DO NOT EDIT\nexport * from '${importFrom}';\n`);
+  cidx += `export * from './${base}';\n`;
+}
+for (const sd of subdirsWithConnect) {
+  cidx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from '../${sd}/connect';\n`;
+}
+fs.writeFileSync(path.join(connectDir, 'index.ts'), cidx);
+
+    } else {
+// clean up stale sibling file and/or dir when no connect
+const siblingBarrel = path.join(outDir, 'connect.ts');
+if (fs.existsSync(siblingBarrel)) fs.rmSync(siblingBarrel);
+const connectDir = path.join(outDir, 'connect');
+if (fs.existsSync(connectDir)) fs.rmSync(connectDir, { recursive: true, force: true });
+
+    }
   }
 
   for (const mod of fs.readdirSync(deepRoot, { withFileTypes: true })) {
     if (!mod.isDirectory()) continue;
     const deepModDir = path.join(deepRoot, mod.name);
-    const outModDir = path.join(flatRoot, mod.name);
-    shimDir(deepModDir, mod.name, outModDir);
+    const outModDir  = path.join(flatRoot, mod.name);
+    shimDir(deepModDir, outModDir);
   }
 }
 
+
 async function buildProtosFlatShims() {
   const deepRoot = path.join(cwd, 'ts-gen', 'gen', 'Protos', 'IT', 'WebServices', 'Fragments');
-  const outRoot = path.join(cwd, 'ts-gen', 'protos');
+  const outRoot  = path.join(cwd, 'ts-gen', 'protos');
   if (!fs.existsSync(deepRoot)) return;
 
-  function rel(from, to) { return path.relative(from, to).replace(/\\/g, '/'); }
+  const stripTs = (n) => n.replace(/\.ts$/, '');
+  const baseOf = (n) => stripTs(n).replace(/_(pb|connect)$/, '');
+  const hasSuffix = (n, s) => n.toLowerCase().endsWith(s.toLowerCase());
+  const rel = (from, to) => path.relative(from, to).replace(/\\/g, '/');
+
+  const filterGenericVsQualifiedPb = (list) => {
+    const hasQualifiedBackup = list.some(n => /[A-Za-z0-9]+Backup_pb\.ts$/.test(n) && n !== 'Backup_pb.ts');
+    return list.filter(n => !(n === 'Backup_pb.ts' && hasQualifiedBackup));
+  };
 
   await ensureDir(outRoot);
-  const baseIdx = `// Auto-generated - DO NOT EDIT\nexport * from '../gen/Protos/IT/WebServices/Fragments';\n`;
+  const baseIdx = `// Auto-generated - DO NOT EDIT
+export * from '../gen/Protos/IT/WebServices/Fragments';
+`;
   await fsp.writeFile(path.join(outRoot, 'index.ts'), baseIdx, 'utf8');
+
+  function buildForModule(moduleDeepDir, moduleOutDir) {
+    fs.mkdirSync(moduleOutDir, { recursive: true });
+    const entries = fs.readdirSync(moduleDeepDir, { withFileTypes: true });
+
+    const files   = entries.filter(e => e.isFile() && e.name.endsWith('.ts') && e.name !== 'index.ts' && e.name !== 'connect.ts').map(e => e.name);
+    const subdirs = entries.filter(e => e.isDirectory()).map(e => e.name).sort();
+
+    const connectFiles = files.filter(n => hasSuffix(n, '_connect.ts')).sort();
+    let pbFiles = files.filter(n => hasSuffix(n, '_pb.ts')).sort();
+
+    const connectBases = new Set(connectFiles.map(baseOf));
+    pbFiles = pbFiles.filter(pb => !connectBases.has(baseOf(pb)));
+    pbFiles = filterGenericVsQualifiedPb(pbFiles);
+
+    let idx = `// Auto-generated - DO NOT EDIT\n`;
+    for (const f of pbFiles) {
+      const base = stripTs(f);
+      const out  = path.join(moduleOutDir, `${base}.ts`);
+      const imp  = rel(path.dirname(out), path.join(moduleDeepDir, f)).replace(/\.ts$/, '');
+      fs.writeFileSync(out, `// Auto-generated - DO NOT EDIT\nexport * from '${imp}';\n`);
+      idx += `export * from './${base}';\n`;
+    }
+    for (const sd of subdirs) {
+      const subDeep = path.join(moduleDeepDir, sd);
+      const subOut  = path.join(moduleOutDir, sd);
+      buildForModule(subDeep, subOut);
+      idx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from './${sd}';\n`;
+    }
+    fs.writeFileSync(path.join(moduleOutDir, 'index.ts'), idx);
+
+    // connect barrel
+    const hasConnectRecursive = (() => {
+      const walk = (p) => {
+        const ents = fs.readdirSync(p, { withFileTypes: true });
+        if (ents.some(e => e.isFile() && e.name.endsWith('_connect.ts'))) return true;
+        return ents.some(e => e.isDirectory() && walk(path.join(p, e.name)));
+      };
+      return connectFiles.length > 0 || subdirs.some(sd => walk(path.join(moduleDeepDir, sd)));
+    })();
+
+    if (hasConnectRecursive) {
+     const connectDir = path.join(moduleOutDir, 'connect');
+fs.mkdirSync(connectDir, { recursive: true });
+let cidx = `// Auto-generated - DO NOT EDIT\n`;
+for (const f of connectFiles) {
+  const base = stripTs(f);
+  const out  = path.join(connectDir, `${base}.ts`);
+  const imp  = rel(path.dirname(out), path.join(moduleDeepDir, f)).replace(/\.ts$/, '');
+  fs.writeFileSync(out, `// Auto-generated - DO NOT EDIT\nexport * from '${imp}';\n`);
+  cidx += `export * from './${base}';\n`;
+}
+for (const sd of subdirs) {
+  cidx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from '../${sd}/connect';\n`;
+}
+fs.writeFileSync(path.join(connectDir, 'index.ts'), cidx);
+    } else {
+const siblingBarrel = path.join(moduleOutDir, 'connect.ts');
+if (fs.existsSync(siblingBarrel)) fs.rmSync(siblingBarrel);
+const cdir = path.join(moduleOutDir, 'connect');
+if (fs.existsSync(cdir)) fs.rmSync(cdir, { recursive: true, force: true });
+
+    }
+  }
 
   for (const mod of fs.readdirSync(deepRoot, { withFileTypes: true })) {
     if (!mod.isDirectory()) continue;
-    const deepModDir = path.join(deepRoot, mod.name);
-    const outModDir = path.join(outRoot, mod.name);
-    await ensureDir(outModDir);
-    const entries = fs.readdirSync(deepModDir, { withFileTypes: true });
-    let idx = `// Auto-generated - DO NOT EDIT\n`;
-    for (const ent of entries) {
-      const full = path.join(deepModDir, ent.name);
-      if (ent.isFile() && ent.name.endsWith('.ts')) {
-        const base = ent.name.replace(/\.ts$/, '');
-        if (base === 'index') continue;
-        const shim = path.join(outModDir, `${base}.ts`);
-        const importFrom = rel(path.dirname(shim), full).replace(/\.ts$/, '');
-        await fsp.writeFile(shim, `// Auto-generated - DO NOT EDIT\nexport * from '${importFrom}';\n`, 'utf8');
-        idx += `export * from './${base}';\n`;
-      }
-    }
-    await fsp.writeFile(path.join(outModDir, 'index.ts'), idx, 'utf8');
+    buildForModule(path.join(deepRoot, mod.name), path.join(outRoot, mod.name));
   }
 }
 
@@ -304,10 +435,12 @@ async function main() {
 
   const tsGenDir = path.join(cwd, 'ts-gen');
   await ensureDir(tsGenDir);
-  for (const e of await fsp.readdir(tsGenDir, { withFileTypes: true })) {
-    if (e.name === '_meta') continue;
-    await rimrafSafe(path.join(tsGenDir, e.name));
-  }
+for (const e of await fsp.readdir(tsGenDir, { withFileTypes: true })) {
+  if (e.name === '_meta') continue;
+  if (e.name === 'validation.ts') continue; // keep the helper
+  await rimrafSafe(path.join(tsGenDir, e.name));
+}
+
   await ensureDir(path.join(tsGenDir, 'gen'));
   log('Cleaned ts-gen directory.');
 
