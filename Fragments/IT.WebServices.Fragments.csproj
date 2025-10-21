@@ -8,7 +8,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <NoWarn>1701;1702;CS8981</NoWarn>
   </PropertyGroup>
-  <!-- Make your local proto root FIRST so it wins; NuGet is only a fallback. -->
   <ItemGroup>
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authentication\UserInterface.proto" />
@@ -89,7 +88,6 @@
     <None Remove="Protos\IT\WebServices\Fragments\Generic\ServiceOps.proto" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Use your local validate.proto under the Protos root -->
     <Protobuf
       Include="Protos\buf\validate\validate.proto"
       GrpcServices="None"
