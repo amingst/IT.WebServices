@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="CryptSharp.Core" Version="5.0.0" />
     <PackageReference Include="GoogleAuthenticator" Version="3.2.0" />
@@ -11,9 +9,7 @@
 	<PackageReference Include="ProtoValidate" Version="1.0.0" />
 	<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.8" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\Base\IT.WebServices.Base.csproj" />
   </ItemGroup>
-
 </Project>
