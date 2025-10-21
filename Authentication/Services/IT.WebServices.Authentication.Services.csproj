@@ -8,6 +8,7 @@
     <PackageReference Include="CryptSharp.Core" Version="5.0.0" />
     <PackageReference Include="GoogleAuthenticator" Version="3.2.0" />
 	<PackageReference Include="Microsoft.Tye.Extensions.Configuration" Version="0.4.0-*" />
+	<PackageReference Include="ProtoValidate" Version="1.0.0" />
 	<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.8" />
   </ItemGroup>
 
