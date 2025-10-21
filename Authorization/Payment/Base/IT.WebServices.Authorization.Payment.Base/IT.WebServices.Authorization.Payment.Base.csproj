@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>IT.WebServices.Authorization.Payment</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Base\IT.WebServices.Base.csproj" />
+    <ProjectReference Include="..\..\..\..\Settings\Shared\IT.WebServices.Settings.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

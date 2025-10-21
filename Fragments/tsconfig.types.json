@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "rootDir": "./ts-gen/gen",
+    "outDir": "./dist/protos",
+    "module": "ES2020",
+    "moduleResolution": "Node",
+    "skipLibCheck": true
+  },
+  "include": ["ts-gen/gen/**/*.ts"],
+  "exclude": ["node_modules", "dist", "ts-gen/_meta/**/*"]
+}

@@ -17,7 +17,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IProfilePicDataProvider, FileSystemProfilePicDataProvider>();
             services.AddSingleton<IUserDataProvider, SqlUserDataProvider>();
 
-            services.AddScoped<IUserService, UserService>();
+            services.AddSingleton<UserServiceInternal>();
+            services.AddSingleton<IUserService, UserServiceInternal>();
 
             services.AddScoped<ClaimsClient>();
             services.AddSingleton<MySQLHelper>();

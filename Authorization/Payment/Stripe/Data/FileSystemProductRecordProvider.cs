@@ -20,7 +20,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Data
         {
             var root = new DirectoryInfo(settings.Value.DataStore);
             root.Create();
-            dataDir = root.CreateSubdirectory("payment").CreateSubdirectory("stripe").CreateSubdirectory("server");
+            dataDir = root.CreateSubdirectory(PaymentConstants.PAYMENT_DIR_NAME).CreateSubdirectory("stripe").CreateSubdirectory("server");
             listFile = new FileInfo(dataDir.FullName + "/products");
         }
 

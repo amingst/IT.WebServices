@@ -3,65 +3,9 @@ syntax = "proto3";
 package IT.WebServices.Fragments.Authorization.Payment.Fortis;
 
 import "google/api/annotations.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/Fortis/PlanRecord.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/Fortis/FortisSubscriptionRecord.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/DataRecords.proto";
 
 service FortisInterface {
-  rpc FortisBulkActionCancel (FortisBulkActionCancelRequest) returns (FortisBulkActionCancelResponse)
-  {
-    option (google.api.http) = {
-      post: "/api/payment/fortis/admin/bulk/cancel"
-      body: "*"
-    };
-  }
-
-  rpc FortisBulkActionStart (FortisBulkActionStartRequest) returns (FortisBulkActionStartResponse)
-  {
-    option (google.api.http) = {
-      post: "/api/payment/fortis/admin/bulk/start"
-      body: "*"
-    };
-  }
-
-  rpc FortisBulkActionStatus (FortisBulkActionStatusRequest) returns (FortisBulkActionStatusResponse)
-  {
-    option (google.api.http) = {
-      get: "/api/payment/fortis/admin/bulk"
-    };
-  }
-
-  rpc FortisCancelOtherSubscription (FortisCancelOtherSubscriptionRequest) returns (FortisCancelOtherSubscriptionResponse)
-  {
-    option (google.api.http) = {
-      post: "/api/payment/fortis/admin/subscription/cancel"
-      body: "*"
-    };
-  }
-  rpc FortisCancelOwnSubscription (FortisCancelOwnSubscriptionRequest) returns (FortisCancelOwnSubscriptionResponse)
-  {
-    option (google.api.http) = {
-      post: "/api/payment/fortis/subscription/cancel"
-      body: "*"
-    };
-  }
-
-  rpc FortisGetAccountDetails (FortisGetAccountDetailsRequest) returns (FortisGetAccountDetailsResponse) {}
-  
-  rpc FortisGetOtherSubscriptionRecords (FortisGetOtherSubscriptionRecordsRequest) returns (FortisGetOtherSubscriptionRecordsResponse)
-  {
-    option (google.api.http) = {
-      get: "/api/payment/fortis/admin/subscription"
-    };
-  }
-
-  rpc FortisGetOwnSubscriptionRecords (FortisGetOwnSubscriptionRecordsRequest) returns (FortisGetOwnSubscriptionRecordsResponse)
-  {
-    option (google.api.http) = {
-      get: "/api/payment/fortis/subscription"
-    };
-  }
-
   rpc FortisNewOwnSubscription (FortisNewOwnSubscriptionRequest) returns (FortisNewOwnSubscriptionResponse)
   {
     option (google.api.http) = {
@@ -69,87 +13,6 @@ service FortisInterface {
       body: "*"
     };
   }
-
-  rpc FortisReconcileOtherSubscription (FortisReconcileOtherSubscriptionRequest) returns (FortisReconcileOtherSubscriptionResponse)
-  {
-    option (google.api.http) = {
-      get: "/api/payment/fortis/admin/subscription/reconcile"
-    };
-  }
-
-  rpc FortisReconcileOwnSubscription (FortisReconcileOwnSubscriptionRequest) returns (FortisReconcileOwnSubscriptionResponse)
-  {
-    option (google.api.http) = {
-      get: "/api/payment/fortis/subscription/reconcile"
-    };
-  }
-}
-  
-message FortisBulkActionCancelRequest {
-  PaymentBulkAction Action = 1;
-}
-  
-message FortisBulkActionCancelResponse {
-  repeated PaymentBulkActionProgress RunningActions = 1;
-}
-
-message FortisBulkActionStartRequest {
-  PaymentBulkAction Action = 1;
-}
-  
-message FortisBulkActionStartResponse {
-  repeated PaymentBulkActionProgress RunningActions = 1;
-}
-
-message FortisBulkActionStatusRequest {
-}
-  
-message FortisBulkActionStatusResponse {
-  repeated PaymentBulkActionProgress RunningActions = 1;
-}
-
-message FortisCancelOtherSubscriptionRequest {
-  string UserID = 1;
-  string SubscriptionID = 2;
-  string Reason = 11;
-}
-  
-message FortisCancelOtherSubscriptionResponse {
-  FortisSubscriptionRecord Record = 1;
-  string Error = 2;
-}
-
-message FortisCancelOwnSubscriptionRequest {
-  string SubscriptionID = 1;
-  string Reason = 11;
-}
-  
-message FortisCancelOwnSubscriptionResponse {
-  FortisSubscriptionRecord Record = 1;
-  string Error = 2;
-}
-
-message FortisGetAccountDetailsRequest {
-}
-  
-message FortisGetAccountDetailsResponse {
-  PlanList Plans = 1;
-  bool IsTest = 2;
-}
-
-message FortisGetOtherSubscriptionRecordsRequest {
-  string UserID = 1;
-}
-
-message FortisGetOtherSubscriptionRecordsResponse {
-  repeated FortisSubscriptionRecord Records = 1;
-}
-
-message FortisGetOwnSubscriptionRecordsRequest {
-}
-
-message FortisGetOwnSubscriptionRecordsResponse {
-  repeated FortisSubscriptionRecord Records = 1;
 }
 
 message FortisNewOwnSubscriptionRequest {
@@ -157,25 +20,7 @@ message FortisNewOwnSubscriptionRequest {
 }
 
 message FortisNewOwnSubscriptionResponse {
-  FortisSubscriptionRecord Record = 1;
+  GenericSubscriptionRecord Record = 1;
   string Error = 2;
 }
 
-message FortisReconcileOtherSubscriptionRequest {
-  string UserID = 1;
-  string SubscriptionID = 2;
-}
-  
-message FortisReconcileOtherSubscriptionResponse {
-  FortisSubscriptionFullRecord Record = 1;
-  string Error = 2;
-}
-
-message FortisReconcileOwnSubscriptionRequest {
-  string SubscriptionID = 1;
-}
-  
-message FortisReconcileOwnSubscriptionResponse {
-  FortisSubscriptionFullRecord Record = 1;
-  string Error = 2;
-}

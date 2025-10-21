@@ -29,6 +29,8 @@ namespace IT.WebServices.Services.Combined
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(sp => sp);
+
             services
                 .AddControllersWithViews()
                 //.AddApplicationPart(typeof(UserApiController).GetTypeInfo().Assembly)

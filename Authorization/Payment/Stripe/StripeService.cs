@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using IT.WebServices.Authentication;
+using IT.WebServices.Authorization.Payment.Generic.Data;
 using IT.WebServices.Authorization.Payment.Stripe.Clients;
 using IT.WebServices.Authorization.Payment.Stripe.Data;
 using IT.WebServices.Fragments.Authorization.Payment;
@@ -15,19 +16,17 @@ namespace IT.WebServices.Authorization.Payment.Stripe
     public class StripeService : StripeInterface.StripeInterfaceBase
     {
         private readonly ILogger<StripeService> logger;
-        private readonly ISubscriptionFullRecordProvider fullProvider;
-        private readonly ISubscriptionRecordProvider subscriptionProvider;
-        private readonly IPaymentRecordProvider paymentProvider;
-        private readonly IOneTimeRecordProvider oneTimeProvider;
+        private readonly IGenericSubscriptionFullRecordProvider fullProvider;
+        private readonly IGenericSubscriptionRecordProvider subscriptionProvider;
+        private readonly IGenericPaymentRecordProvider paymentProvider;
         private readonly StripeClient client;
         private readonly SettingsClient settingsClient;
 
         public StripeService(
             ILogger<StripeService> logger,
-            ISubscriptionFullRecordProvider fullProvider,
-            ISubscriptionRecordProvider subscriptionProvider,
-            IPaymentRecordProvider paymentProvider,
-            IOneTimeRecordProvider oneTimeProvider,
+            IGenericSubscriptionFullRecordProvider fullProvider,
+            IGenericSubscriptionRecordProvider subscriptionProvider,
+            IGenericPaymentRecordProvider paymentProvider,
             StripeClient client,
             SettingsClient settingsClient
         )
@@ -36,7 +35,6 @@ namespace IT.WebServices.Authorization.Payment.Stripe
             this.fullProvider = fullProvider;
             this.subscriptionProvider = subscriptionProvider;
             this.paymentProvider = paymentProvider;
-            this.oneTimeProvider = oneTimeProvider;
             this.client = client;
             this.settingsClient = settingsClient;
         }
@@ -65,15 +63,15 @@ namespace IT.WebServices.Authorization.Payment.Stripe
 
                 foreach (var stripeSub in stripeSubs)
                 {
-                    var dbSub = dbSubs.FirstOrDefault(s => s.StripeSubscriptionID == stripeSub.Id);
+                    var dbSub = dbSubs.FirstOrDefault(s => s.ProcessorSubscriptionID == stripeSub.Id);
                     if (dbSub == null)
                     {
                         dbSub = new()
                         {
                             UserID = userId.ToString(),
-                            SubscriptionID = Guid.NewGuid().ToString(),
-                            StripeSubscriptionID = stripeSub.Id.ToString(),
-                            StripeCustomerID = customer.Id,
+                            InternalSubscriptionID = Guid.NewGuid().ToString(),
+                            ProcessorSubscriptionID = stripeSub.Id.ToString(),
+                            ProcessorCustomerID = customer.Id,
                             CreatedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Created),
                             ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow),
                             Status = ConvertStatus(stripeSub.Status),
@@ -84,12 +82,12 @@ namespace IT.WebServices.Authorization.Payment.Stripe
 
                         await subscriptionProvider.Save(dbSub);
 
-                        var dbPayment = new StripePaymentRecord()
+                        var dbPayment = new GenericPaymentRecord()
                         {
                             UserID = userId.ToString(),
-                            SubscriptionID = dbSub.SubscriptionID,
-                            PaymentID = Guid.NewGuid().ToString(),
-                            StripePaymentID = stripeSub.LatestInvoiceId,
+                            InternalSubscriptionID = dbSub.InternalSubscriptionID,
+                            InternalPaymentID = Guid.NewGuid().ToString(),
+                            ProcessorPaymentID = stripeSub.LatestInvoiceId,
                             AmountCents = dbSub.AmountCents,
                             Status =
                                 dbSub.Status == SubscriptionStatus.SubscriptionActive
@@ -134,15 +132,15 @@ namespace IT.WebServices.Authorization.Payment.Stripe
 
                 foreach (var stripeSub in stripeSubs)
                 {
-                    var dbSub = dbSubs.FirstOrDefault(s => s.StripeSubscriptionID == stripeSub.Id);
+                    var dbSub = dbSubs.FirstOrDefault(s => s.ProcessorSubscriptionID == stripeSub.Id);
                     if (dbSub == null)
                     {
                         dbSub = new()
                         {
                             UserID = userToken.Id.ToString(),
-                            SubscriptionID = Guid.NewGuid().ToString(),
-                            StripeSubscriptionID = stripeSub.Id.ToString(),
-                            StripeCustomerID = customer.Id,
+                            InternalSubscriptionID = Guid.NewGuid().ToString(),
+                            ProcessorSubscriptionID = stripeSub.Id.ToString(),
+                            ProcessorCustomerID = customer.Id,
                             CreatedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Created),
                             ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow),
                             Status = ConvertStatus(stripeSub.Status),
@@ -151,12 +149,12 @@ namespace IT.WebServices.Authorization.Payment.Stripe
 
                         await subscriptionProvider.Save(dbSub);
 
-                        var dbPayment = new StripePaymentRecord()
+                        var dbPayment = new GenericPaymentRecord()
                         {
                             UserID = userToken.Id.ToString(),
-                            SubscriptionID = dbSub.SubscriptionID,
-                            PaymentID = Guid.NewGuid().ToString(),
-                            StripePaymentID = stripeSub.LatestInvoiceId,
+                            InternalSubscriptionID = dbSub.InternalSubscriptionID,
+                            InternalPaymentID = Guid.NewGuid().ToString(),
+                            ProcessorPaymentID = stripeSub.LatestInvoiceId,
                             AmountCents = dbSub.AmountCents,
                             Status =
                                 dbSub.Status == SubscriptionStatus.SubscriptionActive
@@ -187,79 +185,79 @@ namespace IT.WebServices.Authorization.Payment.Stripe
             }
         }
 
-        public override async Task<StripeCheckOwnOneTimeResponse> StripeCheckOwnOneTime(StripeCheckOwnOneTimeRequest request, ServerCallContext context)
-        {
-            try
-            {
-                var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
-                if (userToken == null)
-                    return new() { Error = "No user token specified" };
+        //public override async Task<StripeCheckOwnOneTimeResponse> StripeCheckOwnOneTime(StripeCheckOwnOneTimeRequest request, ServerCallContext context)
+        //{
+        //    try
+        //    {
+        //        var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
+        //        if (userToken == null)
+        //            return new() { Error = "No user token specified" };
 
-                var customer = await client.GetCustomerByUserId(userToken.Id);
-                if (customer == null)
-                    return new() { };
+        //        var customer = await client.GetCustomerByUserId(userToken.Id);
+        //        if (customer == null)
+        //            return new() { };
 
-                var payments = await client.GetOneTimePaymentsByCustomerId(customer.Id);
+        //        var payments = await client.GetOneTimePaymentsByCustomerId(customer.Id);
 
-                var dbPayments = await oneTimeProvider.GetAllByUserId(userToken.Id);
+        //        var dbPayments = await oneTimeProvider.GetAllByUserId(userToken.Id);
 
-                foreach (var stripePayment in payments)
-                {
-                    var dbPayment = dbPayments.FirstOrDefault(s => s.StripePaymentID == stripePayment.Id);
-                    if (dbPayment == null)
-                    {
-                        var checkout = await client.GetCheckoutSessionByPaymentIntentId(stripePayment.Id);
-                        if (checkout == null)
-                            continue;
+        //        foreach (var stripePayment in payments)
+        //        {
+        //            var dbPayment = dbPayments.FirstOrDefault(s => s.StripePaymentID == stripePayment.Id);
+        //            if (dbPayment == null)
+        //            {
+        //                var checkout = await client.GetCheckoutSessionByPaymentIntentId(stripePayment.Id);
+        //                if (checkout == null)
+        //                    continue;
 
-                        var lineItem = checkout.LineItems.FirstOrDefault();
-                        if (lineItem == null)
-                            continue;
+        //                var lineItem = checkout.LineItems.FirstOrDefault();
+        //                if (lineItem == null)
+        //                    continue;
 
-                        dbPayment = new()
-                        {
-                            UserID = userToken.Id.ToString(),
-                            PaymentID = Guid.NewGuid().ToString(),
-                            StripePaymentID = stripePayment.Id.ToString(),
-                            InternalID = lineItem.Price.ProductId.Replace(StripeClient.PRODUCT_ONETIME_PREFIX, ""),
-                            Status = ConvertPaymentStatus(stripePayment.Status),
-                            AmountCents = (uint)stripePayment.Amount,
-                            TaxCents = 0,
-                            TaxRateThousandPercents = 0,
-                            TotalCents = (uint)stripePayment.Amount,
-                            CreatedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripePayment.Created),
-                            CreatedBy = userToken.Id.ToString(),
-                            ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow),
-                            ModifiedBy = userToken.Id.ToString(),
-                            PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripePayment.Created),
-                        };
+        //                dbPayment = new()
+        //                {
+        //                    UserID = userToken.Id.ToString(),
+        //                    PaymentID = Guid.NewGuid().ToString(),
+        //                    StripePaymentID = stripePayment.Id.ToString(),
+        //                    InternalID = lineItem.Price.ProductId.Replace(StripeClient.PRODUCT_ONETIME_PREFIX, ""),
+        //                    Status = ConvertPaymentStatus(stripePayment.Status),
+        //                    AmountCents = (uint)stripePayment.Amount,
+        //                    TaxCents = 0,
+        //                    TaxRateThousandPercents = 0,
+        //                    TotalCents = (uint)stripePayment.Amount,
+        //                    CreatedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripePayment.Created),
+        //                    CreatedBy = userToken.Id.ToString(),
+        //                    ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow),
+        //                    ModifiedBy = userToken.Id.ToString(),
+        //                    PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripePayment.Created),
+        //                };
 
-                        await oneTimeProvider.Save(dbPayment);
-                    }
-                    else
-                    {
-                        var newStatus = ConvertPaymentStatus(stripePayment.Status);
-                        if (dbPayment.Status != newStatus)
-                        {
-                            dbPayment.Status = newStatus;
-                            dbPayment.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                            dbPayment.ModifiedBy = userToken.Id.ToString();
+        //                await oneTimeProvider.Save(dbPayment);
+        //            }
+        //            else
+        //            {
+        //                var newStatus = ConvertPaymentStatus(stripePayment.Status);
+        //                if (dbPayment.Status != newStatus)
+        //                {
+        //                    dbPayment.Status = newStatus;
+        //                    dbPayment.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+        //                    dbPayment.ModifiedBy = userToken.Id.ToString();
 
-                            await oneTimeProvider.Save(dbPayment);
-                        }
-                    }
-                }
+        //                    await oneTimeProvider.Save(dbPayment);
+        //                }
+        //            }
+        //        }
 
-                var ret = new StripeCheckOwnOneTimeResponse();
-                ret.Records.AddRange(await oneTimeProvider.GetAllByUserId(userToken.Id));
+        //        var ret = new StripeCheckOwnOneTimeResponse();
+        //        ret.Records.AddRange(await oneTimeProvider.GetAllByUserId(userToken.Id));
 
-                return ret;
-            }
-            catch
-            {
-                return new() { Error = "Unknown error" };
-            }
-        }
+        //        return ret;
+        //    }
+        //    catch
+        //    {
+        //        return new() { Error = "Unknown error" };
+        //    }
+        //}
 
         //private async Task EnsureAllPayments(ONUser userToken, StripeSubscriptionRecord dbSub)
         //{
@@ -301,106 +299,6 @@ namespace IT.WebServices.Authorization.Payment.Stripe
                 case "canceled":
                 default:
                     return PaymentStatus.PaymentFailed;
-            }
-        }
-
-        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<StripeCancelOtherSubscriptionResponse> StripeCancelOtherSubscription(
-            StripeCancelOtherSubscriptionRequest request,
-            ServerCallContext context
-        )
-        {
-            try
-            {
-                var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
-                if (userToken == null)
-                    return new() { Error = "No user token specified" };
-
-                var userId = request.UserID.ToGuid();
-
-                Guid subscriptionId;
-                if (!Guid.TryParse(request.SubscriptionID, out subscriptionId))
-                    return new() { Error = "No SubscriptionID specified" };
-
-                var record = await subscriptionProvider.GetById(userId, subscriptionId);
-                if (record == null)
-                    return new() { Error = "Record not found" };
-
-                var sub = await client.GetSubscription(record.StripeSubscriptionID);
-                if (sub == null)
-                    return new() { Error = "SubscriptionId not valid" };
-
-                if (sub.Status == "active")
-                {
-                    var canceled = await client.CancelSubscription(
-                        record.StripeSubscriptionID,
-                        request.Reason ?? "None"
-                    );
-                    if (!canceled)
-                        return new() { Error = "Unable to cancel subscription" };
-                }
-
-                record.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
-                    DateTime.UtcNow
-                );
-                record.CanceledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
-                    DateTime.UtcNow
-                );
-                record.Status =
-                    SubscriptionStatus
-                    .SubscriptionStopped;
-
-                await subscriptionProvider.Save(record);
-
-                return new() { Record = record };
-            }
-            catch
-            {
-                return new() { Error = "Unknown error" };
-            }
-        }
-
-        public override async Task<StripeCancelOwnSubscriptionResponse> StripeCancelOwnSubscription(StripeCancelOwnSubscriptionRequest request, ServerCallContext context)
-        {
-            try
-            {
-                var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
-                if (userToken == null)
-                    return new() { Error = "No user token specified" };
-
-                Guid subscriptionId;
-                if (!Guid.TryParse(request.SubscriptionID, out subscriptionId))
-                    return new() { Error = "No SubscriptionID specified" };
-
-                var record = await subscriptionProvider.GetById(userToken.Id, subscriptionId);
-                if (record == null)
-                    return new() { Error = "Record not found" };
-
-                var sub = await client.GetSubscription(record.StripeSubscriptionID);
-                if (sub == null)
-                    return new() { Error = "SubscriptionId not valid" };
-
-                if (sub.Status == "active")
-                {
-                    var canceled = await client.CancelSubscription(
-                        record.StripeSubscriptionID,
-                        request.Reason ?? "None"
-                    );
-                    if (!canceled)
-                        return new() { Error = "Unable to cancel subscription" };
-                }
-
-                record.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                record.CanceledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                record.Status = SubscriptionStatus.SubscriptionStopped;
-
-                await subscriptionProvider.Save(record);
-
-                return new() { Record = record };
-            }
-            catch
-            {
-                return new() { Error = "Unknown error" };
             }
         }
 

@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./ts-gen/gen",
+    "outDir": "./dist/esm",             // for esm config
+    "module": "ES2020",
+    "moduleResolution": "Node",
+    "skipLibCheck": true
+  },
+  "include": ["ts-gen/gen/**/*.ts"],
+  "exclude": ["node_modules", "dist", "ts-gen/_meta/**/*"]
+}

@@ -1,7 +1,7 @@
 ﻿using IT.WebServices.Authorization.Payment.Fortis;
 using IT.WebServices.Authorization.Payment.Fortis.Clients;
-using IT.WebServices.Authorization.Payment.Fortis.Data;
 using IT.WebServices.Authorization.Payment.Fortis.Helpers;
+using IT.WebServices.Authorization.Payment.Generic;
 using IT.WebServices.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -13,11 +13,10 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddFortisClasses(this IServiceCollection services)
         {
             services.AddSettingsHelpers();
+            services.AddPaymentBaseClasses();
 
-            services.AddSingleton<MySQLHelper>();
             services.AddSingleton<SettingsHelper>();
 
-            services.AddSingleton<BulkHelper>();
             services.AddSingleton<ReconcileHelper>();
             services.AddSingleton<FortisClient>();
             services.AddSingleton<FortisContactHelper>();
@@ -25,16 +24,13 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<FortisTokenHelper>();
             services.AddSingleton<FortisTransactionHelper>();
 
-            services.AddSingleton<IPaymentRecordProvider, SqlPaymentRecordProvider>();
-            services.AddSingleton<ISubscriptionRecordProvider, SqlSubscriptionRecordProvider>();
-            services.AddSingleton<ISubscriptionFullRecordProvider, SubscriptionFullRecordProvider>();
+            services.AddSingleton<IGenericPaymentProcessor, FortisGenericPaymentProcessor>();
 
             return services;
         }
 
         public static void MapFortisGrpcServices(this IEndpointRouteBuilder endpoints)
         {
-            endpoints.MapGrpcService<BackupService>();
             endpoints.MapGrpcService<FortisService>();
         }
     }

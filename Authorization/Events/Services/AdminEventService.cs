@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Events.Data;
@@ -15,34 +9,31 @@ using IT.WebServices.Helpers;
 using IT.WebServices.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace IT.WebServices.Authorization.Events.Services.Services
 {
     [Authorize]
-    public class AdminEventService : AdminEventInterface.AdminEventInterfaceBase
+    public class AdminEventService :  AdminEventInterface.AdminEventInterfaceBase
     {
         private readonly ILogger<EventService> _logger;
         private readonly IEventDataProvider _eventProvider;
         private readonly ITicketDataProvider _ticketDataProvider;
         private readonly ONUserHelper _userHelper;
         private readonly EventTicketClassHelper _ticketClassHelper;
-        private readonly EventVenueHelper _venueHelper;
 
-        public AdminEventService(
-            ILogger<EventService> logger,
-            ITicketDataProvider ticketDataProvider,
-            IEventDataProvider eventProvider,
-            ONUserHelper userHelper,
-            EventTicketClassHelper eventTicketClassHelper,
-            EventVenueHelper venueHelper
-        )
+        public AdminEventService(ILogger<EventService> logger, ITicketDataProvider ticketDataProvider,IEventDataProvider eventProvider, ONUserHelper userHelper, EventTicketClassHelper eventTicketClassHelper)
         {
             _logger = logger;
             _eventProvider = eventProvider;
             _ticketDataProvider = ticketDataProvider;
             _userHelper = userHelper;
             _ticketClassHelper = eventTicketClassHelper;
-            _venueHelper = venueHelper;
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_CREATOR_OR_HIGHER)]
@@ -65,7 +56,6 @@ namespace IT.WebServices.Authorization.Events.Services.Services
                 EndOnUTC = request.Data.EndTimeUTC,
                 CreatedOnUTC = now,
                 ModifiedOnUTC = now,
-                MaxTickets = request.Data.MaxTickets,
             };
 
             newEvent.SinglePublic.Tags.AddRange(request.Data.Tags);
@@ -131,8 +121,11 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             string recurrenceHash = RecurrenceHelper.GenerateRecurrenceHash(combinedString);
 
             var userId = _userHelper.MyUserId; // Extension/middleware required
-            var baseRecord = new EventRecord(request, userId.ToString(), recurrenceHash);
-            baseRecord.RecurringPublic.MaxTickets = request.Data.MaxTickets;
+            var baseRecord = new EventRecord(
+                request,
+                userId.ToString(),
+                recurrenceHash
+            );
             // Expand the base into individual recurring records
             var instances = RecurrenceHelper.GenerateInstances(baseRecord);
             var records = new List<EventRecord>();
@@ -182,6 +175,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             return response;
         }
 
+
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventResponse> AdminGetEvent(
             AdminGetEventRequest request,
@@ -202,7 +196,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             var found = await _eventProvider.GetById(eventId);
             return new AdminGetEventResponse() { Event = found.Item1 };
         }
-
+        
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventsResponse> AdminGetEvents(
             AdminGetEventsRequest request,
@@ -210,31 +204,23 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         )
         {
             var res = new AdminGetEventsResponse();
+
             var enumerator = _eventProvider.GetEvents();
 
-            if (string.IsNullOrWhiteSpace(request.RecurrenceHash))
+            switch (string.IsNullOrWhiteSpace(request.RecurrenceHash))
             {
-                // Get single events
-                var singles = await GetSingleEvents(enumerator, request.IncludeCanceled);
-
-                // Get template recurring events (need a new enumerator)
-                var recurringTemplates = await GetTemplateRecurringEvents(
-                    _eventProvider.GetEvents(),
-                    request.IncludeCanceled
-                );
-
-                res.Events.AddRange(singles);
-                res.Events.AddRange(recurringTemplates);
-            }
-            else
-            {
-                res.Events.AddRange(
-                    await GetRecurringEvents(
-                        enumerator,
-                        request.RecurrenceHash,
-                        request.IncludeCanceled
-                    )
-                );
+                case true:
+                    res.Events.AddRange(await GetSingleEvents(enumerator, request.IncludeCanceled));
+                    break;
+                case false:
+                    res.Events.AddRange(
+                        await GetRecurringEvents(
+                            enumerator,
+                            request.RecurrenceHash,
+                            request.IncludeCanceled
+                        )
+                    );
+                    break;
             }
 
             return res;
@@ -277,7 +263,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             single.Title = newData.Title;
             single.Description = newData.Description;
             single.Venue = newData.Venue;
-            // single.Location = newData.Venue?.Name ?? "";
+            single.Location = newData.Venue?.Name ?? "";
             single.StartOnUTC = newData.StartTimeUTC;
             single.EndOnUTC = newData.EndTimeUTC;
             single.Tags.Clear();
@@ -486,10 +472,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override async Task<AdminGetTicketResponse> AdminGetTicket(
-            AdminGetTicketRequest request,
-            ServerCallContext context
-        )
+        public override async Task<AdminGetTicketResponse> AdminGetTicket(AdminGetTicketRequest request, ServerCallContext context)
         {
             Guid.TryParse(request.TicketId, out var ticketId);
             if (ticketId == Guid.Empty)
@@ -520,23 +503,16 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override async Task<AdminCancelOtherTicketResponse> AdminCancelOtherTicket(
-            AdminCancelOtherTicketRequest request,
-            ServerCallContext context
-        )
+        public override Task<AdminCancelOtherTicketResponse> AdminCancelOtherTicket(AdminCancelOtherTicketRequest request, ServerCallContext context)
         {
-            return new();
+            throw new NotImplementedException();
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override Task<AdminReserveEventTicketForUserResponse> AdminReserveEventTicketForUser(
-            AdminReserveEventTicketForUserRequest request,
-            ServerCallContext context
-        )
+        public override Task<AdminReserveEventTicketForUserResponse> AdminReserveEventTicketForUser(AdminReserveEventTicketForUserRequest request, ServerCallContext context)
         {
             return base.AdminReserveEventTicketForUser(request, context);
         }
-
         private async Task<List<EventRecord>> GetSingleEvents(
             IAsyncEnumerable<EventRecord> events,
             bool includeCanceled = false
@@ -545,21 +521,17 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             var res = new List<EventRecord>();
             await foreach (var item in events)
             {
-                if (
-                    item.OneOfType != EventRecordOneOfType.EventOneOfSingle
-                    || item.SinglePublic == null
-                )
-                    continue;
-
                 if (includeCanceled && item.SinglePublic.IsCanceled == true)
                 {
                     res.Add(item);
                 }
-                else if (!includeCanceled && !item.SinglePublic.IsCanceled)
+
+                if (!includeCanceled && !item.SinglePublic.IsCanceled)
                 {
                     res.Add(item);
                 }
             }
+
             return res;
         }
 
@@ -596,38 +568,6 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             }
 
             return res;
-        }
-
-        private async Task<List<EventRecord>> GetTemplateRecurringEvents(
-            IAsyncEnumerable<EventRecord> events,
-            bool includeCanceled = false
-        )
-        {
-            var templates = new Dictionary<string, EventRecord>();
-            await foreach (var item in events)
-            {
-                if (
-                    item.OneOfType != EventRecordOneOfType.EventOneOfRecurring
-                    || item.RecurringPublic == null
-                )
-                    continue;
-
-                var hash = item.RecurringPublic.RecurrenceHash;
-                if (string.IsNullOrEmpty(hash))
-                    continue;
-
-                // Only add the first (earliest) event for each recurrence hash
-                if (
-                    !templates.ContainsKey(hash)
-                    || item.RecurringPublic.TemplateStartOnUTC
-                        < templates[hash].RecurringPublic.TemplateStartOnUTC
-                )
-                {
-                    if (includeCanceled || !item.RecurringPublic.IsCanceled)
-                        templates[hash] = item;
-                }
-            }
-            return templates.Values.ToList();
         }
     }
 }

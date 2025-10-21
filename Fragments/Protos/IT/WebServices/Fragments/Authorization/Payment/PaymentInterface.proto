@@ -3,16 +3,21 @@ syntax = "proto3";
 package IT.WebServices.Fragments.Authorization.Payment;
 
 import "google/api/annotations.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/DataRecords.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Crypto/CryptoRecords.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Manual/ManualSubscriptionRecord.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/Fortis/FortisSubscriptionRecord.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalRecords.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalSubscriptionRecord.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeRecords.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeSubscriptionRecord.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeOneTimeRecord.proto";
 
 service PaymentInterface {
+  rpc CancelOwnSubscription (CancelOwnSubscriptionRequest) returns (CancelSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      post: "/api/payment/subscription/cancel"
+      body: "*"
+    };
+  }
+
   rpc GetNewDetails (GetNewDetailsRequest) returns (GetNewDetailsResponse)
   {
     option (google.api.http) = {
@@ -27,23 +32,50 @@ service PaymentInterface {
     };
   }
 
-  rpc GetOtherSubscriptionRecords (GetOtherSubscriptionRecordsRequest) returns (GetOtherSubscriptionRecordsResponse)
+  rpc GetOwnSubscriptionRecord (GetOwnSubscriptionRecordRequest) returns (GetSubscriptionRecordResponse)
   {
+    option (google.api.http) = {
+      get: "/api/payment/subscription/{InternalSubscriptionID}"
+    };
   }
 
-  rpc GetOwnSubscriptionRecords (GetOwnSubscriptionRecordsRequest) returns (GetOwnSubscriptionRecordsResponse)
+  rpc GetOwnSubscriptionRecords (GetOwnSubscriptionRecordsRequest) returns (GetSubscriptionRecordsResponse)
   {
     option (google.api.http) = {
       get: "/api/payment/subscription"
     };
   }
 
-  rpc GetOwnOneTimeRecords (GetOwnOneTimeRecordsRequest) returns (GetOwnOneTimeRecordsResponse)
+  rpc GetOwnOneTimeRecord (GetOwnOneTimeRecordRequest) returns (GetOneTimeRecordResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/single/{InternalPaymentID}"
+    };
+  }
+
+  rpc GetOwnOneTimeRecords (GetOwnOneTimeRecordsRequest) returns (GetOneTimeRecordsResponse)
   {
     option (google.api.http) = {
       get: "/api/payment/single"
     };
   }
+
+  rpc ReconcileOwnSubscription (ReconcileOwnSubscriptionRequest) returns (ReconcileSubscriptionResponse)
+  {
+    option (google.api.http) = {
+      get: "/api/payment/subscription/reconcile"
+    };
+  }
+}
+
+message CancelOwnSubscriptionRequest {
+  string InternalSubscriptionID = 1;
+  string Reason = 11;
+}
+
+message CancelSubscriptionResponse {
+  GenericSubscriptionRecord Record = 1;
+  string Error = 2;
 }
 
 message GetNewDetailsRequest {
@@ -57,7 +89,6 @@ message GetNewDetailsResponse {
   Stripe.StripeNewDetails Stripe = 6;
 }
 
-
 message GetNewOneTimeDetailsRequest {
   string InternalID = 1;
   string DomainName = 2;
@@ -70,33 +101,43 @@ message GetNewOneTimeDetailsResponse {
   Stripe.StripeNewOneTimeDetails Stripe = 6;
 }
 
-
-message GetOtherSubscriptionRecordsRequest {
-    string UserID = 1;
+message GetOwnSubscriptionRecordRequest {
+  string InternalSubscriptionID = 1;
 }
 
-message GetOtherSubscriptionRecordsResponse {
-    repeated Manual.ManualSubscriptionRecord Manual = 2;
-    repeated Fortis.FortisSubscriptionFullRecord Fortis = 4;
-    repeated Paypal.PaypalSubscriptionFullRecord Paypal = 5;
-    repeated Stripe.StripeSubscriptionFullRecord Stripe = 6;
+message GetSubscriptionRecordResponse {
+  GenericSubscriptionFullRecord Generic = 1;
+  Manual.ManualSubscriptionRecord Manual = 2;
 }
-
 
 message GetOwnSubscriptionRecordsRequest {
 }
 
-message GetOwnSubscriptionRecordsResponse {
-    repeated Manual.ManualSubscriptionRecord Manual = 2;
-    repeated Fortis.FortisSubscriptionFullRecord Fortis = 4;
-    repeated Paypal.PaypalSubscriptionFullRecord Paypal = 5;
-    repeated Stripe.StripeSubscriptionFullRecord Stripe = 6;
+message GetSubscriptionRecordsResponse {
+  repeated GenericSubscriptionFullRecord Generic = 1;
+  repeated Manual.ManualSubscriptionRecord Manual = 2;
 }
 
+message GetOwnOneTimeRecordRequest {
+  string InternalPaymentID = 1;
+}
+
+message GetOneTimeRecordResponse {
+  GenericOneTimePaymentRecord Generic = 1;
+}
 
 message GetOwnOneTimeRecordsRequest {
 }
 
-message GetOwnOneTimeRecordsResponse {
-    repeated Stripe.StripeOneTimePaymentRecord Stripe = 6;
+message GetOneTimeRecordsResponse {
+  repeated GenericOneTimePaymentRecord Generic = 1;
+}
+
+message ReconcileOwnSubscriptionRequest {
+  string InternalSubscriptionID = 1;
+}
+  
+message ReconcileSubscriptionResponse {
+  GenericSubscriptionFullRecord Record = 1;
+  string Error = 2;
 }

@@ -1,7 +1,6 @@
-﻿using IT.WebServices.Authorization.Payment.Paypal;
-using IT.WebServices.Authorization.Payment.Paypal.Clients;
-using IT.WebServices.Authorization.Payment.Paypal.Data;
-using IT.WebServices.Authorization.Payment.Service;
+﻿using IT.WebServices.Authorization.Payment.Combined.Services;
+using IT.WebServices.Authorization.Payment.Helpers;
+using IT.WebServices.Authorization.Payment.Helpers.BulkJobs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
@@ -16,6 +15,12 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddPaypalClasses();
             services.AddStripeClasses();
 
+            services.AddSingleton<BulkHelper>();
+            services.AddSingleton<ReconcileHelper>();
+
+            services.AddSingleton<LookForNewPayments>();
+            services.AddSingleton<ReconcileAll>();
+
             return services;
         }
 
@@ -26,6 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
             endpoints.MapPaypalGrpcServices();
             endpoints.MapStripeGrpcServices();
 
+            endpoints.MapGrpcService<AdminPaymentService>();
             endpoints.MapGrpcService<ClaimsService>();
             endpoints.MapGrpcService<PaymentService>();
             endpoints.MapGrpcService<ServiceOpsService>();

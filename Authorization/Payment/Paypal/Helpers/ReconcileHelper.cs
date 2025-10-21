@@ -1,32 +1,23 @@
-﻿using Grpc.Core;
-using IT.WebServices.Authentication;
+﻿using IT.WebServices.Authentication;
+using IT.WebServices.Authorization.Payment.Generic.Data;
 using IT.WebServices.Authorization.Payment.Paypal.Clients;
 using IT.WebServices.Authorization.Payment.Paypal.Clients.Models;
-using IT.WebServices.Authorization.Payment.Paypal.Data;
 using IT.WebServices.Fragments.Authorization.Payment;
-using IT.WebServices.Fragments.Authorization.Payment.Paypal;
 using IT.WebServices.Fragments.Generic;
 using Microsoft.Extensions.Logging;
-using MySqlX.XDevAPI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace IT.WebServices.Authorization.Payment.Paypal.Helpers
 {
     public class ReconcileHelper
     {
         private readonly ILogger logger;
-        private readonly ISubscriptionRecordProvider subProvider;
-        private readonly IPaymentRecordProvider paymentProvider;
+        private readonly IGenericSubscriptionRecordProvider subProvider;
+        private readonly IGenericPaymentRecordProvider paymentProvider;
         private readonly PaypalClient client;
 
         private const int YEARS_TO_GO_BACK_FOR_RECONCILE_ALL = 10;
 
-        public ReconcileHelper(ILogger<ReconcileHelper> logger, ISubscriptionRecordProvider subProvider, IPaymentRecordProvider paymentProvider, PaypalClient client)
+        public ReconcileHelper(ILogger<ReconcileHelper> logger, IGenericSubscriptionRecordProvider subProvider, IGenericPaymentRecordProvider paymentProvider, PaypalClient client)
         {
             this.logger = logger;
             this.subProvider = subProvider;
@@ -38,7 +29,7 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Helpers
         {
             try
             {
-                List<PaypalSubscriptionRecord> processedSubs = new();
+                List<GenericSubscriptionRecord> processedSubs = new();
                 var from = DateTime.UtcNow.AddYears(-YEARS_TO_GO_BACK_FOR_RECONCILE_ALL);
                 var to = DateTime.UtcNow;
                 float stepsToComplete = 12 * YEARS_TO_GO_BACK_FOR_RECONCILE_ALL;
@@ -94,16 +85,16 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Helpers
                 if (localSub == null)
                     return "SubscriptionId not valid";
 
-                List<PaypalPaymentRecord> localPayments = new();
+                List<GenericPaymentRecord> localPayments = new();
                 var paymentEnumerable = paymentProvider.GetAllBySubscriptionId(userId, subscriptionId);
                 await foreach (var payment in paymentEnumerable)
                     localPayments.Add(payment);
 
-                var paypalSub = await client.GetSubscription(localSub.PaypalSubscriptionID);
+                var paypalSub = await client.GetSubscription(localSub.ProcessorSubscriptionID);
                 if (paypalSub == null)
                     return "SubscriptionId not valid";
 
-                var paypalPayments = await client.GetTransactionsForSubscription(localSub.PaypalSubscriptionID);
+                var paypalPayments = await client.GetTransactionsForSubscription(localSub.ProcessorSubscriptionID);
 
                 await EnsureSubscription(localSub, paypalSub, user);
 
@@ -115,7 +106,7 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Helpers
             }
         }
 
-        private async Task EnsureSubscription(PaypalSubscriptionRecord localSub, SubscriptionModel paypalSub, ONUser user)
+        private async Task EnsureSubscription(GenericSubscriptionRecord localSub, SubscriptionModel paypalSub, ONUser user)
         {
             bool changed = false;
 
@@ -151,16 +142,16 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Helpers
             }
         }
 
-        private async Task EnsurePaymentAndSubscription(TransactionInfoModel paypalPayment, List<PaypalSubscriptionRecord> processedSubs, ONUser user)
+        private async Task EnsurePaymentAndSubscription(TransactionInfoModel paypalPayment, List<GenericSubscriptionRecord> processedSubs, ONUser user)
         {
             if (paypalPayment.paypal_reference_id == null)  //if it's not tied to a subscription... abort...
                 return;
 
-            var localSub = await subProvider.GetByPaypalId(paypalPayment.paypal_reference_id);
+            var localSub = await subProvider.GetByProcessorId(paypalPayment.paypal_reference_id);
             if (localSub == null) //if can't find subscription... abort...
                 return;
 
-            if (!processedSubs.Any(s => s.PaypalSubscriptionID.ToLower() == paypalPayment.paypal_reference_id.ToLower()))
+            if (!processedSubs.Any(s => s.ProcessorSubscriptionID.ToLower() == paypalPayment.paypal_reference_id.ToLower()))
             {
                 var paypalSub = await client.GetSubscription(paypalPayment.paypal_reference_id);
                 if (paypalSub == null) //if can't find subscription... abort...
@@ -173,10 +164,10 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Helpers
             await EnsurePayment(paypalPayment, localSub, user);
         }
 
-        private async Task EnsurePayment(TransactionInfoModel paypalPayment, PaypalSubscriptionRecord localSub, ONUser user)
+        private async Task EnsurePayment(TransactionInfoModel paypalPayment, GenericSubscriptionRecord localSub, ONUser user)
         {
-            var localPayments = paymentProvider.GetAllBySubscriptionId(localSub.UserID.ToGuid(), localSub.SubscriptionID.ToGuid());
-            var localPayment = localPayments.ToBlockingEnumerable().FirstOrDefault(p => p.PaypalPaymentID.ToLower() == paypalPayment.transaction_id?.ToLower());
+            var localPayments = paymentProvider.GetAllBySubscriptionId(localSub.UserID.ToGuid(), localSub.InternalSubscriptionID.ToGuid());
+            var localPayment = localPayments.ToBlockingEnumerable().FirstOrDefault(p => p.ProcessorPaymentID.ToLower() == paypalPayment.transaction_id?.ToLower());
 
             if (localPayment == null)
             {
@@ -216,18 +207,18 @@ namespace IT.WebServices.Authorization.Payment.Paypal.Helpers
             }
         }
 
-        private async Task CreateMissingPayment(TransactionInfoModel paypalPayment, PaypalSubscriptionRecord localSub, ONUser user)
+        private async Task CreateMissingPayment(TransactionInfoModel paypalPayment, GenericSubscriptionRecord localSub, ONUser user)
         {
             var amountCents = paypalPayment.transaction_amount?.AmountInCents;
             if (amountCents == null)
                 return;
 
-            var record = new PaypalPaymentRecord
+            var record = new GenericPaymentRecord
             {
-                PaymentID = Guid.NewGuid().ToString(),
+                InternalPaymentID = Guid.NewGuid().ToString(),
                 UserID = localSub.UserID,
-                SubscriptionID = localSub.SubscriptionID,
-                PaypalPaymentID = paypalPayment.transaction_id,
+                InternalSubscriptionID = localSub.InternalSubscriptionID,
+                ProcessorPaymentID = paypalPayment.transaction_id,
                 Status = paypalPayment.StatusEnum,
                 AmountCents = amountCents.Value,
                 TaxCents = 0,

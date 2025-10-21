@@ -1,0 +1,25 @@
+version: '3'
+services:
+  combined:
+    build:
+      context: ../
+      dockerfile: ./Services/Combined/Dockerfile-minimal
+    image: invertedtech/combined
+    depends_on:
+      - mysql
+    expose:
+      - 80
+    profile:
+      - minimal
+    ports:
+      - 8001:80
+      - $COMBINED_PORT:$COMBINED_PORT
+    restart: always
+    logging:
+      options:
+        max-size: "10m"
+    env_file:
+      - environment.${ENVIRONMENT_FILE}.env
+      - services.${SERVICES_FILE}.env
+    volumes:
+      - ${DATA_LOC}:/data

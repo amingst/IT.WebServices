@@ -9,5 +9,6 @@ namespace IT.WebServices.Authentication
     {
         Task<GetUserIdListResponse> GetUserIdListInternal();
         Task<GetOtherPublicUserResponse> GetOtherPublicUserInternal(Guid userId);
+        Task<GetOtherPublicUserResponse> GetUserByOldUserID(string oldUserId);
     }
 }

@@ -32,6 +32,7 @@ namespace IT.WebServices.Authentication.Services.Helpers
                         Data = new()
                         {
                             Email = rdr["Email"] as string ?? "",
+                            OldUserID = rdr["OldUserID"] as string ?? "",
                         },
                     },
                 },
