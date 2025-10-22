@@ -1,4 +1,4 @@
-syntax = "proto3";
+ï»¿syntax = "proto3";
 
 package IT.WebServices.Fragments.Authentication;
 
@@ -242,52 +242,52 @@ message AuthError {
 }
 
 enum AuthErrorReason {
-  // 0s — generic
+  // 0s â€” generic
   AUTH_REASON_UNSPECIFIED = 0;
 
-  // 1–49: AuthenticateUser (login)
+  // 1â€“49: AuthenticateUser (login)
   LOGIN_ERROR_INVALID_CREDENTIALS = 1;
   LOGIN_ERROR_MFA_REQUIRED        = 2;
   LOGIN_ERROR_INVALID_MFA_CODE    = 3;
   LOGIN_ERROR_SERVICE_UNAVAILABLE = 4;
 
-  // 100–149: ChangeOtherPassword
+  // 100â€“149: ChangeOtherPassword
   CHANGE_OTHER_PASSWORD_ERROR_USER_NOT_FOUND  = 100;
   CHANGE_OTHER_PASSWORD_ERROR_BAD_NEW_PASSWORD = 101;
   CHANGE_OTHER_PASSWORD_ERROR_UNKNOWN          = 149;
 
-  // 200–249: ChangeOtherProfileImage
+  // 200â€“249: ChangeOtherProfileImage
   CHANGE_OTHER_PROFILE_IMAGE_ERROR_USER_NOT_FOUND = 200;
   CHANGE_OTHER_PROFILE_IMAGE_ERROR_BAD_FORMAT     = 201;
   CHANGE_OTHER_PROFILE_IMAGE_ERROR_UNKNOWN        = 249;
 
-  // 300–349: ChangeOwnPassword
+  // 300â€“349: ChangeOwnPassword
   CHANGE_OWN_PASSWORD_ERROR_BAD_OLD_PASSWORD = 300;
   CHANGE_OWN_PASSWORD_ERROR_BAD_NEW_PASSWORD = 301;
   CHANGE_OWN_PASSWORD_ERROR_UNKNOWN          = 349;
 
-  // 400–449: ChangeOwnProfileImage
+  // 400â€“449: ChangeOwnProfileImage
   CHANGE_OWN_PROFILE_IMAGE_ERROR_BAD_FORMAT = 400;
   CHANGE_OWN_PROFILE_IMAGE_ERROR_UNKNOWN    = 449;
 
-  // 500–549: CreateUser
+  // 500â€“549: CreateUser
   CREATE_USER_ERROR_USERNAME_TAKEN = 500;
   CREATE_USER_ERROR_EMAIL_TAKEN    = 501;
   CREATE_USER_ERROR_UNKNOWN        = 549;
 
-  // 600–649: Disable/Enable other user
+  // 600â€“649: Disable/Enable other user
   DISABLE_OTHER_USER_ERROR_UNKNOWN = 600;
   ENABLE_OTHER_USER_ERROR_UNKNOWN  = 601;
 
-  // 700–749: Disable TOTP
+  // 700â€“749: Disable TOTP
   DISABLE_OTHER_TOTP_ERROR_UNKNOWN = 700;
   DISABLE_OWN_TOTP_ERROR_UNKNOWN   = 701;
 
-  // 800–849: Generate TOTP
+  // 800â€“849: Generate TOTP
   GENERATE_OTHER_TOTP_ERROR_UNKNOWN = 800;
   GENERATE_OWN_TOTP_ERROR_UNKNOWN   = 801;
 
-  // 900–949: ModifyOtherUser
+  // 900â€“949: ModifyOtherUser
   MODIFY_OTHER_USER_ERROR_UNAUTHORIZED    = 900;
   MODIFY_OTHER_USER_ERROR_USER_NOT_FOUND  = 901;
   MODIFY_OTHER_USER_ERROR_USERNAME_TAKEN  = 902;
@@ -295,26 +295,26 @@ enum AuthErrorReason {
   MODIFY_OTHER_USER_ERROR_SERVICE_OFFLINE = 904;
   MODIFY_OTHER_USER_ERROR_UNKNOWN         = 949;
 
-  // 950–999: ModifyOtherUserRoles
+  // 950â€“999: ModifyOtherUserRoles
   MODIFY_OTHER_USER_ROLES_ERROR_UNKNOWN = 950;
 
-  // 1000–1049: ModifyOwnUser
+  // 1000â€“1049: ModifyOwnUser
   MODIFY_OWN_USER_ERROR_UNKNOWN = 1000;
 
-  // 1100–1149: Verify TOTP
+  // 1100â€“1149: Verify TOTP
   VERIFY_OTHER_TOTP_ERROR_INVALID_CODE = 1100;
   VERIFY_OTHER_TOTP_ERROR_UNKNOWN      = 1149;
   VERIFY_OWN_TOTP_ERROR_INVALID_CODE   = 1150;
   VERIFY_OWN_TOTP_ERROR_UNKNOWN        = 1199;
 
-  // 1200–1249: RenewToken
+  // 1200â€“1249: RenewToken
   RENEW_TOKEN_ERROR_UNAUTHENTICATED = 1200;
   RENEW_TOKEN_ERROR_UNKNOWN         = 1249;
 }
   
 message AuthenticateUserRequest {
-  string UserName = 1 ;
-  string Password = 2;
+  string UserName = 1 [(buf.validate.field).required = true];
+  string Password = 2 [(buf.validate.field).required = true];
   string MFACode = 3;
 }
 
@@ -627,3 +627,4 @@ message VerifyOwnTotpRequest {
 message VerifyOwnTotpResponse {
   string Error = 10;
 }
+

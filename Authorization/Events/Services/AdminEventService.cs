@@ -1,4 +1,10 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Events.Data;
@@ -9,17 +15,11 @@ using IT.WebServices.Helpers;
 using IT.WebServices.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace IT.WebServices.Authorization.Events.Services.Services
 {
     [Authorize]
-    public class AdminEventService :  AdminEventInterface.AdminEventInterfaceBase
+    public class AdminEventService : AdminEventInterface.AdminEventInterfaceBase
     {
         private readonly ILogger<EventService> _logger;
         private readonly IEventDataProvider _eventProvider;
@@ -27,7 +27,13 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         private readonly ONUserHelper _userHelper;
         private readonly EventTicketClassHelper _ticketClassHelper;
 
-        public AdminEventService(ILogger<EventService> logger, ITicketDataProvider ticketDataProvider,IEventDataProvider eventProvider, ONUserHelper userHelper, EventTicketClassHelper eventTicketClassHelper)
+        public AdminEventService(
+            ILogger<EventService> logger,
+            ITicketDataProvider ticketDataProvider,
+            IEventDataProvider eventProvider,
+            ONUserHelper userHelper,
+            EventTicketClassHelper eventTicketClassHelper
+        )
         {
             _logger = logger;
             _eventProvider = eventProvider;
@@ -121,11 +127,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             string recurrenceHash = RecurrenceHelper.GenerateRecurrenceHash(combinedString);
 
             var userId = _userHelper.MyUserId; // Extension/middleware required
-            var baseRecord = new EventRecord(
-                request,
-                userId.ToString(),
-                recurrenceHash
-            );
+            var baseRecord = new EventRecord(request, userId.ToString(), recurrenceHash);
             // Expand the base into individual recurring records
             var instances = RecurrenceHelper.GenerateInstances(baseRecord);
             var records = new List<EventRecord>();
@@ -175,7 +177,6 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             return response;
         }
 
-
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventResponse> AdminGetEvent(
             AdminGetEventRequest request,
@@ -196,7 +197,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             var found = await _eventProvider.GetById(eventId);
             return new AdminGetEventResponse() { Event = found.Item1 };
         }
-        
+
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventsResponse> AdminGetEvents(
             AdminGetEventsRequest request,
@@ -263,7 +264,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             single.Title = newData.Title;
             single.Description = newData.Description;
             single.Venue = newData.Venue;
-            single.Location = newData.Venue?.Name ?? "";
+            single.Location = "";
             single.StartOnUTC = newData.StartTimeUTC;
             single.EndOnUTC = newData.EndTimeUTC;
             single.Tags.Clear();
@@ -472,7 +473,10 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override async Task<AdminGetTicketResponse> AdminGetTicket(AdminGetTicketRequest request, ServerCallContext context)
+        public override async Task<AdminGetTicketResponse> AdminGetTicket(
+            AdminGetTicketRequest request,
+            ServerCallContext context
+        )
         {
             Guid.TryParse(request.TicketId, out var ticketId);
             if (ticketId == Guid.Empty)
@@ -503,16 +507,23 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override Task<AdminCancelOtherTicketResponse> AdminCancelOtherTicket(AdminCancelOtherTicketRequest request, ServerCallContext context)
+        public override Task<AdminCancelOtherTicketResponse> AdminCancelOtherTicket(
+            AdminCancelOtherTicketRequest request,
+            ServerCallContext context
+        )
         {
             throw new NotImplementedException();
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override Task<AdminReserveEventTicketForUserResponse> AdminReserveEventTicketForUser(AdminReserveEventTicketForUserRequest request, ServerCallContext context)
+        public override Task<AdminReserveEventTicketForUserResponse> AdminReserveEventTicketForUser(
+            AdminReserveEventTicketForUserRequest request,
+            ServerCallContext context
+        )
         {
             return base.AdminReserveEventTicketForUser(request, context);
         }
+
         private async Task<List<EventRecord>> GetSingleEvents(
             IAsyncEnumerable<EventRecord> events,
             bool includeCanceled = false
