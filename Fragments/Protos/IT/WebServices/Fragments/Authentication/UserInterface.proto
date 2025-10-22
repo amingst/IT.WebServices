@@ -322,6 +322,7 @@ message AuthenticateUserResponse {
   bool ok = 1; 
   string BearerToken = 2;
   UserNormalRecord UserRecord = 3;
+  AuthError Error = 4;
 }
   
 message ChangeOtherPasswordRequest {
@@ -397,7 +398,6 @@ message CreateUserRequest {
 message CreateUserResponse {
   string BearerToken = 1;
   AuthError Error = 2;
-
 }
 
 message DisableEnableOtherUserRequest {
@@ -419,7 +419,7 @@ message DisableOtherTotpRequest {
 }
 
 message DisableOtherTotpResponse {
-  string Error = 10;
+  AuthError Error = 10;
 }
 
 message DisableOwnTotpRequest {
@@ -427,7 +427,7 @@ message DisableOwnTotpRequest {
 }
 
 message DisableOwnTotpResponse {
-  string Error = 10;
+  AuthError Error = 10;
 }
 
 message GenerateOtherTotpRequest {
@@ -439,7 +439,7 @@ message GenerateOtherTotpResponse {
   string TotpID = 1;
   string Key = 2;
   string QRCode = 3;
-  string Error = 10;
+  AuthError Error = 10;
 }
 
 message GenerateOwnTotpRequest {
@@ -450,7 +450,7 @@ message GenerateOwnTotpResponse {
   string TotpID = 1;
   string Key = 2;
   string QRCode = 3;
-  string Error = 10;
+  AuthError Error = 10;
 }
 
 message GetAllUsersRequest {
@@ -543,7 +543,7 @@ message ModifyOtherUserRequest {
 }
   
 message ModifyOtherUserResponse {
-  string Error = 1;
+  AuthError Error = 1;
 }
 
 message ModifyOtherUserRolesRequest {
@@ -552,7 +552,7 @@ message ModifyOtherUserRolesRequest {
 }
   
 message ModifyOtherUserRolesResponse {
-  string Error = 1;
+  AuthError Error = 1;
 }
 
 message ModifyOwnUserRequest {
@@ -563,7 +563,7 @@ message ModifyOwnUserRequest {
 }
   
 message ModifyOwnUserResponse {
-  string Error = 1;
+  AuthError Error = 1;
   string BearerToken = 2;
 }
 
@@ -616,7 +616,7 @@ message VerifyOtherTotpRequest {
 }
 
 message VerifyOtherTotpResponse {
-  string Error = 10;
+  AuthError Error = 10;
 }
 
 message VerifyOwnTotpRequest {
@@ -625,6 +625,6 @@ message VerifyOwnTotpRequest {
 }
 
 message VerifyOwnTotpResponse {
-  string Error = 10;
+  AuthError Error = 10;
 }
 
