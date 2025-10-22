@@ -199,6 +199,7 @@
       GrpcServices="None"
     />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Settings\SettingsInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Settings\SettingsError.proto" GrpcServices="None" />
     <Protobuf
       Include="Protos\IT\WebServices\Fragments\Settings\SettingsRecord.proto"
       GrpcServices="None"

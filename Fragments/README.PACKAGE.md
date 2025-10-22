@@ -1,54 +1,47 @@
 # @inverted-tech/fragments
 
-Runtime-ready TypeScript artifacts for IT WebServices Fragments.
+TypeScript types and ESM runtime for IT WebServices Protobufs.
 
-What’s included
-- Protos: Protobuf-ES message classes and Connect service descriptors.
-  - Import via subpath: `@inverted-tech/fragments/protos`
-- Schemas: Zod validation schemas for domain data messages (requests/responses and service interfaces are excluded).
-  - Import via subpath: `@inverted-tech/fragments/schemas`
-- Dual module outputs (ESM + CJS) and `.d.ts` types.
+This package is ESM-only and ships `.d.ts` declaration files plus generated JS under `dist/esm/`.
 
 Install
 ```bash
 npm install @inverted-tech/fragments
 ```
 
-Quick start
-- Protos (messages + service descriptors)
-```ts
-// Namespaced protos
-import { Authentication } from '@inverted-tech/fragments/protos/gen/Protos/IT/WebServices/Fragments';
+## Imports
+We expose convenient subpaths for each module and file-level entries. You don’t need to append `/index`.
 
-// Deep import a specific message
-import { UserRecord } from '@inverted-tech/fragments/protos/gen/Protos/IT/WebServices/Fragments/Authentication/UserRecord_pb';
+Examples
+```ts
+// Settings models
+import type { CMSPublicRecord, ChannelRecord, CategoryRecord } from '@inverted-tech/fragments/Settings';
+// or with a trailing slash
+import type { CMSPublicMenuRecord } from '@inverted-tech/fragments/Settings/';
+
+// Specific files
+import type { UserRecord } from '@inverted-tech/fragments/Authentication/UserRecord';
+import { UserInterfaceClient } from '@inverted-tech/fragments/Authentication/UserInterface_connect';
+
+// Protos bundle
+import * as Protos from '@inverted-tech/fragments/protos';
+// or file-level
+import '@inverted-tech/fragments/protos/Authentication/UserInterface_connect';
 ```
 
-- Schemas (runtime validation with Zod)
-```ts
-// Namespaced schemas
-import { IT as Schemas } from '@inverted-tech/fragments/schemas/IT';
-const UserRecordSchema = Schemas.WebServices.Fragments.Authentication.UserRecordSchema;
+Available namespaces: Authentication, Authorization, Comment, Content, CreatorDashboard, Generic, Notification, Page, Settings.
 
-// Or deep import a specific schema
-import { UserRecordSchema } from '@inverted-tech/fragments/schemas/IT/WebServices/Fragments/Authentication/UserRecord';
+## Notes
+- ESM-only; no CommonJS entry points.
+- Built from protobuf sources using Buf and TypeScript generators.
 
-// Infer TS types from schemas
-import { z } from 'zod';
-type UserRecordInput = z.infer<typeof UserRecordSchema>;
-```
-
-Notes
-- Zod schemas focus on domain data messages (e.g., `*Record`, `*Settings`).
-  - Request/Response and service-interface-only types are intentionally omitted.
-- Timestamps map to `Date`. Duration maps to `{ seconds?: bigint; nanos?: number }`.
-
-Support matrix
-- Node.js ≥ 18
+## Support
+- Node.js 18+
 - Modern browsers (ES2020)
 
-Changelog
-- This package uses Changesets; see release notes on the npm page.
+## Changelog
+This package uses Changesets; see release notes on npm.
 
-License
-- See `LICENSE` in the package.
+## License
+MIT — see `LICENSE`.
+

@@ -1,6 +1,6 @@
 {
 	"name": "@inverted-tech/fragments",
-	"version": "0.3.4",
+	"version": "0.3.6",
 	"description": "Types and JS runtime for Inverted protocol buffers (Fragments)",
 	"types": "dist/protos/index.d.ts",
 	"module": "dist/esm/index.js",
@@ -23,37 +23,118 @@
 			"types": "./dist/protos/*.d.ts",
 			"import": "./dist/esm/protos/*.js"
 		},
+		"./Authorization": {
+			"types": "./dist/protos/Authorization/index.d.ts",
+			"import": "./dist/esm/Authorization/index.js",
+			"default": "./dist/esm/Authorization/index.js"
+		},
+		"./Authorization/": {
+			"types": "./dist/protos/Authorization/",
+			"import": "./dist/esm/Authorization/"
+		},
 		"./Authorization/*": {
 			"types": "./dist/protos/Authorization/*.d.ts",
 			"import": "./dist/esm/Authorization/*.js"
+		},
+		"./Authentication": {
+			"types": "./dist/protos/Authentication/index.d.ts",
+			"import": "./dist/esm/Authentication/index.js",
+			"default": "./dist/esm/Authentication/index.js"
+		},
+		"./Authentication/": {
+			"types": "./dist/protos/Authentication/",
+			"import": "./dist/esm/Authentication/"
 		},
 		"./Authentication/*": {
 			"types": "./dist/protos/Authentication/*.d.ts",
 			"import": "./dist/esm/Authentication/*.js"
 		},
+		"./Comment": {
+			"types": "./dist/protos/Comment/index.d.ts",
+			"import": "./dist/esm/Comment/index.js",
+			"default": "./dist/esm/Comment/index.js"
+		},
+		"./Comment/": {
+			"types": "./dist/protos/Comment/",
+			"import": "./dist/esm/Comment/"
+		},
 		"./Comment/*": {
 			"types": "./dist/protos/Comment/*.d.ts",
 			"import": "./dist/esm/Comment/*.js"
+		},
+		"./Content": {
+			"types": "./dist/protos/Content/index.d.ts",
+			"import": "./dist/esm/Content/index.js",
+			"default": "./dist/esm/Content/index.js"
+		},
+		"./Content/": {
+			"types": "./dist/protos/Content/",
+			"import": "./dist/esm/Content/"
 		},
 		"./Content/*": {
 			"types": "./dist/protos/Content/*.d.ts",
 			"import": "./dist/esm/Content/*.js"
 		},
+		"./CreatorDashboard": {
+			"types": "./dist/protos/CreatorDashboard/index.d.ts",
+			"import": "./dist/esm/CreatorDashboard/index.js",
+			"default": "./dist/esm/CreatorDashboard/index.js"
+		},
+		"./CreatorDashboard/": {
+			"types": "./dist/protos/CreatorDashboard/",
+			"import": "./dist/esm/CreatorDashboard/"
+		},
 		"./CreatorDashboard/*": {
 			"types": "./dist/protos/CreatorDashboard/*.d.ts",
 			"import": "./dist/esm/CreatorDashboard/*.js"
+		},
+		"./Generic": {
+			"types": "./dist/protos/Generic/index.d.ts",
+			"import": "./dist/esm/Generic/index.js",
+			"default": "./dist/esm/Generic/index.js"
+		},
+		"./Generic/": {
+			"types": "./dist/protos/Generic/",
+			"import": "./dist/esm/Generic/"
 		},
 		"./Generic/*": {
 			"types": "./dist/protos/Generic/*.d.ts",
 			"import": "./dist/esm/Generic/*.js"
 		},
+		"./Notification": {
+			"types": "./dist/protos/Notification/index.d.ts",
+			"import": "./dist/esm/Notification/index.js",
+			"default": "./dist/esm/Notification/index.js"
+		},
+		"./Notification/": {
+			"types": "./dist/protos/Notification/",
+			"import": "./dist/esm/Notification/"
+		},
 		"./Notification/*": {
 			"types": "./dist/protos/Notification/*.d.ts",
 			"import": "./dist/esm/Notification/*.js"
 		},
+		"./Page": {
+			"types": "./dist/protos/Page/index.d.ts",
+			"import": "./dist/esm/Page/index.js",
+			"default": "./dist/esm/Page/index.js"
+		},
+		"./Page/": {
+			"types": "./dist/protos/Page/",
+			"import": "./dist/esm/Page/"
+		},
 		"./Page/*": {
 			"types": "./dist/protos/Page/*.d.ts",
 			"import": "./dist/esm/Page/*.js"
+		},
+		"./Settings": {
+			"types": "./dist/protos/Settings/index.d.ts",
+			"import": "./dist/esm/Settings/index.js",
+			"default": "./dist/esm/Settings/index.js"
+		},
+		"./Settings/": {
+			"types": "./dist/protos/Settings/",
+			"import": "./dist/esm/Settings/"
 		},
 		"./Settings/*": {
 			"types": "./dist/protos/Settings/*.d.ts",
