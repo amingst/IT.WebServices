@@ -105,6 +105,7 @@ namespace IT.WebServices.Authentication.Services
 
             return new AuthenticateUserResponse()
             {
+                Ok = true,
                 BearerToken = GenerateToken(user.Normal, otherClaims),
                 UserRecord = user.Normal,
             };
