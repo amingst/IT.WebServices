@@ -34,13 +34,13 @@ inputs:
 
 plugins:
   - remote: buf.build/bufbuild/es:v2.9.0
-    out: ts-gen/gen
+    out: ts-gen
     opt:
       - target=ts
       - import_extension=none
 
   - remote: buf.build/connectrpc/es:v1.6.1
-    out: ts-gen/gen
+    out: ts-gen
     opt:
       - target=ts
       - import_extension=none

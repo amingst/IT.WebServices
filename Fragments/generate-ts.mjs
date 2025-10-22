@@ -63,8 +63,13 @@ function runBufGenerateOnce() {
  * but the actual file from the protovalidate module lands at ts-gen/gen/buf/validate/validate_pb.ts.
  * This creates a tiny re-export so both paths work.
  */
+function getGenRoot() {
+  const withGen = path.join(cwd, 'ts-gen', 'gen');
+  return fs.existsSync(withGen) ? withGen : path.join(cwd, 'ts-gen');
+}
+
 async function fixProtovalidateImportPath() {
-  const genRoot = path.join(cwd, 'ts-gen', 'gen');
+  const genRoot = getGenRoot();
 
   // Actual generated file (from buf.build/bufbuild/protovalidate)
   const src = path.join(genRoot, 'buf', 'validate', 'validate_pb.ts');
@@ -239,8 +244,9 @@ export * from '../gen/Protos/IT/WebServices/Fragments';
 
 
 
-async function buildFlatShims() {
-  const deepRoot = path.join(cwd, 'ts-gen', 'gen', 'Protos', 'IT', 'WebServices', 'Fragments');
+// Relocate generated files from Protos/.../Fragments into ts-gen/{Module}
+async function relocateFragmentsTopLevel() {
+  const deepRoot = path.join(getGenRoot(), 'Protos', 'IT', 'WebServices', 'Fragments');
   const flatRoot = path.join(cwd, 'ts-gen');
   if (!fs.existsSync(deepRoot)) return;
 
@@ -256,7 +262,7 @@ async function buildFlatShims() {
 
   const relDeep = (from, to) => path.relative(from, to).replace(/\\/g, '/');
 
-  function shimDir(deepDir, outDir) {
+  async function moveDir(deepDir, outDir) {
     const entries = fs.readdirSync(deepDir, { withFileTypes: true });
     const files = entries.filter(e => e.isFile() && e.name.endsWith('.ts') && e.name !== 'index.ts' && e.name !== 'connect.ts').map(e => e.name);
     const subdirs = entries.filter(e => e.isDirectory()).map(e => e.name).sort();
@@ -264,31 +270,23 @@ async function buildFlatShims() {
     const connectFiles = files.filter(n => hasSuffix(n, '_connect.ts')).sort();
     let pbFiles = files.filter(n => hasSuffix(n, '_pb.ts')).sort();
 
-    // drop pb if connect exists for same base
-    const connectBases = new Set(connectFiles.map(baseOf));
-    pbFiles = pbFiles.filter(pb => !connectBases.has(baseOf(pb)));
-    // drop generic Backup_pb when a qualified one exists
+    // Keep both pb and connect files; only filter generic Backup_pb duplicates
     pbFiles = filterGenericVsQualifiedPb(pbFiles);
 
-    // Create shims for PB files in outDir/
+    // Move PB files in-place (drop barrels)
     fs.mkdirSync(outDir, { recursive: true });
-    let idx = `// Auto-generated - DO NOT EDIT\n`;
     for (const f of pbFiles) {
-      const base = stripTs(f);
       const src = path.join(deepDir, f);
-      const shimPath = path.join(outDir, `${base}.ts`);
-      const importFrom = relDeep(path.dirname(shimPath), src).replace(/\.ts$/, '');
-      fs.writeFileSync(shimPath, `// Auto-generated - DO NOT EDIT\nexport * from '${importFrom}';\n`);
-      idx += `export * from './${base}';\n`;
+      const dest = path.join(outDir, f);
+      fs.renameSync(src, dest);
     }
     // Recurse for subdirs
     for (const sd of subdirs) {
       const subOut = path.join(outDir, sd);
       const subDeep = path.join(deepDir, sd);
-      shimDir(subDeep, subOut);
-      idx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from './${sd}';\n`;
+      await moveDir(subDeep, subOut);
     }
-    fs.writeFileSync(path.join(outDir, 'index.ts'), idx);
+    // No index.ts to minimize barrels
 
     // Create connect barrel and shims under outDir/connect/
     const subdirsWithConnect = subdirs.filter(sd => {
@@ -302,22 +300,13 @@ async function buildFlatShims() {
     });
 
     if (connectFiles.length || subdirsWithConnect.length) {
-const connectDir = path.join(outDir, 'connect');
-fs.mkdirSync(connectDir, { recursive: true });
-let cidx = `// Auto-generated - DO NOT EDIT\n`;
-for (const f of connectFiles) {
-  const base = stripTs(f);
-  const src = path.join(deepDir, f);
-  const shimPath = path.join(connectDir, `${base}.ts`);
-  const importFrom = relDeep(path.dirname(shimPath), src).replace(/\.ts$/, '');
-  fs.writeFileSync(shimPath, `// Auto-generated - DO NOT EDIT\nexport * from '${importFrom}';\n`);
-  cidx += `export * from './${base}';\n`;
-}
-for (const sd of subdirsWithConnect) {
-  cidx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from '../${sd}/connect';\n`;
-}
-fs.writeFileSync(path.join(connectDir, 'index.ts'), cidx);
-
+      const connectDir = path.join(outDir, 'connect');
+      fs.mkdirSync(connectDir, { recursive: true });
+      for (const f of connectFiles) {
+        const src = path.join(deepDir, f);
+        const dest = path.join(connectDir, f);
+        fs.renameSync(src, dest);
+      }
     } else {
 // clean up stale sibling file and/or dir when no connect
 const siblingBarrel = path.join(outDir, 'connect.ts');
@@ -332,13 +321,23 @@ if (fs.existsSync(connectDir)) fs.rmSync(connectDir, { recursive: true, force: t
     if (!mod.isDirectory()) continue;
     const deepModDir = path.join(deepRoot, mod.name);
     const outModDir  = path.join(flatRoot, mod.name);
-    shimDir(deepModDir, outModDir);
+    await moveDir(deepModDir, outModDir);
   }
+  // Move root-level *_pb.ts (e.g., CommonTypes_pb.ts, Errors_pb.ts)
+  for (const ent of fs.readdirSync(deepRoot, { withFileTypes: true })) {
+    if (ent.isFile() && ent.name.endsWith('_pb.ts')) {
+      const src = path.join(deepRoot, ent.name);
+      const dest = path.join(flatRoot, ent.name);
+      fs.renameSync(src, dest);
+    }
+  }
+  // Remove the original Protos tree
+  await rimrafSafe(path.join(getGenRoot(), 'Protos'));
 }
 
 
 async function buildProtosFlatShims() {
-  const deepRoot = path.join(cwd, 'ts-gen', 'gen', 'Protos', 'IT', 'WebServices', 'Fragments');
+  const deepRoot = path.join(getGenRoot(), 'Protos', 'IT', 'WebServices', 'Fragments');
   const outRoot  = path.join(cwd, 'ts-gen', 'protos');
   if (!fs.existsSync(deepRoot)) return;
 
@@ -428,6 +427,195 @@ if (fs.existsSync(cdir)) fs.rmSync(cdir, { recursive: true, force: true });
   }
 }
 
+// After hoisting, fix stale protovalidate import specifiers inside relocated files.
+async function fixHoistedProtovalidateImports() {
+  const tsRoot = path.join(cwd, 'ts-gen');
+  const targetTs = path.join(tsRoot, 'buf', 'validate', 'validate_pb.ts');
+  if (!fs.existsSync(targetTs)) {
+    warn('[protovalidate] target not found at ' + targetTs);
+    return;
+  }
+  const targetNoExt = targetTs.replace(/\\/g, '/').replace(/\.ts$/, '');
+
+  const walk = (dir) => {
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, ent.name);
+      if (ent.isDirectory()) {
+        walk(full);
+      } else if (ent.isFile() && ent.name.endsWith('.ts') && ent.name !== 'index.ts' && ent.name !== 'connect.ts') {
+        // Skip editing the validate file itself
+        if (full === targetTs) continue;
+        let src = fs.readFileSync(full, 'utf8');
+        let changed = false;
+        // Normalize module specifier to correct relative path
+        src = src.replace(/from\s+(["'])([^"']*buf\/validate\/validate_pb)\1/g, (m, q, spec) => {
+          // Compute correct relative path from this file to the target
+          let rel = path.relative(path.dirname(full), targetNoExt).replace(/\\/g, '/');
+          // Ensure relative specifiers start with './' or '../'
+          if (!rel.startsWith('.') && !rel.startsWith('/')) rel = `./${rel}`;
+          if (spec === rel) return m; // already correct
+          changed = true;
+          return `from ${q}${rel}${q}`;
+        });
+        // Alias expected symbol name if generator referenced file_Protos_buf_validate_validate
+        if (/from\s+["'][^"']*buf\/validate\/validate_pb["']/.test(src) &&
+            src.includes('file_Protos_buf_validate_validate') &&
+            !src.includes('file_buf_validate_validate as file_Protos_buf_validate_validate')) {
+          const before = src;
+          src = src.replace(
+            /import\s*{([^}]*)}\s*from\s*["'][^"']*buf\/validate\/validate_pb["']/g,
+            (m, inner) => {
+              if (!/file_Protos_buf_validate_validate\b/.test(inner)) return m;
+              const replaced = inner.replace(
+                /\bfile_Protos_buf_validate_validate\b/g,
+                'file_buf_validate_validate as file_Protos_buf_validate_validate'
+              );
+              return m.replace(inner, replaced);
+            }
+          );
+          if (src !== before) changed = true;
+        }
+        if (changed) {
+          fs.writeFileSync(full, src, 'utf8');
+          log(`[protovalidate] Rewrote import in ${path.relative(tsRoot, full)} → correct relative path`);
+        }
+      }
+    }
+  };
+
+  walk(tsRoot);
+}
+
+// Create minimal index.ts files so imports like `import * as Content from './Content'` work
+async function buildMinimalIndexes() {
+  const root = path.join(cwd, 'ts-gen');
+  const skip = new Set(['buf', 'google']);
+
+  function writeConnectIndex(connectDir) {
+    if (!fs.existsSync(connectDir)) return false;
+    const entries = fs.readdirSync(connectDir, { withFileTypes: true });
+    const files = entries
+      .filter(e => e.isFile() && e.name.endsWith('.ts') && e.name !== 'index.ts')
+      .map(e => e.name)
+      .sort();
+    const subdirs = entries.filter(e => e.isDirectory()).map(e => e.name).sort();
+    if (!files.length && !subdirs.length) return false;
+
+    let idx = `// Auto-generated - DO NOT EDIT\n`;
+    for (const f of files) {
+      const base = f.replace(/\.ts$/, '');
+      idx += `export * from './${base}';\n`;
+    }
+    for (const sd of subdirs) {
+      idx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from './${sd}';\n`;
+    }
+    fs.writeFileSync(path.join(connectDir, 'index.ts'), idx, 'utf8');
+    return true;
+  }
+
+  function writeIndex(dir) {
+    if (!fs.existsSync(dir)) return;
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const files = entries
+      .filter(e => e.isFile() && e.name.endsWith('.ts') && e.name !== 'index.ts' && e.name !== 'connect.ts')
+      .map(e => e.name);
+    const subdirs = entries
+      .filter(e => e.isDirectory())
+      .map(e => e.name)
+      .filter(n => !skip.has(n))
+      .sort();
+
+    const pbFiles = files.filter(n => n.endsWith('_pb.ts')).sort();
+    let idx = `// Auto-generated - DO NOT EDIT\n`;
+    for (const f of pbFiles) {
+      const base = f.replace(/\.ts$/, '');
+      idx += `export * from './${base}';\n`;
+    }
+    // Ensure connect dir has an index before exporting it
+    const connectDir = path.join(dir, 'connect');
+    const subdirsFiltered = subdirs.filter(sd => sd !== 'connect');
+    if (fs.existsSync(connectDir)) {
+      const had = writeConnectIndex(connectDir);
+      if (had) {
+        idx += `export * as connect from './connect';\n`;
+      }
+    }
+    for (const sd of subdirsFiltered) {
+      idx += `export * as ${sd.replace(/[^A-Za-z0-9_]/g,'')} from './${sd}';\n`;
+    }
+    fs.writeFileSync(path.join(dir, 'index.ts'), idx, 'utf8');
+
+    for (const sd of subdirs) writeIndex(path.join(dir, sd));
+  }
+
+  writeIndex(root);
+}
+
+// In connect stubs, import message types from the parent directory, not sibling.
+// Example: ts-gen/Authentication/connect/UserInterface_connect.ts
+//   from './UserInterface_pb'  →  from '../UserInterface_pb'
+async function fixConnectPbImports() {
+  const root = path.join(cwd, 'ts-gen');
+  if (!fs.existsSync(root)) return;
+
+  const reImport = /from\s+(["'])\.\/([^"']+?_pb)(?:\.[a-z]+)?\1/g;
+
+  const walk = (dir) => {
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, ent.name);
+      if (ent.isDirectory()) {
+        walk(full);
+      } else if (ent.isFile() && ent.name.endsWith('.ts') && full.replace(/\\/g,'/').includes('/connect/')) {
+        let src = fs.readFileSync(full, 'utf8');
+        const next = src.replace(reImport, (m, q, pathPart) => `from ${q}../${pathPart}${q}`);
+        if (next !== src) {
+          fs.writeFileSync(full, next, 'utf8');
+          log(`[connect] Rewrote pb import to parent in ${path.relative(root, full)}`);
+        }
+      }
+    }
+  };
+
+  walk(root);
+}
+
+// After hoisting, fix stale google/api import specifiers used by RPC annotations
+async function fixHoistedGoogleImports() {
+  const tsRoot = path.join(cwd, 'ts-gen');
+  const annTs = path.join(tsRoot, 'google', 'api', 'annotations_pb.ts');
+  const httpTs = path.join(tsRoot, 'google', 'api', 'http_pb.ts');
+
+  const targets = [
+    { mod: 'google/api/annotations_pb', file: annTs },
+    { mod: 'google/api/http_pb', file: httpTs },
+  ].filter(t => fs.existsSync(t.file));
+
+  if (!targets.length) return;
+
+  const walk = (dir) => {
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, ent.name);
+      if (ent.isDirectory()) {
+        walk(full);
+      } else if (ent.isFile() && ent.name.endsWith('.ts')) {
+        let src = fs.readFileSync(full, 'utf8');
+        let changed = false;
+        for (const t of targets) {
+          const targetNoExt = t.file.replace(/\\/g, '/').replace(/\.ts$/, '');
+          const relRaw = path.relative(path.dirname(full), targetNoExt).replace(/\\/g, '/');
+          const rel = relRaw.startsWith('.') || relRaw.startsWith('/') ? relRaw : `./${relRaw}`;
+          const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const re = new RegExp(`from\\s+(['\"])((?:\\./|\\../)+)?${esc(t.mod)}\\1`, 'g');
+          src = src.replace(re, (m, q) => { changed = true; return `from ${q}${rel}${q}`; });
+        }
+        if (changed) fs.writeFileSync(full, src, 'utf8');
+      }
+    }
+  };
+
+  walk(tsRoot);
+}
+
 async function main() {
   log('Starting TypeScript generation for all proto files...');
   log(`Working directory: ${cwd}`);
@@ -441,7 +629,6 @@ for (const e of await fsp.readdir(tsGenDir, { withFileTypes: true })) {
   await rimrafSafe(path.join(tsGenDir, e.name));
 }
 
-  await ensureDir(path.join(tsGenDir, 'gen'));
   log('Cleaned ts-gen directory.');
 
   // RUN ONCE — let the template control inputs/paths.
@@ -450,17 +637,23 @@ for (const e of await fsp.readdir(tsGenDir, { withFileTypes: true })) {
   // ⬇️ Fix the remaining protovalidate import path mismatch
   await fixProtovalidateImportPath();
 
-  log('Building hierarchical index.ts files...');
-  await generateIndexes();
-  log('Index build complete.');
+  // Relocate generated files to ts-gen/{Module} and remove deep tree
+  log('Relocating generated files to top-level modules...');
+  await relocateFragmentsTopLevel();
+  log('Relocation complete.');
 
-  log('Building flat re-export shims...');
-  await buildFlatShims();
-  log('Flat shims complete.');
+  // Normalize protovalidate import paths after hoist
+  await fixHoistedProtovalidateImports();
+  // Normalize google/api import paths after hoist
+  await fixHoistedGoogleImports();
 
-  log('Building protos flat shims...');
-  await buildProtosFlatShims();
-  log('Protos flat shims complete.');
+  // Make connect files import PB types from parent dirs
+  await fixConnectPbImports();
+
+  // Build minimal barrels for module imports used by validation.ts
+  log('Writing minimal index.ts files...');
+  await buildMinimalIndexes();
+  log('Index files written.');
 }
 
 main().catch((e) => { console.error('Generation failed with error:', e); process.exit(1); });
