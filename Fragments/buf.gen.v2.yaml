@@ -19,29 +19,28 @@
 version: v2
 
 inputs:
-  - directory: .
-    paths:
-      - Protos/
+    - directory: .
+      paths:
+          - Protos/
 
-  - module: buf.build/googleapis/googleapis
-    paths:
-      - google/api/annotations.proto
-      - google/api/http.proto
+    - module: buf.build/googleapis/googleapis
+      paths:
+          - google/api/annotations.proto
+          - google/api/http.proto
 
-  - module: buf.build/bufbuild/protovalidate
-    paths:
-      - buf/validate/validate.proto
+    - module: buf.build/bufbuild/protovalidate
+      paths:
+          - buf/validate/validate.proto
 
 plugins:
-  - remote: buf.build/bufbuild/es:v2.9.0
-    out: ts-gen
-    opt:
-      - target=ts
-      - import_extension=none
+    - remote: buf.build/bufbuild/es:v2.9.0
+      out: ts-gen
+      opt:
+          - target=ts
+          - import_extension=none
 
-  - remote: buf.build/connectrpc/es:v1.6.1
-    out: ts-gen
-    opt:
-      - target=ts
-      - import_extension=none
-
+    - remote: buf.build/connectrpc/es:v1.6.1
+      out: ts-gen
+      opt:
+          - target=ts
+          - import_extension=none

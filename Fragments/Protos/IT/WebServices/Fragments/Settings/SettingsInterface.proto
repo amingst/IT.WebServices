@@ -3,7 +3,7 @@ syntax = "proto3";
 package IT.WebServices.Fragments.Settings;
 
 import "google/api/annotations.proto";
-import "Protos/buf/validate/validate.proto";
+import "buf/validate/validate.proto";
 import "Protos/IT/WebServices/Fragments/Settings/SettingsRecord.proto";
 import "Protos/IT/WebServices/Fragments/Settings/SettingsError.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Events/EventsSettings.proto";

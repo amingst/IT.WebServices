@@ -16,8 +16,8 @@
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventsSettings.proto" />
-	  <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketRecord.proto" />
-	  <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\TicketClassRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Authorization\Events\TicketClassRecord.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\AdminPaymentInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\BackupInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\BitcoinInterface.proto" />
@@ -88,19 +88,14 @@
     <None Remove="Protos\IT\WebServices\Fragments\Generic\ServiceOps.proto" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf
-      Include="Protos\buf\validate\validate.proto"
-      GrpcServices="None"
-      CompileOutputs="false"
-    />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\AdminEventInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventError.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventRecord.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventsSettings.proto" />
-	  <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\TicketClassRecord.proto" />
-	  <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\TicketClassRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Events\EventTicketRecord.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\BackupInterface.proto" />
     <Protobuf
       Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoRecords.proto"
@@ -199,7 +194,10 @@
       GrpcServices="None"
     />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Settings\SettingsInterface.proto" />
-    <Protobuf Include="Protos\IT\WebServices\Fragments\Settings\SettingsError.proto" GrpcServices="None" />
+    <Protobuf
+      Include="Protos\IT\WebServices\Fragments\Settings\SettingsError.proto"
+      GrpcServices="None"
+    />
     <Protobuf
       Include="Protos\IT\WebServices\Fragments\Settings\SettingsRecord.proto"
       GrpcServices="None"

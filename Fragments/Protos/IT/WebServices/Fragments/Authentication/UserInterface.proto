@@ -4,7 +4,7 @@ package IT.WebServices.Fragments.Authentication;
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
-import "Protos/buf/validate/validate.proto";
+import "buf/validate/validate.proto";
 import "Protos/IT/WebServices/Fragments/Errors.proto";
 import "Protos/IT/WebServices/Fragments/Authentication/UserRecord.proto";
 

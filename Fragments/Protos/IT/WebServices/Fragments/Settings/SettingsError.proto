@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package IT.WebServices.Fragments.Settings;
 
-import "Protos/buf/validate/validate.proto";
+import "buf/validate/validate.proto";
 import "Protos/IT/WebServices/Fragments/Errors.proto";
 
 // Unified error shape for Settings RPCs (mirrors AuthError)

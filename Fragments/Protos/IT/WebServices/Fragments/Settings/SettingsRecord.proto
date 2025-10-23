@@ -3,7 +3,7 @@ syntax = "proto3";
 package IT.WebServices.Fragments.Settings;
 
 import "google/protobuf/timestamp.proto";
-import "Protos/buf/validate/validate.proto";
+import "buf/validate/validate.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/SharedTypes.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Crypto/CryptoSettings.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Manual/ManualPaymentSettings.proto";

@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package IT.WebServices.Fragments.Notification;
-import "Protos/buf/validate/validate.proto";
+import "buf/validate/validate.proto";
 
 message SendgridOwnerSettings {
   bool Enabled = 1;
