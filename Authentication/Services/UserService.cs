@@ -79,7 +79,7 @@ namespace IT.WebServices.Authentication.Services
             if (offlineHelper.IsOffline)
                 return new AuthenticateUserResponse{
                     Ok = false,
-                    Error =
+                    Error = new AuthError
                     {
                         Type = AuthErrorReason.LoginErrorServiceUnavailable,
                         Message = "Server Unavailible, Try Again Later",
@@ -93,7 +93,7 @@ namespace IT.WebServices.Authentication.Services
                 return new AuthenticateUserResponse
                 {
                     Ok = false,
-                    Error =
+                    Error = new AuthError
                     {
                         Type = AuthErrorReason.LoginErrorInvalidCredentials,
                         Message = "Missing UserName or Password"
@@ -106,13 +106,13 @@ namespace IT.WebServices.Authentication.Services
                 user = await dataProvider.GetByEmail(request.UserName);
                 if (user == null)
                     return new AuthenticateUserResponse
-                    {
-                        Ok = false,
-                        Error =
                         {
-                            Type = AuthErrorReason.LoginErrorInvalidCredentials,
-                            Message = "User Not Found, Check UserName/Email and try Again"
-                        }
+                            Ok = false,
+                            Error = new AuthError
+                            {
+                                Type = AuthErrorReason.LoginErrorInvalidCredentials,
+                                Message = "User Not Found"
+                            }
                     };
             }
 
@@ -122,18 +122,18 @@ namespace IT.WebServices.Authentication.Services
                 return new AuthenticateUserResponse
                 {
                     Ok = false,
-                    Error =
-                    {
-                        Type = AuthErrorReason.LoginErrorInvalidCredentials,
-                        Message = "Login Failed, Check Credentials And Try Again"
-                    }
+                    Error = new AuthError
+                        {
+                            Type = AuthErrorReason.LoginErrorInvalidCredentials,
+                            Message = "Check Credentials and try Again"
+                        }
                 };
 
             if (!ValidateTotp(user.Server?.TOTPDevices, request.MFACode))
                 return new AuthenticateUserResponse
                 {
                     Ok = false,
-                    Error =
+                    Error = new AuthError
                     {
                         Type = AuthErrorReason.LoginErrorInvalidMfaCode,
                         Message = "MFACode Invalid"
