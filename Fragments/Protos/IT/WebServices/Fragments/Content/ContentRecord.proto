@@ -47,8 +47,10 @@ message ContentPublicData {
     (buf.validate.field).string.max_len = 500
   ];
   string Author = 3 [(buf.validate.field).string.max_len = 100];
-  string AuthorID = 13 [(buf.validate.field).string.uuid = true];
-  string URL = 4 [(buf.validate.field).string.uri = true];
+  // AuthorID is server-filled; allow empty on requests
+  string AuthorID = 13;
+  // URL is a slug, not a full URI
+  string URL = 4 [(buf.validate.field).string.pattern = "^[a-z0-9]+(?:-[a-z0-9]+)*$"];
   string FeaturedImageAssetID = 6 [(buf.validate.field).string.uuid = true];
   uint32 SubscriptionLevel = 7 [(buf.validate.field).uint32.gte = 0];
   repeated string CategoryIds = 8 [
@@ -79,7 +81,8 @@ message ContentPrivateData {
     WrittenContentPrivateData Written = 23;
   }
 
-  string OldContentID = 51 [(buf.validate.field).string.uuid = true];
+  // OldContentID is optional and may be server-filled; allow empty on requests
+  string OldContentID = 51;
 }
 
 message AudioContentPublicData {

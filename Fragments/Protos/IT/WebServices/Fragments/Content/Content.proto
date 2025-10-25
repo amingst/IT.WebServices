@@ -128,7 +128,8 @@ message AnnounceContentResponse {
   
 message CreateContentRequest {
   ContentPublicData Public = 1 [(buf.validate.field).required = true];
-  ContentPrivateData Private = 2 [(buf.validate.field).required = true];
+  // Private is optional for client requests; server populates as needed
+  ContentPrivateData Private = 2;
 }
   
 message CreateContentResponse {

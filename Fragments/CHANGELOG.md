@@ -1,5 +1,11 @@
 # @inverted-tech/fragments
 
+## 0.3.8
+
+### Patch Changes
+
+- Automated patch bump
+
 ## 0.3.7
 
 ### Patch Changes
