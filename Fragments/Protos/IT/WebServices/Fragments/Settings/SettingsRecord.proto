@@ -125,10 +125,10 @@ message NotificationOwnerRecord {
 }
 
 message ChannelRecord {
-  string ChannelId = 1 [(buf.validate.field).string.min_len = 1];
+  string ChannelId = 1;
   string ParentChannelId = 2;
   string DisplayName = 3 [(buf.validate.field).string.min_len = 1];
-  string UrlStub = 4 [(buf.validate.field).string.pattern = "^[a-z0-9-]+$"];
+  string UrlStub = 4;
   string ImageAssetId = 5;
   string YoutubeUrl = 101 [(buf.validate.field).string.uri = true];
   string RumbleUrl = 102 [(buf.validate.field).string.uri = true];
@@ -137,11 +137,10 @@ message ChannelRecord {
 }
 
 message CategoryRecord {
-  string CategoryId = 1 [(buf.validate.field).string.min_len = 1];
+  string CategoryId = 1;
   string ParentCategoryId = 2;
   string DisplayName = 3 [(buf.validate.field).string.min_len = 1];
-  string UrlStub = 4 [(buf.validate.field).string.pattern = "^[a-z0-9-]+$"];
-
+  string UrlStub = 4 ;
   string OldCategoryId = 1001;
 }
 
