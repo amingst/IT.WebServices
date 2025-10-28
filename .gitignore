@@ -11,7 +11,7 @@ Fragments/ts-gen/**/*.ts
 *.user
 *.userosscache
 *.sln.docstates
-
+.kiro/
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
