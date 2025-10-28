@@ -274,8 +274,10 @@ namespace IT.WebServices.Content.CMS.Services.Data
 
                 await sql.RunCmd(query, parameters.ToArray());
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
             }
         }
     }

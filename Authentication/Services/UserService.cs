@@ -13,6 +13,7 @@ using Google.Protobuf;
 using Grpc.Core;
 using IT.WebServices.Authentication.Services.Data;
 using IT.WebServices.Authentication.Services.Helpers;
+using IT.WebServices.Fragments;
 using IT.WebServices.Fragments.Authentication;
 using IT.WebServices.Fragments.Authorization;
 using IT.WebServices.Fragments.Content;
@@ -79,25 +80,36 @@ namespace IT.WebServices.Authentication.Services
             if (offlineHelper.IsOffline)
                 return new AuthenticateUserResponse{
                     Ok = false,
-                    Error = new AuthError
-                    {
-                        Type = AuthErrorReason.LoginErrorServiceUnavailable,
-                        Message = "Server Unavailible, Try Again Later",
-                    }
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.LoginErrorServiceUnavailable,
+                        "Server Unavailable, Try Again Later"
+                    )
                 };
 
-            if (
-                string.IsNullOrWhiteSpace(request.UserName)
-                || string.IsNullOrWhiteSpace(request.Password)
-            )
+            var validationError = ErrorExtensions.CreateError(
+                AuthErrorReason.LoginErrorInvalidCredentials,
+                "Invalid credentials provided"
+            );
+
+            bool hasValidationErrors = false;
+
+            if (string.IsNullOrWhiteSpace(request.UserName))
+            {
+                validationError.AddValidationIssue("UserName", "Username is required", "required");
+                hasValidationErrors = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+            {
+                validationError.AddValidationIssue("Password", "Password is required", "required");
+                hasValidationErrors = true;
+            }
+
+            if (hasValidationErrors)
                 return new AuthenticateUserResponse
                 {
                     Ok = false,
-                    Error = new AuthError
-                    {
-                        Type = AuthErrorReason.LoginErrorInvalidCredentials,
-                        Message = "Missing UserName or Password"
-                    }
+                    Error = validationError
                 };
 
             var user = await dataProvider.GetByLogin(request.UserName);
@@ -108,11 +120,10 @@ namespace IT.WebServices.Authentication.Services
                     return new AuthenticateUserResponse
                         {
                             Ok = false,
-                            Error = new AuthError
-                            {
-                                Type = AuthErrorReason.LoginErrorInvalidCredentials,
-                                Message = "User Not Found"
-                            }
+                            Error = ErrorExtensions.CreateError(
+                                AuthErrorReason.LoginErrorInvalidCredentials,
+                                "User Not Found"
+                            ).AddValidationIssue("UserName", "User not found with provided username or email", "not_found")
                     };
             }
 
@@ -122,22 +133,20 @@ namespace IT.WebServices.Authentication.Services
                 return new AuthenticateUserResponse
                 {
                     Ok = false,
-                    Error = new AuthError
-                        {
-                            Type = AuthErrorReason.LoginErrorInvalidCredentials,
-                            Message = "Check Credentials and try Again"
-                        }
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.LoginErrorInvalidCredentials,
+                        "Check Credentials and try Again"
+                    ).AddValidationIssue("Password", "Invalid password provided", "invalid")
                 };
 
             if (!ValidateTotp(user.Server?.TOTPDevices, request.MFACode))
                 return new AuthenticateUserResponse
                 {
                     Ok = false,
-                    Error = new AuthError
-                    {
-                        Type = AuthErrorReason.LoginErrorInvalidMfaCode,
-                        Message = "MFACode Invalid"
-                    }
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.LoginErrorInvalidMfaCode,
+                        "MFACode Invalid"
+                    ).AddValidationIssue("MFACode", "Invalid MFA code provided", "invalid")
                 };
 
             var otherClaims = await claimsClient.GetOtherClaims(user.UserIDGuid);
@@ -159,10 +168,10 @@ namespace IT.WebServices.Authentication.Services
             if (offlineHelper.IsOffline)
                 return new ChangeOtherPasswordResponse
                 {
-                    Error = ChangeOtherPasswordResponse
-                        .Types
-                        .ChangeOtherPasswordResponseErrorType
-                        .UnknownError,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.ChangeOtherPasswordErrorUnknown,
+                        "Service is offline"
+                    )
                 };
 
             try
@@ -170,10 +179,10 @@ namespace IT.WebServices.Authentication.Services
                 if (!await AmIReallyAdmin(context))
                     return new ChangeOtherPasswordResponse
                     {
-                        Error = ChangeOtherPasswordResponse
-                            .Types
-                            .ChangeOtherPasswordResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOtherPasswordErrorUnknown,
+                            "Admin access required"
+                        )
                     };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
@@ -182,10 +191,10 @@ namespace IT.WebServices.Authentication.Services
                 if (record == null)
                     return new ChangeOtherPasswordResponse
                     {
-                        Error = ChangeOtherPasswordResponse
-                            .Types
-                            .ChangeOtherPasswordResponseErrorType
-                            .UserNotFound,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOtherPasswordErrorUserNotFound,
+                            "User not found"
+                        )
                     };
 
                 byte[] salt = RandomNumberGenerator.GetBytes(16);
@@ -202,20 +211,17 @@ namespace IT.WebServices.Authentication.Services
 
                 return new ChangeOtherPasswordResponse
                 {
-                    Error = ChangeOtherPasswordResponse
-                        .Types
-                        .ChangeOtherPasswordResponseErrorType
-                        .NoError,
+                    Error = null // Success case - no error
                 };
             }
             catch
             {
                 return new ChangeOtherPasswordResponse
                 {
-                    Error = ChangeOtherPasswordResponse
-                        .Types
-                        .ChangeOtherPasswordResponseErrorType
-                        .UnknownError,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.ChangeOtherPasswordErrorUnknown,
+                        "An unexpected error occurred"
+                    )
                 };
             }
         }
@@ -229,42 +235,42 @@ namespace IT.WebServices.Authentication.Services
             if (offlineHelper.IsOffline)
                 return new ChangeOtherProfileImageResponse
                 {
-                    Error = ChangeOtherProfileImageResponse
-                        .Types
-                        .ChangeOtherProfileImageResponseErrorType
-                        .UnknownError,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.ChangeOtherProfileImageErrorUnknown,
+                        "Service is offline"
+                    )
                 };
 
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new()
+                    return new ChangeOtherProfileImageResponse
                     {
-                        Error = ChangeOtherProfileImageResponse
-                            .Types
-                            .ChangeOtherProfileImageResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOtherProfileImageErrorUnknown,
+                            "Admin access required"
+                        )
                     };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
                 var record = await dataProvider.GetById(request.UserID.ToGuid());
                 if (record == null)
-                    return new()
+                    return new ChangeOtherProfileImageResponse
                     {
-                        Error = ChangeOtherProfileImageResponse
-                            .Types
-                            .ChangeOtherProfileImageResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOtherProfileImageErrorUserNotFound,
+                            "User not found"
+                        )
                     };
 
                 if (request?.ProfileImage == null || request.ProfileImage.IsEmpty)
-                    return new()
+                    return new ChangeOtherProfileImageResponse
                     {
-                        Error = ChangeOtherProfileImageResponse
-                            .Types
-                            .ChangeOtherProfileImageResponseErrorType
-                            .BadFormat,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOtherProfileImageErrorBadFormat,
+                            "Profile image data is required"
+                        )
                     };
 
                 using var ms = new MemoryStream();
@@ -275,10 +281,10 @@ namespace IT.WebServices.Authentication.Services
                 if (image == null)
                     return new ChangeOtherProfileImageResponse
                     {
-                        Error = ChangeOtherProfileImageResponse
-                            .Types
-                            .ChangeOtherProfileImageResponseErrorType
-                            .BadFormat,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOtherProfileImageErrorBadFormat,
+                            "Invalid image format"
+                        )
                     };
 
                 var newInfo = image.Info;
@@ -301,20 +307,17 @@ namespace IT.WebServices.Authentication.Services
 
                 return new ChangeOtherProfileImageResponse
                 {
-                    Error = ChangeOtherProfileImageResponse
-                        .Types
-                        .ChangeOtherProfileImageResponseErrorType
-                        .NoError,
+                    Error = null // Success case - no error
                 };
             }
             catch
             {
                 return new ChangeOtherProfileImageResponse
                 {
-                    Error = ChangeOtherProfileImageResponse
-                        .Types
-                        .ChangeOtherProfileImageResponseErrorType
-                        .BadFormat,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.ChangeOtherProfileImageErrorUnknown,
+                        "An unexpected error occurred while processing the image"
+                    )
                 };
             }
         }
@@ -327,10 +330,10 @@ namespace IT.WebServices.Authentication.Services
             if (offlineHelper.IsOffline)
                 return new ChangeOwnPasswordResponse
                 {
-                    Error = ChangeOwnPasswordResponse
-                        .Types
-                        .ChangeOwnPasswordResponseErrorType
-                        .UnknownError,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.ChangeOwnPasswordErrorUnknown,
+                        "Service is offline"
+                    )
                 };
 
             try
@@ -339,30 +342,30 @@ namespace IT.WebServices.Authentication.Services
                 if (userToken == null)
                     return new ChangeOwnPasswordResponse
                     {
-                        Error = ChangeOwnPasswordResponse
-                            .Types
-                            .ChangeOwnPasswordResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOwnPasswordErrorUnknown,
+                            "User authentication required"
+                        )
                     };
 
                 var record = await dataProvider.GetById(userToken.Id);
                 if (record == null)
                     return new ChangeOwnPasswordResponse
                     {
-                        Error = ChangeOwnPasswordResponse
-                            .Types
-                            .ChangeOwnPasswordResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOwnPasswordErrorUnknown,
+                            "User record not found"
+                        )
                     };
 
                 var hash = ComputeSaltedHash(request.OldPassword, record.Server.PasswordSalt.Span);
                 if (!CryptographicOperations.FixedTimeEquals(record.Server.PasswordHash.Span, hash))
                     return new ChangeOwnPasswordResponse
                     {
-                        Error = ChangeOwnPasswordResponse
-                            .Types
-                            .ChangeOwnPasswordResponseErrorType
-                            .BadOldPassword,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOwnPasswordErrorBadOldPassword,
+                            "Current password is incorrect"
+                        )
                     };
 
                 byte[] salt = RandomNumberGenerator.GetBytes(16);
@@ -379,20 +382,17 @@ namespace IT.WebServices.Authentication.Services
 
                 return new ChangeOwnPasswordResponse
                 {
-                    Error = ChangeOwnPasswordResponse
-                        .Types
-                        .ChangeOwnPasswordResponseErrorType
-                        .NoError,
+                    Error = null // Success case - no error
                 };
             }
             catch
             {
                 return new ChangeOwnPasswordResponse
                 {
-                    Error = ChangeOwnPasswordResponse
-                        .Types
-                        .ChangeOwnPasswordResponseErrorType
-                        .UnknownError,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.ChangeOwnPasswordErrorUnknown,
+                        "An unexpected error occurred while changing password"
+                    )
                 };
             }
         }
@@ -403,34 +403,43 @@ namespace IT.WebServices.Authentication.Services
         )
         {
             if (offlineHelper.IsOffline)
-                return new()
+                return new ChangeOwnProfileImageResponse
                 {
-                    Error = ChangeOwnProfileImageResponse
-                        .Types
-                        .ChangeOwnProfileImageResponseErrorType
-                        .UnknownError,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.ChangeOwnProfileImageErrorUnknown,
+                        "Service is offline"
+                    )
                 };
 
             try
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new()
+                    return new ChangeOwnProfileImageResponse
                     {
-                        Error = ChangeOwnProfileImageResponse
-                            .Types
-                            .ChangeOwnProfileImageResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOwnProfileImageErrorUnknown,
+                            "User authentication required"
+                        )
                     };
 
                 var record = await dataProvider.GetById(userToken.Id);
                 if (record == null)
-                    return new()
+                    return new ChangeOwnProfileImageResponse
                     {
-                        Error = ChangeOwnProfileImageResponse
-                            .Types
-                            .ChangeOwnProfileImageResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOwnProfileImageErrorUnknown,
+                            "User record not found"
+                        )
+                    };
+
+                if (request?.ProfileImage == null || request.ProfileImage.IsEmpty)
+                    return new ChangeOwnProfileImageResponse
+                    {
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOwnProfileImageErrorBadFormat,
+                            "Profile image data is required"
+                        )
                     };
 
                 using var ms = new MemoryStream();
@@ -439,12 +448,12 @@ namespace IT.WebServices.Authentication.Services
                 using var image = SKBitmap.Decode(ms);
 
                 if (image == null)
-                    return new()
+                    return new ChangeOwnProfileImageResponse
                     {
-                        Error = ChangeOwnProfileImageResponse
-                            .Types
-                            .ChangeOwnProfileImageResponseErrorType
-                            .BadFormat,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.ChangeOwnProfileImageErrorBadFormat,
+                            "Invalid image format"
+                        )
                     };
 
                 var newInfo = image.Info;
@@ -465,23 +474,20 @@ namespace IT.WebServices.Authentication.Services
 
                 await dataProvider.Save(record);
 
-                return new()
+                return new ChangeOwnProfileImageResponse
                 {
-                    Error = ChangeOwnProfileImageResponse
-                        .Types
-                        .ChangeOwnProfileImageResponseErrorType
-                        .NoError,
+                    Error = null // Success case - no error
                 };
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error in ChangeOwnProfileImage");
-                return new()
+                return new ChangeOwnProfileImageResponse
                 {
-                    Error = ChangeOwnProfileImageResponse
-                        .Types
-                        .ChangeOwnProfileImageResponseErrorType
-                        .BadFormat,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.ChangeOwnProfileImageErrorUnknown,
+                        "An unexpected error occurred while processing the image"
+                    )
                 };
             }
         }
@@ -495,117 +501,36 @@ namespace IT.WebServices.Authentication.Services
             if (offlineHelper.IsOffline)
                 return new CreateUserResponse
                 {
-                    Error = new AuthError
-                    {
-                        Type = AuthErrorReason.CreateUserErrorUnknown,
-                        Message = "Service is offline",
-                    },
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.CreateUserErrorUnknown,
+                        "Service is offline"
+                    )
                 };
 
             if (request is null)
                 return new CreateUserResponse
                 {
-                    Error = new AuthError
-                    {
-                        Type = AuthErrorReason.CreateUserErrorUnknown,
-                        Message = "Request was null",
-                    },
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.CreateUserErrorUnknown,
+                        "Request was null"
+                    ).AddValidationIssue("request", "Request cannot be null", "required")
                 };
 
-            // --- ProtoValidate (non-DI) ---
             var validator = new ProtoValidate.Validator();
-
-            // helpers to read violation fields without depending on a specific shape
-            string GetStringProp(object o, params string[] names)
-            {
-                foreach (var n in names)
-                {
-                    var p = o.GetType().GetProperty(n);
-                    if (p == null)
-                        continue;
-                    var v = p.GetValue(o);
-                    if (v == null)
-                        continue;
-                    var s = v.ToString();
-                    if (!string.IsNullOrWhiteSpace(s))
-                        return s!;
-                }
-                return string.Empty;
-            }
-
-            string GetFieldPath(object violation)
-            {
-                var simple = GetStringProp(violation, "Field", "Path");
-                if (!string.IsNullOrWhiteSpace(simple))
-                    return simple;
-
-                var fpProp = violation.GetType().GetProperty("FieldPath");
-                var fp = fpProp?.GetValue(violation);
-                if (fp != null)
-                {
-                    var s = fp.ToString();
-                    if (!string.IsNullOrWhiteSpace(s))
-                        return s;
-
-                    var segsProp = fp.GetType().GetProperty("Segments");
-                    var segs = segsProp?.GetValue(fp) as System.Collections.IEnumerable;
-                    if (segs != null)
-                    {
-                        var parts = new List<string>();
-                        foreach (var seg in segs)
-                        {
-                            var name = GetStringProp(seg, "Field", "Name");
-                            if (!string.IsNullOrWhiteSpace(name))
-                                parts.Add(name!);
-                        }
-                        if (parts.Count > 0)
-                            return string.Join(".", parts);
-                    }
-                }
-                return string.Empty;
-            }
-
-            string GetRuleId(object violation)
-            {
-                var id = GetStringProp(violation, "ConstraintId", "RuleId");
-                if (!string.IsNullOrWhiteSpace(id))
-                    return id;
-
-                var ruleObj = violation.GetType().GetProperty("Rule")?.GetValue(violation);
-                if (ruleObj != null)
-                {
-                    id = GetStringProp(ruleObj, "Id", "Name");
-                    if (!string.IsNullOrWhiteSpace(id))
-                        return id;
-                }
-                return string.Empty;
-            }
 
             // NOTE: some builds expose (request), others (request, bool). Use the 2-arg call here.
             var validationResult = validator.Validate(request, false);
             if (validationResult.Violations.Count > 0)
             {
-                var err = new AuthError
-                {
-                    Type = AuthErrorReason.CreateUserErrorUnknown,
-                    Message = "Validation failed",
-                };
+                // Use the enhanced extension method to convert ProtoValidate results
+                var validationError = ErrorExtensions.FromProtoValidateResult(
+                    validationResult,
+                    AuthErrorReason.CreateUserErrorUnknown,
+                    "Validation failed"
+                );
 
-                foreach (var v in validationResult.Violations)
-                {
-                    err.Validation.Add(
-                        new Fragments.ValidationIssue
-                        {
-                            Field = GetFieldPath(v),
-                            Message = GetStringProp(v, "Message"),
-                            Code = GetRuleId(v),
-                        }
-                    );
-                }
-
-                return new CreateUserResponse { Error = err };
+                return new CreateUserResponse { Error = validationError };
             }
-            // --- end ProtoValidate ---
 
             var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
             var newGuid = Guid.NewGuid();
@@ -647,33 +572,30 @@ namespace IT.WebServices.Authentication.Services
             if (await dataProvider.LoginExists(uname))
                 return new CreateUserResponse
                 {
-                    Error = new AuthError
-                    {
-                        Type = AuthErrorReason.CreateUserErrorUsernameTaken,
-                        Message = "Username is already taken",
-                    },
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.CreateUserErrorUsernameTaken,
+                        "Username is already taken"
+                    ).AddValidationIssue("UserName", "Username is already taken", "unique")
                 };
 
             var email = user.Normal.Private.Data.Email;
             if (await dataProvider.EmailExists(email))
                 return new CreateUserResponse
                 {
-                    Error = new AuthError
-                    {
-                        Type = AuthErrorReason.CreateUserErrorEmailTaken,
-                        Message = "Email is already taken",
-                    },
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.CreateUserErrorEmailTaken,
+                        "Email is already taken"
+                    ).AddValidationIssue("Email", "Email is already taken", "unique")
                 };
 
             var ok = await dataProvider.Create(user);
             if (!ok)
                 return new CreateUserResponse
                 {
-                    Error = new AuthError
-                    {
-                        Type = AuthErrorReason.CreateUserErrorUnknown,
-                        Message = "Failed to create user",
-                    },
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.CreateUserErrorUnknown,
+                        "Failed to create user"
+                    )
                 };
 
             return new CreateUserResponse { BearerToken = GenerateToken(user.Normal, null) };
@@ -686,34 +608,35 @@ namespace IT.WebServices.Authentication.Services
         )
         {
             if (offlineHelper.IsOffline)
-                return new()
+                return new DisableEnableOtherUserResponse
                 {
-                    Error = DisableEnableOtherUserResponse
-                        .Types
-                        .DisableEnableOtherUserResponseErrorType
-                        .UnknownError,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.DisableOtherUserErrorUnknown,
+                        "Service is currently offline"
+                    )
                 };
 
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new()
+                    return new DisableEnableOtherUserResponse
                     {
-                        Error = DisableEnableOtherUserResponse
-                            .Types
-                            .DisableEnableOtherUserResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.DisableOtherUserErrorUnknown,
+                            "Admin access required"
+                        )
                     };
+
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
                 var record = await dataProvider.GetById(request.UserID.ToGuid());
                 if (record == null)
-                    return new()
+                    return new DisableEnableOtherUserResponse
                     {
-                        Error = DisableEnableOtherUserResponse
-                            .Types
-                            .DisableEnableOtherUserResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.DisableOtherUserErrorUnknown,
+                            "User not found"
+                        )
                     };
 
                 record.Normal.Public.DisabledOnUTC =
@@ -722,22 +645,20 @@ namespace IT.WebServices.Authentication.Services
 
                 await dataProvider.Save(record);
 
-                return new()
+                return new DisableEnableOtherUserResponse
                 {
-                    Error = DisableEnableOtherUserResponse
-                        .Types
-                        .DisableEnableOtherUserResponseErrorType
-                        .NoError,
+                    Error = null // Success case - no error
                 };
             }
-            catch
+            catch (Exception ex)
             {
-                return new()
+                logger.LogError(ex, "Error in DisableOtherUser");
+                return new DisableEnableOtherUserResponse
                 {
-                    Error = DisableEnableOtherUserResponse
-                        .Types
-                        .DisableEnableOtherUserResponseErrorType
-                        .UnknownError,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.DisableOtherUserErrorUnknown,
+                        "An unexpected error occurred while disabling user"
+                    )
                 };
             }
         }
@@ -754,21 +675,21 @@ namespace IT.WebServices.Authentication.Services
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.DisableOtherTotpErrorUnknown, Message = "Admin only" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.DisableOtherTotpErrorUnknown, "Admin only") };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.DisableOtherTotpErrorUnknown, Message = "Not logged in" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.DisableOtherTotpErrorUnknown, "Not logged in") };
 
                 var record = await dataProvider.GetById(request.UserID.ToGuid());
                 if (record == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.DisableOtherTotpErrorUnknown, Message = "User not found" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.DisableOtherTotpErrorUnknown, "User not found") };
 
                 var totp = record.Server.TOTPDevices.FirstOrDefault(r =>
                     r.TotpID == request.TotpID
                 );
                 if (totp == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.DisableOtherTotpErrorUnknown, Message = "Device not found" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.DisableOtherTotpErrorUnknown, "Device not found") };
 
                 totp.DisabledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
                     DateTime.UtcNow
@@ -800,17 +721,17 @@ namespace IT.WebServices.Authentication.Services
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.DisableOwnTotpErrorUnknown, Message = "Not logged in" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.DisableOwnTotpErrorUnknown, "Not logged in") };
 
                 var record = await dataProvider.GetById(userToken.Id);
                 if (record == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.DisableOwnTotpErrorUnknown, Message = "Not logged in" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.DisableOwnTotpErrorUnknown, "Not logged in") };
 
                 var totp = record.Server.TOTPDevices.FirstOrDefault(r =>
                     r.TotpID == request.TotpID
                 );
                 if (totp == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.DisableOwnTotpErrorUnknown, Message = "Device not found" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.DisableOwnTotpErrorUnknown, "Device not found") };
 
                 totp.DisabledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
                     DateTime.UtcNow
@@ -839,10 +760,10 @@ namespace IT.WebServices.Authentication.Services
             if (offlineHelper.IsOffline)
                 return new DisableEnableOtherUserResponse
                 {
-                    Error = DisableEnableOtherUserResponse
-                        .Types
-                        .DisableEnableOtherUserResponseErrorType
-                        .UnknownError,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.EnableOtherUserErrorUnknown,
+                        "Service is currently offline"
+                    )
                 };
 
             try
@@ -850,21 +771,22 @@ namespace IT.WebServices.Authentication.Services
                 if (!await AmIReallyAdmin(context))
                     return new DisableEnableOtherUserResponse
                     {
-                        Error = DisableEnableOtherUserResponse
-                            .Types
-                            .DisableEnableOtherUserResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.EnableOtherUserErrorUnknown,
+                            "Admin access required"
+                        )
                     };
+
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
                 var record = await dataProvider.GetById(request.UserID.ToGuid());
                 if (record == null)
                     return new DisableEnableOtherUserResponse
                     {
-                        Error = DisableEnableOtherUserResponse
-                            .Types
-                            .DisableEnableOtherUserResponseErrorType
-                            .UnknownError,
+                        Error = ErrorExtensions.CreateError(
+                            AuthErrorReason.EnableOtherUserErrorUnknown,
+                            "User not found"
+                        )
                     };
 
                 record.Normal.Public.DisabledOnUTC = null;
@@ -874,20 +796,18 @@ namespace IT.WebServices.Authentication.Services
 
                 return new DisableEnableOtherUserResponse
                 {
-                    Error = DisableEnableOtherUserResponse
-                        .Types
-                        .DisableEnableOtherUserResponseErrorType
-                        .NoError,
+                    Error = null // Success case - no error
                 };
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(ex, "Error in EnableOtherUser");
                 return new DisableEnableOtherUserResponse
                 {
-                    Error = DisableEnableOtherUserResponse
-                        .Types
-                        .DisableEnableOtherUserResponseErrorType
-                        .UnknownError,
+                    Error = ErrorExtensions.CreateError(
+                        AuthErrorReason.EnableOtherUserErrorUnknown,
+                        "An unexpected error occurred while enabling user"
+                    )
                 };
             }
         }
@@ -899,24 +819,24 @@ namespace IT.WebServices.Authentication.Services
         )
         {
             if (offlineHelper.IsOffline)
-                return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOtherTotpErrorUnknown, Message = "Offline" } };
+                return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOtherTotpErrorUnknown, "Offline") };
 
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOtherTotpErrorUnknown, Message = "Admin only" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOtherTotpErrorUnknown, "Admin only") };
 
                 var deviceName = request.DeviceName?.Trim();
                 if (string.IsNullOrWhiteSpace(deviceName))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOtherTotpErrorUnknown, Message = "Device Name required" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOtherTotpErrorUnknown, "Device Name required") };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOtherTotpErrorUnknown, Message = "Not logged in" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOtherTotpErrorUnknown, "Not logged in") };
 
                 var record = await dataProvider.GetById(request.UserID.ToGuid());
                 if (record == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOtherTotpErrorUnknown, Message = "User not found" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOtherTotpErrorUnknown, "User not found") };
 
                 if (
                     record
@@ -924,7 +844,7 @@ namespace IT.WebServices.Authentication.Services
                         .Where(r => r.DeviceName.ToLower() == deviceName.ToLower())
                         .Any()
                 )
-                    return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOtherTotpErrorUnknown, Message = "Device Name already exists" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOtherTotpErrorUnknown, "Device Name already exists") };
 
                 byte[] key = new byte[10];
                 rng.GetBytes(key);
@@ -965,8 +885,8 @@ namespace IT.WebServices.Authentication.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error in GenerateOwnTotp");
-                return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOtherTotpErrorUnknown, Message = "Unknown Error" } };
+                logger.LogError(ex, "Error in GenerateOtherTotp");
+                return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOtherTotpErrorUnknown, "Unknown Error") };
             }
         }
 
@@ -976,21 +896,21 @@ namespace IT.WebServices.Authentication.Services
         )
         {
             if (offlineHelper.IsOffline)
-                return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOwnTotpErrorUnknown, Message = "Offline" } };
+                return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOwnTotpErrorUnknown, "Offline") };
 
             try
             {
                 var deviceName = request.DeviceName?.Trim();
                 if (string.IsNullOrWhiteSpace(deviceName))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOwnTotpErrorUnknown, Message = "Device Name required" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOwnTotpErrorUnknown, "Device Name required") };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOwnTotpErrorUnknown, Message = "Not logged in" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOwnTotpErrorUnknown, "Not logged in") };
 
                 var record = await dataProvider.GetById(userToken.Id);
                 if (record == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOwnTotpErrorUnknown, Message = "Not logged in" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOwnTotpErrorUnknown, "Not logged in") };
 
                 if (
                     record
@@ -998,7 +918,7 @@ namespace IT.WebServices.Authentication.Services
                         .Where(r => r.DeviceName.ToLower() == deviceName.ToLower())
                         .Any()
                 )
-                    return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOwnTotpErrorUnknown, Message = "Device Name already exists" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOwnTotpErrorUnknown, "Device Name already exists") };
 
                 byte[] key = new byte[10];
                 rng.GetBytes(key);
@@ -1040,7 +960,7 @@ namespace IT.WebServices.Authentication.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error in GenerateOwnTotp");
-                return new() { Error = new AuthError { Type = AuthErrorReason.GenerateOwnTotpErrorUnknown, Message = "Unknown Error" } };
+                return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.GenerateOwnTotpErrorUnknown, "Unknown Error") };
             }
         }
 
@@ -1262,26 +1182,26 @@ namespace IT.WebServices.Authentication.Services
         )
         {
             if (offlineHelper.IsOffline)
-                return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserErrorServiceOffline, Message = "Service Offline" } };
+                return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserErrorServiceOffline, "Service Offline") };
 
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserErrorUnauthorized, Message = "Not an admin" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserErrorUnauthorized, "Not an admin") };
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
                 var userId = request.UserID.ToGuid();
                 var record = await dataProvider.GetById(userId);
                 if (record == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserErrorUserNotFound, Message = "User not found" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserErrorUserNotFound, "User not found") };
 
                 if (!IsUserNameValid(request.UserName))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserErrorUnknown, Message = "User Name not valid" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserErrorUnknown, "User Name not valid") };
 
                 request.UserName = request.UserName.ToLower();
 
                 if (!IsDisplayNameValid(request.DisplayName))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserErrorUnknown, Message = "Display Name not valid" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserErrorUnknown, "Display Name not valid") };
 
                 if (record.Normal.Public.Data.UserName != request.UserName)
                 {
@@ -1292,7 +1212,7 @@ namespace IT.WebServices.Authentication.Services
                             userId
                         )
                     )
-                        return new ModifyOtherUserResponse() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserErrorUsernameTaken, Message = "User Name taken" } };
+                        return new ModifyOtherUserResponse() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserErrorUsernameTaken, "User Name taken") };
 
                     record.Normal.Public.Data.UserName = request.UserName;
                 }
@@ -1300,7 +1220,7 @@ namespace IT.WebServices.Authentication.Services
                 if (record.Normal.Private.Data.Email != request.Email)
                 {
                     if (!await dataProvider.ChangeEmailIndex(request.Email, userId))
-                        return new ModifyOtherUserResponse() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserErrorEmailTaken, Message = "Email address taken" } };
+                        return new ModifyOtherUserResponse() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserErrorEmailTaken, "Email address taken") };
 
                     record.Normal.Private.Data.Email = request.Email;
                 }
@@ -1318,7 +1238,7 @@ namespace IT.WebServices.Authentication.Services
             }
             catch
             {
-                return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserErrorUnknown, Message = "Unknown error" } };
+                return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserErrorUnknown, "Unknown error") };
             }
         }
 
@@ -1329,18 +1249,18 @@ namespace IT.WebServices.Authentication.Services
         )
         {
             if (offlineHelper.IsOffline)
-                return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserRolesErrorUnknown, Message = "Service Offline" } };
+                return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserRolesErrorUnknown, "Service Offline") };
 
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserRolesErrorUnknown, Message = "Not an admin" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserRolesErrorUnknown, "Not an admin") };
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
                 var userId = request.UserID.ToGuid();
                 var record = await dataProvider.GetById(userId);
                 if (record == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserRolesErrorUnknown, Message = "User not found" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserRolesErrorUnknown, "User not found") };
 
                 record.Normal.Public.ModifiedOnUTC =
                     Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
@@ -1355,7 +1275,7 @@ namespace IT.WebServices.Authentication.Services
             }
             catch
             {
-                return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOtherUserRolesErrorUnknown, Message = "Unknown error" } };
+                return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserRolesErrorUnknown, "Unknown error") };
             }
         }
 
@@ -1365,20 +1285,20 @@ namespace IT.WebServices.Authentication.Services
         )
         {
             if (offlineHelper.IsOffline)
-                return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOwnUserErrorUnknown, Message = "Service Offline" } };
+                return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOwnUserErrorUnknown, "Service Offline") };
 
             try
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOwnUserErrorUnknown, Message = "No user token specified" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOwnUserErrorUnknown, "No user token specified") };
 
                 var record = await dataProvider.GetById(userToken.Id);
                 if (record == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOwnUserErrorUnknown, Message = "User not found" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOwnUserErrorUnknown, "User not found") };
 
                 if (!IsDisplayNameValid(request.DisplayName))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOwnUserErrorUnknown, Message = "Display Name not valid" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOwnUserErrorUnknown, "Display Name not valid") };
 
                 record.Normal.Public.Data.DisplayName = request.DisplayName;
                 record.Normal.Public.Data.Bio = request.Bio;
@@ -1386,7 +1306,7 @@ namespace IT.WebServices.Authentication.Services
                 if (record.Normal.Private.Data.Email != request.Email)
                 {
                     if (!await dataProvider.ChangeEmailIndex(request.Email, record.UserIDGuid))
-                        return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOwnUserErrorUnknown, Message = "Email address taken" } };
+                        return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOwnUserErrorUnknown, "Email address taken") };
 
                     record.Normal.Private.Data.Email = request.Email;
                 }
@@ -1402,7 +1322,7 @@ namespace IT.WebServices.Authentication.Services
             }
             catch
             {
-                return new() { Error = new AuthError { Type = AuthErrorReason.ModifyOwnUserErrorUnknown, Message = "Unknown error" } };
+                return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOwnUserErrorUnknown, "Unknown error") };
             }
         }
 
@@ -1535,28 +1455,28 @@ namespace IT.WebServices.Authentication.Services
             try
             {
                 if (!await AmIReallyAdmin(context))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOtherTotpErrorUnknown, Message = "Admin only" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOtherTotpErrorUnknown, "Admin only") };
 
                 if (string.IsNullOrWhiteSpace(request?.Code))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOtherTotpErrorInvalidCode, Message = "Code is required" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOtherTotpErrorInvalidCode, "Code is required") };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOtherTotpErrorUnknown, Message = "Not logged in" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOtherTotpErrorUnknown, "Not logged in") };
 
                 var record = await dataProvider.GetById(request.UserID.ToGuid());
                 if (record == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOtherTotpErrorUnknown, Message = "User not found" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOtherTotpErrorUnknown, "User not found") };
 
                 var totp = record.Server.TOTPDevices.FirstOrDefault(r =>
                     r.TotpID == request.TotpID
                 );
                 if (totp == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOtherTotpErrorUnknown, Message = "Device not found" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOtherTotpErrorUnknown, "Device not found") };
 
                 TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
                 if (!tfa.ValidateTwoFactorPIN(totp.Key.ToByteArray(), request.Code.Trim()))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOtherTotpErrorInvalidCode, Message = "Code is not valid" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOtherTotpErrorInvalidCode, "Code is not valid") };
 
                 totp.VerifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
                     DateTime.UtcNow
@@ -1587,25 +1507,25 @@ namespace IT.WebServices.Authentication.Services
             try
             {
                 if (string.IsNullOrWhiteSpace(request?.Code))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOwnTotpErrorInvalidCode, Message = "Code is required" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOwnTotpErrorInvalidCode, "Code is required") };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOwnTotpErrorUnknown, Message = "Not logged in" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOwnTotpErrorUnknown, "Not logged in") };
 
                 var record = await dataProvider.GetById(userToken.Id);
                 if (record == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOwnTotpErrorUnknown, Message = "Not logged in" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOwnTotpErrorUnknown, "Not logged in") };
 
                 var totp = record.Server.TOTPDevices.FirstOrDefault(r =>
                     r.TotpID == request.TotpID
                 );
                 if (totp == null)
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOwnTotpErrorUnknown, Message = "Device not found" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOwnTotpErrorUnknown, "Device not found") };
 
                 TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
                 if (!tfa.ValidateTwoFactorPIN(totp.Key.ToByteArray(), request.Code.Trim()))
-                    return new() { Error = new AuthError { Type = AuthErrorReason.VerifyOwnTotpErrorInvalidCode, Message = "Code is not valid" } };
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.VerifyOwnTotpErrorInvalidCode, "Code is not valid") };
 
                 totp.VerifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(
                     DateTime.UtcNow
