@@ -1,4 +1,4 @@
-﻿using Grpc.Core;
+using Grpc.Core;
 using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Payment.Generic.Data;
 using IT.WebServices.Authorization.Payment.Stripe.Clients;
@@ -49,7 +49,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = "No user token specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("stripe operation") };
 
                 var userId = request.UserID.ToGuid();
 
@@ -110,7 +110,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe
             }
             catch
             {
-                return new() { Error = "Unknown error" };
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.PaymentErrorUnknown, "Unknown error occurred") };
             }
         }
 
@@ -120,7 +120,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = "No user token specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("stripe operation") };
 
                 var customer = await client.GetCustomerByUserId(userToken.Id);
                 if (customer == null)
@@ -181,7 +181,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe
             }
             catch
             {
-                return new() { Error = "Unknown error" };
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.PaymentErrorUnknown, "Unknown error occurred") };
             }
         }
 
@@ -191,7 +191,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe
         //    {
         //        var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
         //        if (userToken == null)
-        //            return new() { Error = "No user token specified" };
+        //            return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("stripe operation") };
 
         //        var customer = await client.GetCustomerByUserId(userToken.Id);
         //        if (customer == null)
@@ -255,7 +255,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe
         //    }
         //    catch
         //    {
-        //        return new() { Error = "Unknown error" };
+        //        return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.PaymentErrorUnknown, "Unknown error occurred") };
         //    }
         //}
 
@@ -309,15 +309,15 @@ namespace IT.WebServices.Authorization.Payment.Stripe
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = "No user token specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("stripe operation") };
 
                 var product = await client.EnsureOneTimeProduct(request);
                 if (product == null)
-                    return new() { Error = "Failed To Get A Response From Stripe Client" };
+                    return new() { Error = PaymentErrorExtensions.CreateProviderError("Stripe", "Failed to get response from Stripe client") };
 
                 var price = await client.EnsureOneTimePrice(request, product);
                 if (price == null)
-                    return new() { Error = "Failed To Get A Response From Stripe Client" };
+                    return new() { Error = PaymentErrorExtensions.CreateProviderError("Stripe", "Failed to get response from Stripe client") };
 
                 await client.EnsureOneTimeProductDefaultPrice(product, price);
 
@@ -325,7 +325,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe
             }
             catch (Exception e)
             {
-                return new() { Error = e.Message };
+                return new() { Error = PaymentErrorExtensions.CreateProviderError("Stripe", e.Message) };
             }
         }
 
@@ -347,7 +347,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe
         //    {
         //        var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
         //        if (userToken == null)
-        //            return new () { Error = "No user token specified" };
+        //            return new () { Error = PaymentErrorExtensions.CreateUnauthorizedError("stripe operation") };
 
         //        if (request?.SubscriptionId == null)
         //            return new () { Error = "SubscriptionId not valid" };
@@ -403,7 +403,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe
         //    }
         //    catch
         //    {
-        //        return new () { Error = "Unknown error" };
+        //        return new () { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.PaymentErrorUnknown, "Unknown error occurred") };
         //    }
         //}
     }

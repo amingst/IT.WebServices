@@ -41,22 +41,22 @@ namespace IT.WebServices.Authorization.Payment.Paypal
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = "No user token specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("create subscription") };
 
                 if (request?.PaypalSubscriptionID == null)
-                    return new() { Error = "SubscriptionId not valid" };
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("PaypalSubscriptionID is required") };
 
                 var sub = await client.GetSubscription(request.PaypalSubscriptionID);
                 if (sub == null)
-                    return new() { Error = "SubscriptionId not valid" };
+                    return new() { Error = PaymentErrorExtensions.CreateSubscriptionNotFoundError(request.PaypalSubscriptionID) };
 
                 var billing_info = sub.billing_info;
                 if (billing_info == null)
-                    return new() { Error = "SubscriptionId not valid" };
+                    return new() { Error = PaymentErrorExtensions.CreateProviderError("Paypal", "Invalid billing information") };
 
                 decimal value = 0;
                 if (!decimal.TryParse(sub.billing_info?.last_payment?.amount?.value ?? "0", out value))
-                    return new() { Error = "Subscription Value not valid" };
+                    return new() { Error = PaymentErrorExtensions.CreateProviderError("Paypal", "Invalid subscription value") };
 
                 var record = new GenericSubscriptionRecord()
                 {
@@ -94,7 +94,7 @@ namespace IT.WebServices.Authorization.Payment.Paypal
             }
             catch
             {
-                return new() { Error = "Unknown error" };
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.PaymentErrorUnknown, "Unknown error occurred") };
             }
         }
         #endregion

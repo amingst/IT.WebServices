@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using IT.WebServices.Authorization.Payment.Stripe.Data;
 using IT.WebServices.Fragments.Authorization;
 using IT.WebServices.Fragments.Authorization.Payment.Stripe;
+using IT.WebServices.Fragments.Authorization.Payment;
 using Stripe;
 using IT.WebServices.Models;
 using IT.WebServices.Authentication;
@@ -88,7 +89,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
             }
             catch (Exception ex)
             {
-                return new() { Error = ex.Message, };
+                return new() { Error = PaymentErrorExtensions.CreateProviderError("Stripe", ex.Message) };
             }
         }
 
