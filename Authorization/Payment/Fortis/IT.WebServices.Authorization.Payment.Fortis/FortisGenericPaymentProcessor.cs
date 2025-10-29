@@ -47,13 +47,13 @@ namespace IT.WebServices.Authorization.Payment.Fortis
         {
             var res = await fortisSubscriptionHelper.Get(record.InternalSubscriptionID);
             if (res == null)
-                return new() { Error = "SubscriptionId not valid" };
+                return new() { Error = PaymentErrorExtensions.CreateSubscriptionNotFoundError(record.InternalSubscriptionID) };
 
             if (res.Status == SubscriptionStatus.SubscriptionActive)
             {
                 var cancelRes = await fortisSubscriptionHelper.Cancel(record.InternalSubscriptionID);
                 if (cancelRes?.Status != SubscriptionStatus.SubscriptionStopped)
-                    return new() { Error = "Unable to cancel subscription" };
+                    return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.CancelSubscriptionErrorUnknown, "Unable to cancel subscription") };
             }
 
             record.CanceledBy = userToken.Id.ToString();

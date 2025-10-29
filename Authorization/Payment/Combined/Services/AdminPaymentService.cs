@@ -109,19 +109,19 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = "No user token specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("cancel subscription") };
 
                 var userId = request.UserID.ToGuid();
                 if (userId == Guid.Empty)
-                    return new() { Error = "No UserID specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("No UserID specified") };
 
                 var intSubId = request.InternalSubscriptionID.ToGuid();
                 if (intSubId == Guid.Empty)
-                    return new() { Error = "No InternalSubscriptionID specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("No InternalSubscriptionID specified") };
 
                 var record = await genericSubProvider.GetById(userId, intSubId);
                 if (record == null)
-                    return new() { Error = "Record not found" };
+                    return new() { Error = PaymentErrorExtensions.CreateSubscriptionNotFoundError(intSubId.ToString()) };
 
                 var provider = genericProcessorProvider.GetProcessor(record);
                 return await provider.CancelSubscription(record, userToken);
@@ -129,7 +129,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
-                return new() { Error = "Unknown error" };
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.CancelSubscriptionErrorUnknown, "Unknown error occurred") };
             }
         }
 
@@ -268,19 +268,19 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = "No user token specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("reconcile subscription") };
 
                 var userId = request.UserID.ToGuid();
                 if (userId == Guid.Empty)
-                    return new() { Error = "No UserID specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("No UserID specified") };
 
                 var intSubId = request.InternalSubscriptionID.ToGuid();
                 if (intSubId == Guid.Empty)
-                    return new() { Error = "No InternalSubscriptionID specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("No InternalSubscriptionID specified") };
 
                 var record = await genericFullProvider.GetBySubscriptionId(userId, intSubId);
                 if (record == null)
-                    return new() { Error = "Record not found" };
+                    return new() { Error = PaymentErrorExtensions.CreateSubscriptionNotFoundError(intSubId.ToString()) };
 
                 var provider = genericProcessorProvider.GetProcessor(record);
                 return await reconcileHelper.ReconcileSubscription(record, userToken);
@@ -288,7 +288,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
-                return new() { Error = "Unknown error" };
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.ReconcileSubscriptionErrorUnknown, "Unknown error occurred") };
             }
         }
     }
