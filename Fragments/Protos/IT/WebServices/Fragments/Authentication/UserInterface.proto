@@ -331,14 +331,7 @@ message ChangeOtherPasswordRequest {
 }
   
 message ChangeOtherPasswordResponse {
-  ChangeOtherPasswordResponseErrorType Error = 1;
-
-  enum ChangeOtherPasswordResponseErrorType {
-    NoError = 0;
-    UnknownError = -1;
-    UserNotFound = 1;
-    BadNewPassword = 2;
-  }
+  AuthError Error = 1;
 }
   
 message ChangeOtherProfileImageRequest {
@@ -347,14 +340,7 @@ message ChangeOtherProfileImageRequest {
 }
   
 message ChangeOtherProfileImageResponse {
-  ChangeOtherProfileImageResponseErrorType Error = 1;
-
-  enum ChangeOtherProfileImageResponseErrorType {
-    NoError = 0;
-    UnknownError = -1;
-    UserNotFound = 1;
-    BadFormat = 2;
-  }
+  AuthError Error = 1;
 }
   
 message ChangeOwnPasswordRequest {
@@ -363,14 +349,7 @@ message ChangeOwnPasswordRequest {
 }
   
 message ChangeOwnPasswordResponse {
-  ChangeOwnPasswordResponseErrorType Error = 1;
-
-  enum ChangeOwnPasswordResponseErrorType {
-    NoError = 0;
-    UnknownError = -1;
-    BadOldPassword = 1;
-    BadNewPassword = 2;
-  }
+  AuthError Error = 1;
 }
 
 message ChangeOwnProfileImageRequest {
@@ -378,13 +357,7 @@ message ChangeOwnProfileImageRequest {
 }
   
 message ChangeOwnProfileImageResponse {
-  ChangeOwnProfileImageResponseErrorType Error = 1;
-
-  enum ChangeOwnProfileImageResponseErrorType {
-    NoError = 0;
-    UnknownError = -1;
-    BadFormat = 1;
-  }
+  AuthError Error = 1;
 }
 
 message CreateUserRequest {
@@ -405,7 +378,7 @@ message DisableEnableOtherUserRequest {
 }
   
 message DisableEnableOtherUserResponse {
-  DisableEnableOtherUserResponseErrorType Error = 1;
+  AuthError Error = 10;
 
   enum DisableEnableOtherUserResponseErrorType {
     NoError = 0;

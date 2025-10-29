@@ -270,10 +270,7 @@ message GetOwnerNewerDataResponse {
   SettingsOwnerData Owner = 3;
 }
 
-enum ModifyResponseErrorType {
-  NoError = 0;
-  UnknownError = -1;
-}
+
 
 
 message ModifyCMSPublicDataRequest {
@@ -281,9 +278,7 @@ message ModifyCMSPublicDataRequest {
 }
 
 message ModifyCMSPublicDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyCMSPrivateDataRequest {
@@ -291,9 +286,7 @@ message ModifyCMSPrivateDataRequest {
 }
 
 message ModifyCMSPrivateDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyCMSOwnerDataRequest {
@@ -301,9 +294,7 @@ message ModifyCMSOwnerDataRequest {
 }
 
 message ModifyCMSOwnerDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyPersonalizationPublicDataRequest {
@@ -311,9 +302,7 @@ message ModifyPersonalizationPublicDataRequest {
 }
 
 message ModifyPersonalizationPublicDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyPersonalizationPrivateDataRequest {
@@ -321,9 +310,7 @@ message ModifyPersonalizationPrivateDataRequest {
 }
 
 message ModifyPersonalizationPrivateDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyPersonalizationOwnerDataRequest {
@@ -331,9 +318,7 @@ message ModifyPersonalizationOwnerDataRequest {
 }
 
 message ModifyPersonalizationOwnerDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifySubscriptionPublicDataRequest {
@@ -341,9 +326,7 @@ message ModifySubscriptionPublicDataRequest {
 }
 
 message ModifySubscriptionPublicDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifySubscriptionPrivateDataRequest {
@@ -351,9 +334,7 @@ message ModifySubscriptionPrivateDataRequest {
 }
 
 message ModifySubscriptionPrivateDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifySubscriptionOwnerDataRequest {
@@ -361,9 +342,7 @@ message ModifySubscriptionOwnerDataRequest {
 }
 
 message ModifySubscriptionOwnerDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyCommentsPublicDataRequest {
@@ -371,9 +350,7 @@ message ModifyCommentsPublicDataRequest {
 }
 
 message ModifyCommentsPublicDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyCommentsPrivateDataRequest {
@@ -381,9 +358,7 @@ message ModifyCommentsPrivateDataRequest {
 }
 
 message ModifyCommentsPrivateDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyCommentsOwnerDataRequest {
@@ -391,9 +366,7 @@ message ModifyCommentsOwnerDataRequest {
 }
 
 message ModifyCommentsOwnerDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyNotificationPublicDataRequest {
@@ -401,9 +374,7 @@ message ModifyNotificationPublicDataRequest {
 }
 
 message ModifyNotificationPublicDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyNotificationPrivateDataRequest {
@@ -411,9 +382,7 @@ message ModifyNotificationPrivateDataRequest {
 }
 
 message ModifyNotificationPrivateDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyNotificationOwnerDataRequest {
@@ -421,9 +390,7 @@ message ModifyNotificationOwnerDataRequest {
 }
 
 message ModifyNotificationOwnerDataResponse {
-  ModifyResponseErrorType Error = 1;
-  // TODO: migrate to SettingsError (Error2) and remove enum Error
-  SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyEventPublicSettingsRequest {
@@ -431,9 +398,7 @@ message ModifyEventPublicSettingsRequest {
 }
 
 message ModifyEventPublicSettingsResponse {
-    ModifyResponseErrorType Error = 1;
-    // TODO: migrate to SettingsError (Error2) and remove enum Error
-    SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyEventPrivateSettingsRequest {
@@ -441,9 +406,7 @@ message ModifyEventPrivateSettingsRequest {
 }
 
 message ModifyEventPrivateSettingsResponse {
-    ModifyResponseErrorType Error = 1;
-    // TODO: migrate to SettingsError (Error2) and remove enum Error
-    SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 
 message ModifyEventOwnerSettingsRequest {
@@ -451,8 +414,6 @@ message ModifyEventOwnerSettingsRequest {
 }
 
 message ModifyEventOwnerSettingsResponse {
-    ModifyResponseErrorType Error = 1;
-    // TODO: migrate to SettingsError (Error2) and remove enum Error
-    SettingsError Error2 = 2;
+  SettingsError Error = 1;
 }
 

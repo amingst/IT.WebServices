@@ -4,6 +4,7 @@ package IT.WebServices.Fragments.Authorization.Payment.Paypal;
 
 import "google/api/annotations.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/DataRecords.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/PaymentError.proto";
 
 service PaypalInterface {
   rpc PaypalNewOwnSubscription (PaypalNewOwnSubscriptionRequest) returns (PaypalNewOwnSubscriptionResponse)
@@ -21,5 +22,5 @@ message PaypalNewOwnSubscriptionRequest {
   
 message PaypalNewOwnSubscriptionResponse {
   GenericSubscriptionRecord Record = 1;
-  string Error = 2;
+  PaymentError Error = 2;
 }

@@ -191,7 +191,7 @@ message AdminCancelOtherTicketRequest {
 }
 
 message AdminCancelOtherTicketResponse {
-	TicketError Error = 1;
+	EventError Error = 1;
 }
 
 message AdminReserveEventTicketForUserRequest {
@@ -202,6 +202,6 @@ message AdminReserveEventTicketForUserRequest {
 }
 
 message AdminReserveEventTicketForUserResponse {
-	TicketError Error = 1; // Error information if reservation failed
+	EventError Error = 1; // Error information if reservation failed
 	repeated EventTicketRecord Tickets = 2; // List of reserved tickets if successful
 }

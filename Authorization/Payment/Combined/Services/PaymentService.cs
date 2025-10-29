@@ -55,15 +55,15 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = "No user token specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("cancel subscription") };
 
                 var intSubId = request.InternalSubscriptionID.ToGuid();
                 if (intSubId == Guid.Empty)
-                    return new() { Error = "No InternalSubscriptionID specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("No InternalSubscriptionID specified") };
 
                 var record = await genericSubProvider.GetById(userToken.Id, intSubId);
                 if (record == null)
-                    return new() { Error = "Record not found" };
+                    return new() { Error = PaymentErrorExtensions.CreateSubscriptionNotFoundError(intSubId.ToString()) };
 
                 var provider = genericProcessorProvider.GetProcessor(record);
                 return await provider.CancelSubscription(record, userToken);
@@ -71,7 +71,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
-                return new() { Error = "Unknown error" };
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.CancelSubscriptionErrorUnknown, "Unknown error occurred") };
             }
         }
 
@@ -80,15 +80,15 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             try
             {
                 if (request?.DomainName == null)
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("Domain name is required") };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("get payment details") };
 
                 var level = request?.Level ?? 0;
                 if (level == 0)
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateInvalidLevelError("0") };
 
                 return new()
                 {
@@ -99,7 +99,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
-                return new();
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.GetNewDetailsErrorUnknown, "Unknown error occurred") };
             }
         }
 
@@ -109,11 +109,11 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("get one-time payment details") };
 
                 if (string.IsNullOrEmpty(request.InternalID))
                 {
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("Internal ID is required") };
                 }
 
                 var details = await stripeClient.GetNewOneTimeDetails(request.InternalID, userToken, request.DomainName, request.DifferentPresetPriceCents);
@@ -123,7 +123,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
-                return new();
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.PaymentErrorUnknown, "Unknown error occurred") };
             }
         }
 
@@ -133,11 +133,11 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("get payment record") };
 
                 var intPayId = request.InternalPaymentID.ToGuid();
                 if (intPayId == Guid.Empty)
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("Invalid payment ID") };
 
                 var record = await genericOneTimeProvider.GetById(userToken.Id, intPayId);
 
@@ -149,7 +149,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
-                return new();
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.GetPaymentErrorUnknown, "Unknown error occurred") };
             }
         }
 
@@ -159,7 +159,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("get payment records") };
 
                 var records = await genericOneTimeProvider.GetAllByUserId(userToken.Id).ToList();
 
@@ -171,7 +171,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
-                return new();
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.GetPaymentErrorUnknown, "Unknown error occurred") };
             }
         }
 
@@ -181,11 +181,11 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("get subscription record") };
 
                 var intSubId = request.InternalSubscriptionID.ToGuid();
                 if (intSubId == Guid.Empty)
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("Invalid subscription ID") };
 
                 var baseT = genericFullProvider.GetBySubscriptionId(userToken.Id, intSubId);
                 var manualT = manualProvider.GetBySubscriptionId(userToken.Id, intSubId);
@@ -205,7 +205,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
-                return new();
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.GetSubscriptionErrorUnknown, "Unknown error occurred") };
             }
         }
 
@@ -215,7 +215,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new();
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("get subscription records") };
 
                 var baseT = genericFullProvider.GetAllByUserId(userToken.Id).ToList();
                 var manualT = manualProvider.GetAllByUserId(userToken.Id).ToList();
@@ -235,7 +235,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
-                return new();
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.GetSubscriptionErrorUnknown, "Unknown error occurred") };
             }
         }
 
@@ -245,15 +245,15 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = "No user token specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("reconcile subscription") };
 
                 var intSubId = request.InternalSubscriptionID.ToGuid();
                 if (intSubId == Guid.Empty)
-                    return new() { Error = "No InternalSubscriptionID specified" };
+                    return new() { Error = PaymentErrorExtensions.CreateValidationError("No InternalSubscriptionID specified") };
 
                 var record = await genericFullProvider.GetBySubscriptionId(userToken.Id, intSubId);
                 if (record == null)
-                    return new() { Error = "Record not found" };
+                    return new() { Error = PaymentErrorExtensions.CreateSubscriptionNotFoundError(intSubId.ToString()) };
 
                 var provider = genericProcessorProvider.GetProcessor(record);
                 return await reconcileHelper.ReconcileSubscription(record, userToken);
@@ -261,7 +261,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unknown Error");
-                return new() { Error = "Unknown error" };
+                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.ReconcileSubscriptionErrorUnknown, "Unknown error occurred") };
             }
         }
     }
