@@ -8,6 +8,7 @@ import "Protos/IT/WebServices/Fragments/Content/AssetRecord.proto";
 import "Protos/IT/WebServices/Fragments/Content/AudioAssetRecord.proto";
 import "Protos/IT/WebServices/Fragments/Content/ImageAssetRecord.proto";
 import "Protos/IT/WebServices/Fragments/Content/ContentError.proto";
+import "buf/validate/validate.proto";
 
 // Service for Asset fragment interface
 service AssetInterface {
@@ -70,7 +71,7 @@ message CreateAssetResponse {
 }
 
 message GetAssetRequest {
-  string AssetID = 1;   // Guid for the Asset record
+  string AssetID = 1[(buf.validate.field).string.uuid = true];   // Guid for the Asset record
 }
   
 message GetAssetResponse {
@@ -83,7 +84,7 @@ message GetAssetResponse {
 }
   
 message GetAssetAdminRequest {
-  string AssetID = 1;   // Guid for the content record
+  string AssetID = 1[(buf.validate.field).string.uuid = true];   // Guid for the content record
 }
   
 message GetAssetAdminResponse {
@@ -104,7 +105,7 @@ message GetListOfIDsRequest {
 }
 
 message GetListOfIDsResponse {
-  string AssetID = 1;
+  string AssetID = 1[(buf.validate.field).string.uuid = true];
   google.protobuf.Timestamp ModifiedOnUTC = 2;
 }
 
@@ -112,7 +113,7 @@ message GetListOfOldContentIDsRequest {
 }
 
 message GetListOfOldContentIDsResponse {
-  string AssetID = 1;
+  string AssetID = 1[(buf.validate.field).string.uuid = true];
   string OldAssetID = 2;
   google.protobuf.Timestamp ModifiedOnUTC = 3;
 }
@@ -139,7 +140,7 @@ enum AssetType {
 }
 
 message AssetListRecord {
-  string AssetID = 1;                         // Guid for the asset record
+  string AssetID = 1[(buf.validate.field).string.uuid = true];                         // Guid for the asset record
   google.protobuf.Timestamp CreatedOnUTC = 2; // UTC timestamp when content was created
   string Title = 3;
   string Caption = 4;

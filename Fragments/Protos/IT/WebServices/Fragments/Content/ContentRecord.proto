@@ -13,10 +13,9 @@ message ContentRecord {
 
 message ContentPublicRecord {
   string ContentID = 1 [
-    (buf.validate.field).required = true,
     (buf.validate.field).string.uuid = true
   ];   // Guid for the content record
-  google.protobuf.Timestamp CreatedOnUTC = 2 [(buf.validate.field).required = true];  // UTC timestamp when content was created
+  google.protobuf.Timestamp CreatedOnUTC = 2;  // UTC timestamp when content was created
   google.protobuf.Timestamp ModifiedOnUTC = 3; // UTC timestamp when content record was last modified
   google.protobuf.Timestamp PublishOnUTC = 4;  // UTC timestamp when content was or will be published
   google.protobuf.Timestamp AnnounceOnUTC = 7;  // UTC timestamp when content was or will be announced
@@ -47,17 +46,20 @@ message ContentPublicData {
     (buf.validate.field).string.max_len = 500
   ];
   string Author = 3 [(buf.validate.field).string.max_len = 100];
-  // AuthorID is server-filled; allow empty on requests
-  string AuthorID = 13;
-  // URL is a slug, not a full URI
-  string URL = 4 [(buf.validate.field).string.pattern = "^[a-z0-9]+(?:-[a-z0-9]+)*$"];
+  string AuthorID = 13 [
+    (buf.validate.field).string.uuid = true];
+  string URL = 4 [
+    (buf.validate.field).string.min_len = 3,
+    (buf.validate.field).string.max_len = 200
+  ];
   string FeaturedImageAssetID = 6 [(buf.validate.field).string.uuid = true];
   uint32 SubscriptionLevel = 7 [(buf.validate.field).uint32.gte = 0];
   repeated string CategoryIds = 8 [
     (buf.validate.field).repeated.items.string.uuid = true
   ];
   repeated string ChannelIds = 9 [
-    (buf.validate.field).repeated.items.string.uuid = true
+    (buf.validate.field).repeated.items.string.uuid = true,
+    (buf.validate.field).repeated.min_items = 1
   ];
   repeated string Tags = 10 [
     (buf.validate.field).repeated.max_items = 25,
@@ -87,7 +89,7 @@ message ContentPrivateData {
 
 message AudioContentPublicData {
   string HtmlBody = 1 [(buf.validate.field).string.min_len = 1];
-  string AudioAssetID = 2 [(buf.validate.field).string.uuid = true];
+  string AudioAssetID = 2 [(buf.validate.field).required = true, (buf.validate.field).string.uuid = true];
 }
 message AudioContentPrivateData {
 }
@@ -95,7 +97,8 @@ message AudioContentPrivateData {
 message PictureContentPublicData {
   string HtmlBody = 1;
   repeated string ImageAssetIDs = 2 [
-    (buf.validate.field).repeated.items.string.uuid = true
+    (buf.validate.field).repeated.items.string.uuid = true,
+    (buf.validate.field).repeated.min_items = 1
   ];
 }
 message PictureContentPrivateData {
@@ -112,7 +115,7 @@ message VideoContentPrivateData {
 }
 
 message WrittenContentPublicData {
-  string HtmlBody = 1 [(buf.validate.field).required = true, (buf.validate.field).string.min_len = 1];
+  string HtmlBody = 1 [(buf.validate.field).required = true, (buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 1000];
 }
 message WrittenContentPrivateData {
 }

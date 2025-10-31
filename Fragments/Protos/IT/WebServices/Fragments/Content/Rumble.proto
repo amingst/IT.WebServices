@@ -5,6 +5,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 import "Protos/IT/WebServices/Fragments/Content/ContentError.proto";
+import "buf/validate/validate.proto";
 
 service RumbleInterface {
 	rpc GetRumbleChannel (RumbleChannelRequest) returns (RumbleChannelResponse);		// Grab a Rumble Channel	 (Rumble API Method: Media.Search)
@@ -14,7 +15,7 @@ service RumbleInterface {
 }
 
 message RumbleVideo {
-	string Id = 1;
+	string Id = 1[(buf.validate.field).string.uuid = true];
 	string Embed = 2;
 	string Title = 3;
 	bool IsPrivate = 4;
