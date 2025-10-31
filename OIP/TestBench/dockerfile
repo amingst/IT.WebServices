@@ -1,0 +1,22 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy the project file and restore dependencies
+WORKDIR /src
+COPY . .
+WORKDIR "/src/OIP/TestBench"
+RUN dotnet restore
+RUN rm -f appsettings.Development.json
+RUN dotnet build -c Release -o /app/build
+
+RUN dotnet publish -c Release -o /app/publish --no-restore
+
+# Stage 2: Create the runtime image
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS final
+WORKDIR /app
+
+# Copy the published application from the build stage
+COPY --from=build /app/publish .
+
+# Set the entry point for the application
+ENTRYPOINT ["dotnet", "TestBench.dll"]
