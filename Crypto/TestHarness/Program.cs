@@ -9,7 +9,8 @@ namespace TestHarness
             //EcdhTest.Test();
             //BitcoinAddressTest.Test2();
             //TorHiddenServicesTest.Test();
-            FloCoin.Test();
+            //FloCoin.Test();
+            OIP.Test();
         }
     }
 }

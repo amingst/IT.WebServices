@@ -3,8 +3,10 @@ using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace IT.WebServices.Crypto.Extra
 {
@@ -21,6 +23,7 @@ namespace IT.WebServices.Crypto.Extra
         private const string KEYPATH_BACKUPKEY = "12021'/2'";
         private const string KEYPATH_TORKEY = "12021'/3'";
         private const string KEYPATH_FLOCOIN = "12021'/216'";
+        private const string KEYPATH_OIP = "43'/3618'";
 
         public TheGreatDerivator(string mnemoWords, string passphrase = null)
         {
@@ -115,6 +118,27 @@ namespace IT.WebServices.Crypto.Extra
             });
 
             return (GenerateSshPrivFile(eckey), GenerateSshPubLine(eckey));
+        }
+
+        public string DeriveOIPAuthPath(uint account = 0)
+        {
+            return $"{KEYPATH_OIP}/0'/{account}'";
+        }
+
+        public string DeriveOIPSigningXPub(uint account = 0)
+        {
+            var signingPrivateKey = master.Derive(new KeyPath(DeriveOIPAuthPath(account)));
+            var signingXpub = signingPrivateKey.Neuter().ToXPub();
+
+            return signingXpub;
+        }
+
+        public Key DeriveOIPSigningPrivateKey(uint account = 0, uint keyNum = 0)
+        {
+            var signingMasterPrivateKey = master.Derive(new KeyPath(DeriveOIPAuthPath(account)));
+            var privateSigningKey = signingMasterPrivateKey.Derive(0);
+
+            return privateSigningKey.PrivateKey;
         }
 
         public (string privEncodedKey, string pubOnionName) DeriveTorV3Key(uint account = 0, uint keyNum = 0)
