@@ -1,5 +1,11 @@
 # @inverted-tech/fragments
 
+## 0.5.1
+
+### Patch Changes
+
+- Automated patch bump
+
 ## 0.5.0
 
 ### Minor Changes

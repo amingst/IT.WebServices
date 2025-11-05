@@ -1,6 +1,6 @@
 {
 	"name": "@inverted-tech/fragments",
-	"version": "0.5.0",
+	"version": "0.5.1",
 	"description": "Types and JS runtime for Inverted protocol buffers (Fragments)",
 	"types": "dist/protos/index.d.ts",
 	"module": "dist/esm/index.js",
@@ -18,6 +18,10 @@
 		"./protos": {
 			"types": "./dist/protos/index.d.ts",
 			"import": "./dist/esm/protos/index.js"
+		},
+		"./protos/": {
+			"types": "./dist/protos/",
+			"import": "./dist/esm/protos/"
 		},
 		"./protos/*": {
 			"types": "./dist/protos/*.d.ts",
@@ -42,8 +46,8 @@
 			"default": "./dist/esm/Authorization/Events/index.js"
 		},
 		"./Authorization/Events/": {
-			"types": "./dist/protos/Authorization/Events",
-			"import": "./dist/esm/Authorization/Events"
+			"types": "./dist/protos/Authorization/Events/",
+			"import": "./dist/esm/Authorization/Events/"
 		},
 		"./Authorization/Events/*": {
 			"types": "./dist/protos/Authorization/Events/*.d.ts",
@@ -55,25 +59,25 @@
 			"default": "./dist/esm/Authorization/Payments/index.js"
 		},
 		"./Authorization/Payments/": {
-			"types": "./dist/protos/Authorization/Payments",
-			"import": "./dist/esm/Authorization/Payments"
+			"types": "./dist/protos/Authorization/Payments/",
+			"import": "./dist/esm/Authorization/Payments/"
 		},
 		"./Authorization/Payments/*": {
 			"types": "./dist/protos/Authorization/Payments/*.d.ts",
 			"import": "./dist/esm/Authorization/Payments/*.js"
 		},
-		"./Authorization/Payments/Crytpo": {
-			"types": "./dist/protos/Authorization/Payments/Crytpo/index.d.ts",
-			"import": "./dist/esm/Authorization/Payments/Crytpo/index.js",
-			"default": "./dist/esm/Authorization/Payments/Crytpo/index.js"
+		"./Authorization/Payments/Crypto": {
+			"types": "./dist/protos/Authorization/Payments/Crypto/index.d.ts",
+			"import": "./dist/esm/Authorization/Payments/Crypto/index.js",
+			"default": "./dist/esm/Authorization/Payments/Crypto/index.js"
 		},
-		"./Authorization/Payments/Crytpo/": {
-			"types": "./dist/protos/Authorization/Payments/Crytpo",
-			"import": "./dist/esm/Authorization/Payments/Crytpo"
+		"./Authorization/Payments/Crypto/": {
+			"types": "./dist/protos/Authorization/Payments/Crypto/",
+			"import": "./dist/esm/Authorization/Payments/Crypto/"
 		},
-		"./Authorization/Payments/Crytpo/*": {
-			"types": "./dist/protos/Authorization/Payments/Crytpo/*.d.ts",
-			"import": "./dist/esm/Authorization/Payments/Crytpo/*.js"
+		"./Authorization/Payments/Crypto/*": {
+			"types": "./dist/protos/Authorization/Payments/Crypto/*.d.ts",
+			"import": "./dist/esm/Authorization/Payments/Crypto/*.js"
 		},
 		"./Authorization/Payments/Fortis": {
 			"types": "./dist/protos/Authorization/Payments/Fortis/index.d.ts",
@@ -81,8 +85,8 @@
 			"default": "./dist/esm/Authorization/Payments/Fortis/index.js"
 		},
 		"./Authorization/Payments/Fortis/": {
-			"types": "./dist/protos/Authorization/Payments/Fortis",
-			"import": "./dist/esm/Authorization/Payments/Fortis"
+			"types": "./dist/protos/Authorization/Payments/Fortis/",
+			"import": "./dist/esm/Authorization/Payments/Fortis/"
 		},
 		"./Authorization/Payments/Fortis/*": {
 			"types": "./dist/protos/Authorization/Payments/Fortis/*.d.ts",
@@ -94,8 +98,8 @@
 			"default": "./dist/esm/Authorization/Payments/Manual/index.js"
 		},
 		"./Authorization/Payments/Manual/": {
-			"types": "./dist/protos/Authorization/Payments/Manual",
-			"import": "./dist/esm/Authorization/Payments/Manual"
+			"types": "./dist/protos/Authorization/Payments/Manual/",
+			"import": "./dist/esm/Authorization/Payments/Manual/"
 		},
 		"./Authorization/Payments/Manual/*": {
 			"types": "./dist/protos/Authorization/Payments/Manual/*.d.ts",
@@ -107,8 +111,8 @@
 			"default": "./dist/esm/Authorization/Payments/Paypal/index.js"
 		},
 		"./Authorization/Payments/Paypal/": {
-			"types": "./dist/protos/Authorization/Payments/Paypal",
-			"import": "./dist/esm/Authorization/Payments/Paypal"
+			"types": "./dist/protos/Authorization/Payments/Paypal/",
+			"import": "./dist/esm/Authorization/Payments/Paypal/"
 		},
 		"./Authorization/Payments/Paypal/*": {
 			"types": "./dist/protos/Authorization/Payments/Paypal/*.d.ts",
@@ -120,8 +124,8 @@
 			"default": "./dist/esm/Authorization/Payments/Stripe/index.js"
 		},
 		"./Authorization/Payments/Stripe/": {
-			"types": "./dist/protos/Authorization/Payments/Stripe",
-			"import": "./dist/esm/Authorization/Payments/Stripe"
+			"types": "./dist/protos/Authorization/Payments/Stripe/",
+			"import": "./dist/esm/Authorization/Payments/Stripe/"
 		},
 		"./Authorization/Payments/Stripe/*": {
 			"types": "./dist/protos/Authorization/Payments/Stripe/*.d.ts",
