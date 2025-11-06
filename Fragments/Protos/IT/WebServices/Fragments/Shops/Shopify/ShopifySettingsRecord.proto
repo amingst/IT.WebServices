@@ -1,0 +1,10 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Shops;
+import "google/protobuf/timestamp.proto";
+
+message ShopifyPublicSettingsEntry {}
+
+message ShopifyPrivateSettingsEntry {}
+
+message ShopifyOwnerSettingsEntry {}

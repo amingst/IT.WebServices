@@ -1,0 +1,44 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Shops;
+import "google/protobuf/timestamp.proto";
+import "Protos/IT/WebServices/Fragments/Shops/Shopify/ShopifySettingsRecord.proto";
+
+message ShopsPublicSettingsEntry {
+	string StoreId =1;
+	string DisplayName =2;
+	string PrimaryDomain = 3;
+	string CurrencyCode = 4;
+
+	oneof ShopsPublicSettingsEntryData {
+		ShopifyPublicSettingsEntry ShopifyPublic = 5;
+	}
+}
+
+message ShopsPublicSettings {
+	map<string, ShopsPublicSettingsEntry> Public = 1;
+}
+
+message ShopsPrivateSettingsEntry {
+	oneof ShopsPrivateSettingsEntryData {
+		ShopifyPrivateSettingsEntry ShopifyPrivate = 5;
+	}
+
+	google.protobuf.Timestamp LastSyncedOnUTC = 21;
+	google.protobuf.Timestamp LastSyncedById = 22;
+
+}
+
+message ShopsPrivateSettings {
+	map<string, ShopsPrivateSettingsEntry> Private = 1;
+}
+
+message ShopsOwnerSettingsEntry {
+	oneof ShopsOwnerSettingsEntryData {
+		ShopifyOwnerSettingsEntry ShopifyOwner = 5;
+	}
+}
+
+message  ShopsOwnerSettings {
+	map<string, ShopsOwnerSettingsEntry> Owner = 1;
+}

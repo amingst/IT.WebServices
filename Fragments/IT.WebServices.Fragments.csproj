@@ -92,6 +92,8 @@
     <None Remove="Protos\IT\WebServices\Fragments\CreatorDashboard\Subscribers\Manage.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\CreatorDashboard\Subscribers\Mute.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Generic\ServiceOps.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Shops\Shopify\ShopifySettingsRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Shops\ShopsSettingsRecord.proto" />
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authentication\ServiceInterface.proto" />
@@ -171,10 +173,7 @@
       GrpcServices="None"
     />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Errors.proto" />
-    <Protobuf
-      Include="Protos\IT\WebServices\Fragments\Page\PageError.proto"
-      GrpcServices="None"
-    />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Page\PageError.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Page\PageRecord.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Page\PageInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Content\Stats\StatsSaveInterface.proto" />
@@ -260,6 +259,8 @@
       Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Paypal\PaypalInterface.proto"
       GrpcServices="Both"
     />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Shops\Shopify\ShopifySettingsRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Shops\ShopsSettingsRecord.proto" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Grpc.Net.Client" Version="2.65.0" />
