@@ -4,16 +4,16 @@ import type { GenFile } from '@bufbuild/protobuf/codegenv2';
 import { createValidator, type Validator } from '@bufbuild/protovalidate';
 
 // Import barrels that re-export your generated descriptors (GenFile)
-import * as Auth from './Authentication';
-import * as Authorization from './Authorization';
-import * as Comment from './Comment';
-import * as Content from './Content';
-import * as CreatorDashboard from './CreatorDashboard';
-import * as Generic from './Generic';
-import * as Notification from './Notification';
-import * as Page from './Page';
-import * as Settings from './Settings';
-import * as FragmentsRoot from '.';
+import * as Auth from './Authentication/index.js';
+import * as Authorization from './Authorization/index.js';
+import * as Comment from './Comment/index.js';
+import * as Content from './Content/index.js';
+import * as CreatorDashboard from './CreatorDashboard/index.js';
+import * as Generic from './Generic/index.js';
+import * as Notification from './Notification/index.js';
+import * as Page from './Page/index.js';
+import * as Settings from './Settings/index.js';
+import * as FragmentsRoot from './index.js';
 
 // Runtime guard (don’t use a type predicate over a module union)
 function looksLikeGenFile(x: unknown): x is GenFile {

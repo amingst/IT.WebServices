@@ -1,6 +1,6 @@
 {
 	"name": "@inverted-tech/fragments",
-	"version": "0.5.1",
+	"version": "0.6.1",
 	"description": "Types and JS runtime for Inverted protocol buffers (Fragments)",
 	"types": "dist/protos/index.d.ts",
 	"module": "dist/esm/index.js",
@@ -265,6 +265,10 @@
 			"types": "./dist/protos/validation.d.ts",
 			"import": "./dist/esm/validation.js"
 		},
+		"./client": {
+			"types": "./dist/protos/client.d.ts",
+			"import": "./dist/esm/client.js"
+		},
 		"./*": {
 			"types": "./dist/*",
 			"import": "./dist/esm/*"
@@ -272,16 +276,20 @@
 	},
 	"scripts": {
 		"gen": "node ./generate-ts.mjs && node ./scripts/fix-empty-indexes.mjs",
-		"build": "npm run build:esm && npm run build:types",
+		"build": "npm run build:esm && npm run postbuild:esm && npm run build:types",
+		"test": "npm run build && node --test test/**/*.test.mjs",
+		"test:client": "npm run build && node --test test/client.test.mjs",
+		"test:basic": "node --test test/client-basic.test.mjs",
 		"prebuild:esm": "node ./scripts/fix-empty-indexes.mjs",
 		"build:gen": "npm run gen && npm run build",
 		"build:esm": "tsc -p tsconfig.esm.json",
+		"postbuild:esm": "node ./scripts/fix-all-imports.mjs && node ./scripts/fix-directory-imports.mjs",
 		"prebuild:types": "node ./scripts/fix-empty-indexes.mjs",
 		"build:types": "tsc -p tsconfig.types.json",
 		"lint": "eslint . --ext .ts",
 		"lint:gen": "eslint ts-gen --ext .ts",
 		"lint:gen:fix": "eslint ts-gen --ext .ts --fix",
-		"clean": "node -e \"const fs=require('fs'),path=require('path'); const rm=(p)=>fs.rmSync(p,{recursive:true,force:true}); if(fs.existsSync('dist')) rm('dist'); const base='ts-gen'; if(fs.existsSync(base)){ for(const ent of fs.readdirSync(base,{withFileTypes:true})) { if(ent.name==='validation.ts') continue; rm(path.join(base, ent.name)); } }\"",
+		"clean": "node -e \"const fs=require('fs'),path=require('path'); const rm=(p)=>fs.rmSync(p,{recursive:true,force:true}); if(fs.existsSync('dist')) rm('dist'); const base='ts-gen'; if(fs.existsSync(base)){ for(const ent of fs.readdirSync(base,{withFileTypes:true})) { if(ent.name==='validation.ts' || ent.name==='client.ts') continue; rm(path.join(base, ent.name)); } }\"",
 		"clean:pack": "node -e \"const fs=require('fs'); const path=require('path'); fs.rmSync('__pack_extract__',{recursive:true,force:true}); fs.readdirSync('.').filter(f=>f.endsWith('.tgz')).forEach(f=>fs.rmSync(path.join('.',f),{force:true})); console.log('Removed __pack_extract__ and *.tgz');\"",
 		"clean:dist": "node -e \"const fs=require('fs'); fs.rmSync('dist',{recursive:true,force:true});\"",
 		"rebuild": "npm run clean:dist && node ./scripts/ensure-gen.mjs && npm run build",
@@ -303,11 +311,12 @@
 	"devDependencies": {
 		"@bufbuild/buf": "^1.6.0",
 		"@bufbuild/protoc-gen-es": "^2.10.0",
-		"@connectrpc/protoc-gen-connect-es": "^1.7.0",
 		"@changesets/cli": "^2.29.7",
+		"@connectrpc/protoc-gen-connect-es": "^1.7.0",
 		"@typescript-eslint/eslint-plugin": "^6.21.0",
 		"@typescript-eslint/parser": "^6.21.0",
 		"eslint": "^8.57.1",
+		"ts-node": "^10.9.2",
 		"ts-proto": "^2.8.0",
 		"ts-proto-descriptors": "^1.16.0",
 		"typescript": "^5.9.3"
