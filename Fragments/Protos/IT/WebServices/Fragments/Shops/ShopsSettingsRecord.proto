@@ -3,42 +3,31 @@
 package IT.WebServices.Fragments.Shops;
 import "google/protobuf/timestamp.proto";
 import "Protos/IT/WebServices/Fragments/Shops/Shopify/ShopifySettingsRecord.proto";
+import "buf/validate/validate.proto";
 
-message ShopsPublicSettingsEntry {
-	string StoreId =1;
-	string DisplayName =2;
-	string PrimaryDomain = 3;
-	string CurrencyCode = 4;
-
-	oneof ShopsPublicSettingsEntryData {
-		ShopifyPublicSettingsEntry ShopifyPublic = 5;
-	}
-}
-
-message ShopsPublicSettings {
-	map<string, ShopsPublicSettingsEntry> Public = 1;
-}
+message ShopsPublicSettings {}
 
 message ShopsPrivateSettingsEntry {
+	string ShopId = 1 [(buf.validate.field).string.uuid = true];
 	oneof ShopsPrivateSettingsEntryData {
 		ShopifyPrivateSettingsEntry ShopifyPrivate = 5;
 	}
 
+	google.protobuf.Timestamp CreatedOnUTC = 20;
 	google.protobuf.Timestamp LastSyncedOnUTC = 21;
-	google.protobuf.Timestamp LastSyncedById = 22;
-
 }
 
 message ShopsPrivateSettings {
-	map<string, ShopsPrivateSettingsEntry> Private = 1;
+	repeated ShopsPrivateSettingsEntry Data = 1;
 }
 
 message ShopsOwnerSettingsEntry {
+	string ShopId = 1 [(buf.validate.field).string.uuid = true];
 	oneof ShopsOwnerSettingsEntryData {
 		ShopifyOwnerSettingsEntry ShopifyOwner = 5;
 	}
 }
 
 message  ShopsOwnerSettings {
-	map<string, ShopsOwnerSettingsEntry> Owner = 1;
+	repeated ShopsOwnerSettingsEntry Data = 1;
 }

@@ -2,9 +2,24 @@
 
 package IT.WebServices.Fragments.Shops;
 import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
 
 message ShopifyPublicSettingsEntry {}
 
-message ShopifyPrivateSettingsEntry {}
+message ShopifyPrivateSettingsEntry {
+	string Title = 1 [
+		    (buf.validate.field).required = true,
+			(buf.validate.field).string.min_len = 3,
+			(buf.validate.field).string.max_len = 200
+	];
+	string StoreDomain = 2 [
+		(buf.validate.field).required = true,
+		(buf.validate.field).string.uri = true
+	];
+}
 
-message ShopifyOwnerSettingsEntry {}
+message ShopifyOwnerSettingsEntry {
+	string ApiKey = 1 [(buf.validate.field).required = true];
+	string ApiSecret = 2 [(buf.validate.field).required = true];
+	string AdminToken = 3 [(buf.validate.field).required = true];
+}
