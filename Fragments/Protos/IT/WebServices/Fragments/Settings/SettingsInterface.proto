@@ -217,6 +217,22 @@ service SettingsInterface {
       body: "*"
     };
   }
+
+  rpc ModifyShopsPrivateSettings (ModifyShopsPrivateSettingsRequest) returns (ModifyShopsPrivateSettingsResponse)
+  {
+      option (google.api.http) = {
+           post: "/api/settings/shops/private",
+           body: "*"
+      };
+  }
+
+  rpc ModifyShopsOwnerSettings (ModifyShopsOwnerSettingsRequest) returns (ModifyShopsOwnerSettingsResponse)
+    {
+      option (google.api.http) = {
+        post: "/api/settings/shops/owner",
+        body: "*"
+      };
+  }
 }
 
 message GetPublicDataRequest {
@@ -417,3 +433,15 @@ message ModifyEventOwnerSettingsResponse {
   SettingsError Error = 1;
 }
 
+
+message ModifyShopsPrivateSettingsRequest {}
+
+message ModifyShopsPrivateSettingsResponse {
+    SettingsError Error = 1;
+}
+
+message ModifyShopsOwnerSettingsRequest {}
+
+message ModifyShopsOwnerSettingsResponse {
+    SettingsError Error = 1;
+}

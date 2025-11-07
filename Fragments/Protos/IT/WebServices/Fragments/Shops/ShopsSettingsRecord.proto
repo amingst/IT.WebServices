@@ -5,7 +5,9 @@ import "google/protobuf/timestamp.proto";
 import "Protos/IT/WebServices/Fragments/Shops/Shopify/ShopifySettingsRecord.proto";
 import "buf/validate/validate.proto";
 
-message ShopsPublicSettings {}
+message ShopsPublicSettings {
+	bool IsEnabled = 1 [(buf.validate.field).required = true];
+}
 
 message ShopsPrivateSettingsEntry {
 	string ShopId = 1 [(buf.validate.field).string.uuid = true];
