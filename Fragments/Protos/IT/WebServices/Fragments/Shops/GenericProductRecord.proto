@@ -1,0 +1,18 @@
+﻿syntax = "proto3";
+package IT.WebServices.Fragments.Shops;
+import "buf/validate/validate.proto";
+
+message GenericProductRecord {
+	string ProductId = 1 [
+		(buf.validate.field).string.uuid = true
+	];
+	string InternalShopId = 2 [
+		(buf.validate.field).string.uuid = true
+	];
+	string DisplayName = 3;
+	string Description = 4;
+	uint32 AmountCents = 5;
+	bool InStock = 6;
+	repeated string ImageUrls = 7;
+	string PurchaseUrl = 8;
+}
