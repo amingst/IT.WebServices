@@ -103,7 +103,7 @@ namespace IT.WebServices.Services.Combined
             services.AddStatsClasses();
             services.AddEventsClasses();
             services.AddPaymentClasses();
-
+            services.AddShopsClasses();
             CryptoProviderFactory.DefaultCacheSignatureProviders = false;
 
             Console.WriteLine("*** Loading pubkey: (" + JwtExtensions.GetPublicKey() + ")  ***");
@@ -143,7 +143,7 @@ namespace IT.WebServices.Services.Combined
                 endpoints.MapEventsGrpcServices();
 
                 endpoints.MapPaymentGrpcServices();
-
+                endpoints.MapShopsGrpcServices();
                 //endpoints.MapGrpcReflectionService();
 
                 endpoints.MapControllerRoute(

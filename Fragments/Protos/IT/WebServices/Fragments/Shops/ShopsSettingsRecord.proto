@@ -16,7 +16,8 @@ message ShopsPrivateSettingsEntry {
 	}
 
 	google.protobuf.Timestamp CreatedOnUTC = 20;
-	google.protobuf.Timestamp LastSyncedOnUTC = 21;
+	google.protobuf.Timestamp ModifiedOnUTC = 21;
+	google.protobuf.Timestamp LastSyncedOnUTC = 22;
 }
 
 message ShopsPrivateSettings {

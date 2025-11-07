@@ -56,6 +56,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IT.WebServices.Shops.Base",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IT.WebServices.Shops.Shopify", "Shops\Shopify\IT.WebServices.Shops.Shopify.csproj", "{EB88A48E-2496-A671-4A49-F3816DE5A145}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IT.WebServices.Shops.Combined", "Shops\Combined\IT.WebServices.Shops.Combined.csproj", "{DAE5A290-1A58-BC13-6827-577E0CA4E75B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -154,6 +156,10 @@ Global
 		{EB88A48E-2496-A671-4A49-F3816DE5A145}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB88A48E-2496-A671-4A49-F3816DE5A145}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB88A48E-2496-A671-4A49-F3816DE5A145}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAE5A290-1A58-BC13-6827-577E0CA4E75B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAE5A290-1A58-BC13-6827-577E0CA4E75B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAE5A290-1A58-BC13-6827-577E0CA4E75B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAE5A290-1A58-BC13-6827-577E0CA4E75B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -168,6 +174,7 @@ Global
 		{50630621-6BB9-4198-AD40-B7D4366F5544} = {D37AF415-7FED-4A29-B656-090408A69CF4}
 		{EA3B6CE7-141C-5186-0AFB-E9BB9E18E3C8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{EB88A48E-2496-A671-4A49-F3816DE5A145} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{DAE5A290-1A58-BC13-6827-577E0CA4E75B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F6A9A1C2-965B-46B4-829F-34719F799E83}

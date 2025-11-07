@@ -6,4 +6,9 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Authentication\Shared\IT.WebServices.Authentication.Shared.csproj" />
+	  <ProjectReference Include="..\..\Base\IT.WebServices.Base.csproj" />
+	</ItemGroup>
+
 </Project>

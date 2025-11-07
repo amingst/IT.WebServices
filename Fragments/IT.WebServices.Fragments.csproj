@@ -93,6 +93,8 @@
     <None Remove="Protos\IT\WebServices\Fragments\CreatorDashboard\Subscribers\Mute.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Generic\ServiceOps.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Shops\Shopify\ShopifySettingsRecord.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Shops\Shopify\ShopifyShopsInterface.proto" />
+    <None Remove="Protos\IT\WebServices\Fragments\Shops\ShopsInterface.proto" />
     <None Remove="Protos\IT\WebServices\Fragments\Shops\ShopsSettingsRecord.proto" />
   </ItemGroup>
   <ItemGroup>
@@ -260,6 +262,8 @@
       GrpcServices="Both"
     />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Shops\Shopify\ShopifySettingsRecord.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Shops\Shopify\ShopifyShopsInterface.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Shops\ShopsInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Shops\ShopsSettingsRecord.proto" />
   </ItemGroup>
   <ItemGroup>

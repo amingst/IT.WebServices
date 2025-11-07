@@ -1,0 +1,22 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Shops.Shopify;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+service ShopifyShopsInterface {
+	rpc SyncShopifyStore (SyncShopifyStoreRequest) returns (SyncShopifyStoreResponse) 
+	{
+		option (google.api.http) = {
+			post: "/api/shops/admin/shopify/sync/{ShopId}",
+			body: "*"
+		};
+	}
+}
+
+message SyncShopifyStoreRequest {
+	string ShopId = 1;
+}
+
+message SyncShopifyStoreResponse {}

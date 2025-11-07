@@ -7,6 +7,7 @@ import "buf/validate/validate.proto";
 import "Protos/IT/WebServices/Fragments/Settings/SettingsRecord.proto";
 import "Protos/IT/WebServices/Fragments/Settings/SettingsError.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Events/EventsSettings.proto";
+import "Protos/IT/WebServices/Fragments/Shops/ShopsSettingsRecord.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Events/EventTicketRecord.proto";
 
 // Service for Settings service fragment interface
@@ -216,6 +217,14 @@ service SettingsInterface {
       post: "/api/settings/events/owner"
       body: "*"
     };
+  }
+
+  rpc ModifyShopsPublicSettings (ModifyShopsPublicSettingsRequest) returns (ModifyShopsPublicSettingsResponse)
+    {
+      option (google.api.http) = {
+           post: "/api/settings/shops/public",
+           body: "*"
+      };
   }
 
   rpc ModifyShopsPrivateSettings (ModifyShopsPrivateSettingsRequest) returns (ModifyShopsPrivateSettingsResponse)
@@ -433,14 +442,25 @@ message ModifyEventOwnerSettingsResponse {
   SettingsError Error = 1;
 }
 
+message ModifyShopsPublicSettingsRequest {
+    IT.WebServices.Fragments.Shops.ShopsPublicSettings Data = 1 [(buf.validate.field).required = true];
+}
 
-message ModifyShopsPrivateSettingsRequest {}
+message ModifyShopsPublicSettingsResponse {
+    SettingsError Error = 1;
+}
+
+message ModifyShopsPrivateSettingsRequest {
+    IT.WebServices.Fragments.Shops.ShopsPrivateSettings Data = 1 [(buf.validate.field).required = true];
+}
 
 message ModifyShopsPrivateSettingsResponse {
     SettingsError Error = 1;
 }
 
-message ModifyShopsOwnerSettingsRequest {}
+message ModifyShopsOwnerSettingsRequest {
+    IT.WebServices.Fragments.Shops.ShopsOwnerSettings Data = 1 [(buf.validate.field).required = true];
+}
 
 message ModifyShopsOwnerSettingsResponse {
     SettingsError Error = 1;

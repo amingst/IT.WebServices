@@ -16,6 +16,7 @@
     <ProjectReference Include="..\..\Content\Stats\Services\IT.WebServices.Content.Stats.Services.csproj" />
     <ProjectReference Include="..\..\Notification\Services\IT.WebServices.Notification.Services.csproj" />
     <ProjectReference Include="..\..\Settings\Services\IT.WebServices.Settings.Services.csproj" />
+    <ProjectReference Include="..\..\Shops\Combined\IT.WebServices.Shops.Combined.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="appsettings.Development.json">

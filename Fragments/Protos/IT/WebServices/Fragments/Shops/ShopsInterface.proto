@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+package IT.WebServices.Fragments.Shops;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+service ShopsInterface {
+	rpc GetProducts (GetProductsRequest) returns (GetProductsResponse) 
+	{
+		option (google.api.http) = {
+			get: "/api/shops/products"
+		};
+	}
+
+	rpc SyncStore (SyncStoreRequest) returns (SyncStoreResponse)
+	{
+		option (google.api.http) = {
+			post: "/api/shops/admin/{ShopId}/sync",
+			body: "*"
+		};
+	}
+}
+
+message GetProductsRequest {}
+
+message GetProductsResponse {}
+
+message SyncStoreRequest {
+	string ShopId = 1;
+}
+
+message SyncStoreResponse {}
