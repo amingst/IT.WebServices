@@ -84,7 +84,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis
                 return Guid.Empty;
 
             var contact = await fortisContactHelper.Get(fortisSub.ProcessorCustomerID);
-            if (contact == null)
+            if (contact?.Data == null)
                 return Guid.Empty;
 
             var apiId = contact.Data.ContactApiId;

@@ -1,4 +1,5 @@
-﻿using IT.WebServices.Authorization.Payment.Combined.Services;
+﻿using IT.WebServices.Authorization.Payment;
+using IT.WebServices.Authorization.Payment.Combined.Services;
 using IT.WebServices.Authorization.Payment.Helpers;
 using IT.WebServices.Authorization.Payment.Helpers.BulkJobs;
 using Microsoft.AspNetCore.Builder;
@@ -32,6 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
             endpoints.MapStripeGrpcServices();
 
             endpoints.MapGrpcService<AdminPaymentService>();
+            endpoints.MapGrpcService<BackupService>();
             endpoints.MapGrpcService<ClaimsService>();
             endpoints.MapGrpcService<PaymentService>();
             endpoints.MapGrpcService<ServiceOpsService>();
