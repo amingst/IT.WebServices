@@ -25,6 +25,15 @@ namespace IT.WebServices.Settings.Services.Controllers
             this.dataProvider = dataProvider;
         }
 
+        [AllowAnonymous]
+        [HttpGet("")]
+        public async Task<IActionResult> GetAll()
+        {
+            var rec = await dataProvider.Get();
+
+            return Ok(rec.Public.CMS.Channels);
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> Create(CreateChannelModel model)
         {
@@ -58,6 +67,22 @@ namespace IT.WebServices.Settings.Services.Controllers
             await dataProvider.Save(rec);
 
             return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("details/{id}")]
+        public async Task<IActionResult> Details(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return NotFound();
+
+            var rec = await dataProvider.Get();
+
+            var chan = rec.Public.CMS.Channels.FirstOrDefault(c => c.ChannelId == id);
+            if (chan == null)
+                return NotFound();
+
+            return Ok(chan);
         }
     }
 }
