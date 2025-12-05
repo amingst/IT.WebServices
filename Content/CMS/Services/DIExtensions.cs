@@ -23,6 +23,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<FileSystemAssetDataProvider>();
             services.AddSingleton<FileSystemContentDataProvider>();
             services.AddSingleton<FileSystemPageDataProvider>();
+            services.AddSingleton<SqlContentCategoryDataProvider>();
+            services.AddSingleton<SqlContentChannelDataProvider>();
             services.AddScoped<StatsClient>();
 
             return services;
