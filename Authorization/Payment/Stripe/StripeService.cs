@@ -95,8 +95,8 @@ namespace IT.WebServices.Authorization.Payment.Stripe
                                     : PaymentStatus.PaymentFailed,
                             CreatedOnUTC = dbSub.CreatedOnUTC,
                             ModifiedOnUTC = dbSub.ModifiedOnUTC,
-                            PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.CurrentPeriodStart),
-                            PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.CurrentPeriodEnd.AddDays(5)),
+                            PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodStart ?? DateTime.MinValue),
+                            PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodEnd.AddDays(5) ?? DateTime.MinValue),
                         };
 
                         await paymentProvider.Save(dbPayment);
@@ -162,8 +162,8 @@ namespace IT.WebServices.Authorization.Payment.Stripe
                                     : PaymentStatus.PaymentFailed,
                             CreatedOnUTC = dbSub.CreatedOnUTC,
                             ModifiedOnUTC = dbSub.ModifiedOnUTC,
-                            PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.CurrentPeriodStart),
-                            PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.CurrentPeriodEnd.AddDays(5)),
+                            PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodStart ?? DateTime.MinValue),
+                            PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodEnd.AddDays(5) ?? DateTime.MinValue),
                         };
 
                         await paymentProvider.Save(dbPayment);

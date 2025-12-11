@@ -1,4 +1,3 @@
-using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
@@ -6,19 +5,10 @@ using Microsoft.IdentityModel.Tokens;
 using IT.WebServices.Authentication.Services.Data;
 using IT.WebServices.Authentication.Services.Helpers;
 using IT.WebServices.Fragments.Authentication;
-using IT.WebServices.Fragments.Authorization;
-using IT.WebServices.Fragments.Content;
-using IT.WebServices.Fragments.Generic;
-using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using IT.WebServices.Helpers;
 
