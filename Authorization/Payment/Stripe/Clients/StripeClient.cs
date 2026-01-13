@@ -91,7 +91,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
             }
             catch (Exception ex)
             {
-                return new() { Error = PaymentErrorExtensions.CreateProviderError("Stripe", ex.Message) };
+                return new() { Error = PaymentErrorExtensions.CreateProviderError("Stripe", ex.Message).Message };
             }
         }
 

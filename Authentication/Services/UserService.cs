@@ -22,6 +22,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using IT.WebServices.Helpers;
 using SkiaSharp;
+using IT.WebServices.Fragments;
 
 namespace IT.WebServices.Authentication.Services
 {
