@@ -76,6 +76,8 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
 
             var tasks = new List<Task> { subProvider.Save(full.SubscriptionRecord) };
 
+            await paymentProvider.DeleteAll(full.SubscriptionRecord.UserID.ToGuid(), full.SubscriptionRecord.InternalSubscriptionID.ToGuid());
+
             foreach (var p in full.Payments)
                 tasks.Add(paymentProvider.Save(p));
 

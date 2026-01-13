@@ -5,6 +5,7 @@ package IT.WebServices.Fragments.Authorization.Payment;
 import "google/api/annotations.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/DataRecords.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Crypto/CryptoRecords.proto";
+import "Protos/IT/WebServices/Fragments/Authorization/Payment/Fortis/FortisRecords.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Manual/ManualSubscriptionRecord.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Paypal/PaypalRecords.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/StripeRecords.proto";
@@ -80,23 +81,29 @@ message CancelSubscriptionResponse {
 
 message GetNewDetailsRequest {
   uint32 Level = 1;
-  string DomainName = 2;
+  string PostalCode = 2;
+  string SuccessUrl = 11;
+  string CancelUrl = 12;
 }
 
 message GetNewDetailsResponse {
   Crypto.CryptoNewDetails Crypto = 1;
+  Fortis.FortisNewDetails Fortis = 4;
   Paypal.PaypalNewDetails Paypal = 5;
   Stripe.StripeNewDetails Stripe = 6;
 }
 
 message GetNewOneTimeDetailsRequest {
   string InternalID = 1;
-  string DomainName = 2;
-  uint32 DifferentPresetPriceCents = 3;
+  uint32 DifferentPresetPriceCents = 2;
+  string PostalCode = 3;
+  string SuccessUrl = 11;
+  string CancelUrl = 12;
 }
 
 message GetNewOneTimeDetailsResponse {
   //Crypto.CryptoNewOneTimeDetails Crypto = 1;
+  Fortis.FortisNewOneTimeDetails Fortis = 4;
   //Paypal.PaypalNewOneTimeDetails Paypal = 5;
   Stripe.StripeNewOneTimeDetails Stripe = 6;
 }

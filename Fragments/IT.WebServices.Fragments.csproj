@@ -98,6 +98,7 @@
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Crypto\CryptoSettings.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fortis\FortisInterface.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fortis\FortisSettings.proto" />
+    <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Fortis\FortisRecords.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\Backup.proto" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\ManualPaymentSettings.proto" GrpcServices="None" />
     <Protobuf Include="Protos\IT\WebServices\Fragments\Authorization\Payment\Manual\ManualPaymentInterface.proto" />

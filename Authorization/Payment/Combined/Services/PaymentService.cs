@@ -79,7 +79,11 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
         {
             try
             {
-                if (request?.DomainName == null)
+                if (request == null)
+                    return new();
+                if (string.IsNullOrWhiteSpace(request.SuccessUrl))
+                    return new();
+                if (string.IsNullOrWhiteSpace(request.CancelUrl))
                     return new();
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
@@ -93,7 +97,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
                 return new()
                 {
                     //Paypal = await paypalClient.GetNewDetails(level),
-                    Stripe = await stripeClient.GetNewDetails(level, userToken, request!.DomainName),
+                    Stripe = await stripeClient.GetNewDetails(level, userToken, request!.SuccessUrl, request!.CancelUrl),
                 };
             }
             catch (Exception ex)
@@ -107,6 +111,13 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
         {
             try
             {
+                if (request == null)
+                    return new();
+                if (string.IsNullOrWhiteSpace(request?.SuccessUrl))
+                    return new();
+                if (string.IsNullOrWhiteSpace(request?.CancelUrl))
+                    return new();
+
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
                     return new();
@@ -116,7 +127,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
                     return new();
                 }
 
-                var details = await stripeClient.GetNewOneTimeDetails(request.InternalID, userToken, request.DomainName, request.DifferentPresetPriceCents);
+                var details = await stripeClient.GetNewOneTimeDetails(request.InternalID, userToken, request.SuccessUrl, request.CancelUrl, request.DifferentPresetPriceCents);
 
                 return new() { Stripe = details };
             }

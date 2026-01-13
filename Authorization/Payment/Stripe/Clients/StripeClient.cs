@@ -7,6 +7,7 @@ using Stripe;
 using IT.WebServices.Models;
 using IT.WebServices.Authentication;
 using IT.WebServices.Settings;
+using Stripe.Checkout;
 
 namespace IT.WebServices.Authorization.Payment.Stripe.Clients
 {
@@ -14,7 +15,8 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
     {
         public const string PRODUCT_SUBSCRIPTION_PREFIX = "prod_sub_";
         public const string PRODUCT_ONETIME_PREFIX = "prod_one_";
-
+        public const string CHECKOUT_SESSION_ID = "{CHECKOUT_SESSION_ID}";
+        public const string SUCCESS_URL_APPENDIX = "session_id=" + CHECKOUT_SESSION_ID;
         public ProductList Products { get; private set; }
 
         private readonly AppSettings settings;
@@ -239,13 +241,13 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
             return createdPrice;
         }
 
-        public async Task<StripeNewDetails?> GetNewDetails(uint level, ONUser userToken, string domainName)
+        public async Task<StripeNewDetails?> GetNewDetails(uint level, ONUser userToken, string successUrl, string cancelUrl)
         {
             var product = Products.Records.FirstOrDefault(r => r.Price == level);
             if (product == null)
                 return null;
 
-            var url = await CreateCheckoutSession(product, userToken, domainName);
+            var url = await CreateCheckoutSession(product, userToken, successUrl, cancelUrl);
             if (url == null)
                 return null;
 
@@ -254,7 +256,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
             return details;
         }
 
-        public async Task<StripeNewOneTimeDetails?> GetNewOneTimeDetails(string internalId, ONUser userToken, string domainName, uint differentPresetPriceCents)
+        public async Task<StripeNewOneTimeDetails?> GetNewOneTimeDetails(string internalId, ONUser userToken, string successUrl, string cancelUrl, uint differentPresetPriceCents)
         {
             try
             {
@@ -281,7 +283,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
                     catch { }
                 }
 
-                var url = await CreateOneTimeCheckoutSession(priceId, internalId, userToken, domainName);
+                var url = await CreateOneTimeCheckoutSession(priceId, internalId, userToken, successUrl, cancelUrl);
                 if (string.IsNullOrEmpty(url))
                     return null;
 
@@ -296,7 +298,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
             }
         }
 
-        public async Task<string?> CreateOneTimeCheckoutSession(string priceId, string contentId, ONUser userToken, string domainName)
+        public async Task<string?> CreateOneTimeCheckoutSession(string priceId, string contentId, ONUser userToken, string successUrl, string cancelUrl)
         {
             try
             {
@@ -306,8 +308,8 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
                 var chekoutOpts = new global::Stripe.Checkout.SessionCreateOptions
                 {
                     ClientReferenceId = userToken.Id.ToString(),
-                    SuccessUrl = domainName + "/payment/stripe/check",
-                    CancelUrl = domainName,
+                    SuccessUrl = successUrl,
+                    CancelUrl = cancelUrl,
                     Mode = "payment",
                     LineItems = new()
                     {
@@ -327,7 +329,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
             }
         }
 
-        public async Task<string?> CreateCheckoutSession(ProductRecord product, ONUser userToken, string domainName)
+        public async Task<string?> CreateCheckoutSession(ProductRecord product, ONUser userToken, string successUrl, string cancelUrl)
         {
             try
             {
@@ -335,17 +337,26 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
                 if (customer == null)
                     return null;
 
+                if (!successUrl.Contains(CHECKOUT_SESSION_ID))
+                {
+                    if (successUrl.Contains("?"))
+                        successUrl += "&" + SUCCESS_URL_APPENDIX;
+                    else
+                        successUrl += "?" + SUCCESS_URL_APPENDIX;
+                }
+
                 var chekoutOpts = new global::Stripe.Checkout.SessionCreateOptions
                 {
                     ClientReferenceId = userToken.Id.ToString(),
-                    SuccessUrl = domainName + "/subscription/stripe/check",
-                    CancelUrl = domainName + "/subscription/",
+                    SuccessUrl = successUrl,
+                    CancelUrl = cancelUrl,
                     Mode = "subscription",
                     LineItems = new()
                     {
                         new() { Price = product.PriceID, Quantity = 1, },
                     },
-                    Customer = customer.Id
+                    Customer = customer.Id,
+                    
                 };
 
                 var session = await checkoutService.CreateAsync(chekoutOpts);
@@ -403,6 +414,21 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
             var service = new PaymentLinkService();
             var link = service.Create(opts);
             return link.Url.ToString();
+        }
+
+        public async Task<Session?> GetCheckoutSessionById(string checkoutSessionId)
+        {
+            try
+            {
+                var session = await checkoutService.GetAsync(checkoutSessionId);
+
+                return session;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
         }
 
         // TODO: Validate metadata has key url

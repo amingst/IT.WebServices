@@ -16,10 +16,10 @@ service StripeInterface {
 
   rpc StripeGetAccountDetails (StripeGetAccountDetailsRequest) returns (StripeGetAccountDetailsResponse) {}
 
-  rpc StripeNewOwnSubscription (StripeNewOwnSubscriptionRequest) returns (StripeNewOwnSubscriptionResponse)
+  rpc StripeFinishOwnSubscription (StripeFinishOwnSubscriptionRequest) returns (StripeFinishOwnSubscriptionResponse)
   {
     option (google.api.http) = {
-      post: "/api/payment/stripe/subscription/new"
+      post: "/api/payment/stripe/subscription/finish"
       body: "*"
     };
   }
@@ -118,6 +118,15 @@ message StripeCancelOwnSubscriptionResponse {
   string Error = 2;
 }
 
+message StripeFinishOwnSubscriptionRequest {
+  string ProcessorSessionID = 1;
+}
+  
+message StripeFinishOwnSubscriptionResponse {
+  GenericSubscriptionRecord Record = 1;
+  string Error = 2;
+}
+
 message StripeGetAccountDetailsRequest {
 }
   
@@ -140,18 +149,6 @@ message StripeGetOwnSubscriptionRecordsRequest {
 message StripeGetOwnSubscriptionRecordsResponse {
   repeated GenericSubscriptionRecord Records = 1;
 }
-
-message StripeNewOwnSubscriptionRequest {
-  string SubscriptionID = 1;
-  uint32 SubscriptionPrice = 2;
-  string CustomerID = 3;
-}
-  
-message StripeNewOwnSubscriptionResponse {
-  GenericSubscriptionRecord Record = 1;
-  string Error = 2;
-}
-
 
 message StripeEnsureOneTimeProductRequest {
 	string InternalID = 1;
