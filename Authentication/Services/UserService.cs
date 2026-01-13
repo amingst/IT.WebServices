@@ -1,3 +1,15 @@
+using Google.Authenticator;
+using Google.Protobuf;
+using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using IT.WebServices.Authentication.Services.Data;
+using IT.WebServices.Authentication.Services.Helpers;
+using IT.WebServices.Fragments.Authentication;
+using IT.WebServices.Fragments.Authorization;
+using IT.WebServices.Fragments.Generic;
+using IT.WebServices.Settings;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,22 +20,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Google.Authenticator;
-using Google.Protobuf;
-using Grpc.Core;
-using IT.WebServices.Authentication.Services.Data;
-using IT.WebServices.Authentication.Services.Helpers;
-using IT.WebServices.Fragments;
-using IT.WebServices.Fragments.Authentication;
-using IT.WebServices.Fragments.Authorization;
-using IT.WebServices.Fragments.Content;
-using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Helpers;
-using IT.WebServices.Settings;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using SkiaSharp;
 
 namespace IT.WebServices.Authentication.Services
@@ -42,15 +39,7 @@ namespace IT.WebServices.Authentication.Services
         private static readonly HashAlgorithm hasher = SHA256.Create();
         private static readonly RandomNumberGenerator rng = RandomNumberGenerator.Create();
 
-        public UserService(
-            OfflineHelper offlineHelper,
-            ILogger<UserService> logger,
-            IProfilePicDataProvider picProvider,
-            IUserDataProvider dataProvider,
-            ClaimsClient claimsClient,
-            ISettingsService settingsService,
-            UserServiceInternal userServiceInternal
-        )
+        public UserService(OfflineHelper offlineHelper, ILogger<UserService> logger, IProfilePicDataProvider picProvider, IUserDataProvider dataProvider, ClaimsClient claimsClient, ISettingsService settingsService, UserServiceInternal userServiceInternal)
         {
             this.offlineHelper = offlineHelper;
             this.logger = logger;

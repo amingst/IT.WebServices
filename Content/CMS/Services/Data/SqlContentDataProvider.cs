@@ -1,11 +1,10 @@
 ﻿using IT.WebServices.Content.CMS.Services.Helpers;
-using IT.WebServices.Fragments.Authentication;
 using IT.WebServices.Fragments.Content;
 using IT.WebServices.Helpers;
-using Microsoft.AspNetCore.Components;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,11 +12,15 @@ namespace IT.WebServices.Content.CMS.Services.Data
 {
     internal class SqlContentDataProvider : IContentDataProvider
     {
-        public readonly MySQLHelper sql;
+        private readonly MySQLHelper sql;
+        private readonly SqlContentCategoryDataProvider categoryProvider;
+        private readonly SqlContentChannelDataProvider channelProvider;
 
-        public SqlContentDataProvider(MySQLHelper sql)
+        public SqlContentDataProvider(MySQLHelper sql, SqlContentCategoryDataProvider categoryProvider, SqlContentChannelDataProvider channelProvider)
         {
             this.sql = sql;
+            this.categoryProvider = categoryProvider;
+            this.channelProvider = channelProvider;
         }
 
         public async Task<bool> Delete(Guid contentId)
@@ -28,7 +31,17 @@ namespace IT.WebServices.Content.CMS.Services.Data
                     DELETE FROM
                         CMS_Content
                     WHERE
-                        ContentID = @ContentID
+                        ContentID = @ContentID;
+
+                    DELETE FROM
+                        CMS_Category
+                    WHERE
+                        ContentID = @ContentID;
+
+                    DELETE FROM
+                        CMS_Channel
+                    WHERE
+                        ContentID = @ContentID;
                 ";
 
                 var parameters = new MySqlParameter[]
@@ -92,6 +105,11 @@ namespace IT.WebServices.Content.CMS.Services.Data
             {
                 var record = rdr.ParseContentRecord();
 
+                await Task.WhenAll(
+                        categoryProvider.Load(record),
+                        channelProvider.Load(record)
+                    );
+
                 yield return record;
             }
         }
@@ -107,6 +125,20 @@ namespace IT.WebServices.Content.CMS.Services.Data
                         CMS_Content
                     WHERE
                         ContentID = @ContentID;
+
+                    SELECT
+                        CategoryID
+                    FROM
+                        CMS_Category
+                    WHERE
+                        ContentID = @ContentID;
+
+                    SELECT
+                        ChannelID
+                    FROM
+                        CMS_Channel
+                    WHERE
+                        ContentID = @ContentID;
                 ";
 
                 var parameters = new MySqlParameter[]
@@ -116,14 +148,7 @@ namespace IT.WebServices.Content.CMS.Services.Data
 
                 using var rdr = await sql.ReturnReader(query, parameters);
 
-                if (await rdr.ReadAsync())
-                {
-                    var record = rdr.ParseContentRecord();
-
-                    return record;
-                }
-
-                return null;
+                return await LoadOneFromSqlReader(rdr);
             }
             catch (Exception)
             {
@@ -137,11 +162,32 @@ namespace IT.WebServices.Content.CMS.Services.Data
             {
                 const string query = @"
                     SELECT
-                        *
+                        @ContentID := ContentID
                     FROM
                         CMS_Content
                     WHERE
                         URL = @URL;
+
+                    SELECT
+                        *
+                    FROM
+                        CMS_Content
+                    WHERE
+                        ContentID = @ContentID;
+
+                    SELECT
+                        CategoryID
+                    FROM
+                        CMS_Category
+                    WHERE
+                        ContentID = @ContentID;
+
+                    SELECT
+                        ChannelID
+                    FROM
+                        CMS_Channel
+                    WHERE
+                        ContentID = @ContentID;
                 ";
 
                 var parameters = new MySqlParameter[]
@@ -155,7 +201,7 @@ namespace IT.WebServices.Content.CMS.Services.Data
                 {
                     var record = rdr.ParseContentRecord();
 
-                    return record;
+                    return await LoadOneFromSqlReader(rdr);
                 }
 
                 return null;
@@ -170,7 +216,6 @@ namespace IT.WebServices.Content.CMS.Services.Data
         {
             return InsertOrUpdate(content);
         }
-
 
         private async Task InsertOrUpdate(ContentRecord content)
         {
@@ -209,7 +254,7 @@ namespace IT.WebServices.Content.CMS.Services.Data
                             PinnedOnUTC = @PinnedOnUTC,
                             PinnedBy = @PinnedBy,
                             DeletedOnUTC = @DeletedOnUTC,
-                            DeletedBy = @DeletedBy
+                            DeletedBy = @DeletedBy;
                 ";
 
                 var parameters = new List<MySqlParameter>()
@@ -273,12 +318,45 @@ namespace IT.WebServices.Content.CMS.Services.Data
                     parameters.Add(new MySqlParameter("IsLive", System.DBNull.Value));
 
                 await sql.RunCmd(query, parameters.ToArray());
+
+                await categoryProvider.Update(content);
+                await channelProvider.Update(content);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
             }
+        }
+
+        private async Task<ContentRecord> LoadOneFromSqlReader(DbDataReader rdr)
+        {
+            if (!await rdr.ReadAsync())
+                return null;
+
+            var record = rdr.ParseContentRecord();
+
+            if (await rdr.NextResultAsync())
+            {
+                while (await rdr.ReadAsync())
+                {
+                    var id = rdr.GetString(0);
+                    if (!string.IsNullOrWhiteSpace(id))
+                        record.Public.Data.CategoryIds.Add(id);
+                }
+            }
+
+            if (await rdr.NextResultAsync())
+            {
+                while (await rdr.ReadAsync())
+                {
+                    var id = rdr.GetString(0);
+                    if (!string.IsNullOrWhiteSpace(id))
+                        record.Public.Data.ChannelIds.Add(id);
+                }
+            }
+
+            return record;
         }
     }
 }

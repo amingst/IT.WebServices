@@ -6,7 +6,6 @@ import "google/api/annotations.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/DataRecords.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/ProductRecord.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/PaymentError.proto";
 
 service StripeInterface {
   rpc StripeCheckOtherSubscription (StripeCheckOtherSubscriptionRequest) returns (StripeCheckOtherSubscriptionResponse) {}
@@ -17,10 +16,10 @@ service StripeInterface {
 
   rpc StripeGetAccountDetails (StripeGetAccountDetailsRequest) returns (StripeGetAccountDetailsResponse) {}
 
-  rpc StripeNewOwnSubscription (StripeNewOwnSubscriptionRequest) returns (StripeNewOwnSubscriptionResponse)
+  rpc StripeFinishOwnSubscription (StripeFinishOwnSubscriptionRequest) returns (StripeFinishOwnSubscriptionResponse)
   {
     option (google.api.http) = {
-      post: "/api/payment/stripe/subscription/new"
+      post: "/api/payment/stripe/subscription/finish"
       body: "*"
     };
   }
@@ -61,7 +60,7 @@ message StripeCheckOtherSubscriptionRequest {
 
 message StripeCheckOtherSubscriptionResponse {
 	repeated GenericSubscriptionFullRecord Records = 1;
-	PaymentError Error = 2;
+	string Error = 2;
 }
  
 message StripeCheckOwnSubscriptionRequest {
@@ -69,7 +68,7 @@ message StripeCheckOwnSubscriptionRequest {
 
 message StripeCheckOwnSubscriptionResponse {
 	repeated GenericSubscriptionFullRecord Records = 1;
-	PaymentError Error = 2;
+	string Error = 2;
 }
  
 //message StripeCheckOwnOneTimeRequest {
@@ -86,7 +85,7 @@ message StripeCheckoutSessionRequest {
 
 message StripeCheckoutSessionResponse {
 	string SessionUrl = 1;
-	PaymentError Error = 2;
+	string Error = 2;
 }
  
 message StripeCreateBillingPortalRequest {
@@ -95,7 +94,7 @@ message StripeCreateBillingPortalRequest {
 
 message StripeCreateBillingPortalResponse {
 	string Url = 1;
-	PaymentError Error = 2;
+	string Error = 2;
 }
 
 message StripeCancelOtherSubscriptionRequest {
@@ -106,7 +105,7 @@ message StripeCancelOtherSubscriptionRequest {
   
 message StripeCancelOtherSubscriptionResponse {
   GenericSubscriptionRecord Record = 1;
-  PaymentError Error = 2;
+  string Error = 2;
 }
 
 message StripeCancelOwnSubscriptionRequest {
@@ -116,7 +115,16 @@ message StripeCancelOwnSubscriptionRequest {
   
 message StripeCancelOwnSubscriptionResponse {
   GenericSubscriptionRecord Record = 1;
-  PaymentError Error = 2;
+  string Error = 2;
+}
+
+message StripeFinishOwnSubscriptionRequest {
+  string ProcessorSessionID = 1;
+}
+  
+message StripeFinishOwnSubscriptionResponse {
+  GenericSubscriptionRecord Record = 1;
+  string Error = 2;
 }
 
 message StripeGetAccountDetailsRequest {
@@ -142,18 +150,6 @@ message StripeGetOwnSubscriptionRecordsResponse {
   repeated GenericSubscriptionRecord Records = 1;
 }
 
-message StripeNewOwnSubscriptionRequest {
-  string SubscriptionID = 1;
-  uint32 SubscriptionPrice = 2;
-  string CustomerID = 3;
-}
-  
-message StripeNewOwnSubscriptionResponse {
-  GenericSubscriptionRecord Record = 1;
-  PaymentError Error = 2;
-}
-
-
 message StripeEnsureOneTimeProductRequest {
 	string InternalID = 1;
 	string Name = 2;
@@ -162,7 +158,7 @@ message StripeEnsureOneTimeProductRequest {
 }
 
 message StripeEnsureOneTimeProductResponse {
-	PaymentError Error = 1;
+	string Error = 1;
 }
 
 message StripeReconcileOtherSubscriptionRequest {
@@ -172,7 +168,7 @@ message StripeReconcileOtherSubscriptionRequest {
   
 message StripeReconcileOtherSubscriptionResponse {
   GenericSubscriptionFullRecord Record = 1;
-  PaymentError Error = 2;
+  string Error = 2;
 }
 
 message StripeReconcileOwnSubscriptionRequest {
@@ -181,5 +177,5 @@ message StripeReconcileOwnSubscriptionRequest {
   
 message StripeReconcileOwnSubscriptionResponse {
   GenericSubscriptionFullRecord Record = 1;
-  PaymentError Error = 2;
+  string Error = 2;
 }

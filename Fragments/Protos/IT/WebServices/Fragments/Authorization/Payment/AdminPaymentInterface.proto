@@ -4,7 +4,6 @@ package IT.WebServices.Fragments.Authorization.Payment;
 
 import "google/api/annotations.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/PaymentInterface.proto";
-import "Protos/IT/WebServices/Fragments/Authorization/Payment/PaymentError.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto";
 
 service AdminPaymentInterface {
@@ -81,7 +80,6 @@ message BulkActionCancelRequest {
 
 message BulkActionCancelResponse {
   repeated PaymentBulkActionProgress RunningActions = 1;
-  PaymentError Error = 2;
 }
 
 message BulkActionStartRequest {
@@ -90,7 +88,6 @@ message BulkActionStartRequest {
 
 message BulkActionStartResponse {
   repeated PaymentBulkActionProgress RunningActions = 1;
-  PaymentError Error = 2;
 }
 
 message BulkActionStatusRequest {
@@ -98,7 +95,6 @@ message BulkActionStatusRequest {
 
 message BulkActionStatusResponse {
   repeated PaymentBulkActionProgress RunningActions = 1;
-  PaymentError Error = 2;
 }
 
 message CancelOtherSubscriptionRequest {

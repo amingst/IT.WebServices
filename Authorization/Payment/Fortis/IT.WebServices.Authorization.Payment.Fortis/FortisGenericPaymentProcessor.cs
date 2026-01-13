@@ -47,13 +47,13 @@ namespace IT.WebServices.Authorization.Payment.Fortis
         {
             var res = await fortisSubscriptionHelper.Get(record.InternalSubscriptionID);
             if (res == null)
-                return new() { Error = PaymentErrorExtensions.CreateSubscriptionNotFoundError(record.InternalSubscriptionID) };
+                return new() { Error = "SubscriptionId not valid" };
 
             if (res.Status == SubscriptionStatus.SubscriptionActive)
             {
                 var cancelRes = await fortisSubscriptionHelper.Cancel(record.InternalSubscriptionID);
                 if (cancelRes?.Status != SubscriptionStatus.SubscriptionStopped)
-                    return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.CancelSubscriptionErrorUnknown, "Unable to cancel subscription") };
+                    return new() { Error = "Unable to cancel subscription" };
             }
 
             record.CanceledBy = userToken.Id.ToString();
@@ -84,7 +84,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis
                 return Guid.Empty;
 
             var contact = await fortisContactHelper.Get(fortisSub.ProcessorCustomerID);
-            if (contact == null)
+            if (contact?.Data == null)
                 return Guid.Empty;
 
             var apiId = contact.Data.ContactApiId;

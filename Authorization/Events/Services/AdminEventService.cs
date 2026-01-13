@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Events.Data;
@@ -15,11 +9,17 @@ using IT.WebServices.Helpers;
 using IT.WebServices.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace IT.WebServices.Authorization.Events.Services.Services
 {
     [Authorize]
-    public class AdminEventService : AdminEventInterface.AdminEventInterfaceBase
+    public class AdminEventService :  AdminEventInterface.AdminEventInterfaceBase
     {
         private readonly ILogger<EventService> _logger;
         private readonly IEventDataProvider _eventProvider;
@@ -27,13 +27,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         private readonly ONUserHelper _userHelper;
         private readonly EventTicketClassHelper _ticketClassHelper;
 
-        public AdminEventService(
-            ILogger<EventService> logger,
-            ITicketDataProvider ticketDataProvider,
-            IEventDataProvider eventProvider,
-            ONUserHelper userHelper,
-            EventTicketClassHelper eventTicketClassHelper
-        )
+        public AdminEventService(ILogger<EventService> logger, ITicketDataProvider ticketDataProvider,IEventDataProvider eventProvider, ONUserHelper userHelper, EventTicketClassHelper eventTicketClassHelper)
         {
             _logger = logger;
             _eventProvider = eventProvider;
@@ -69,18 +63,22 @@ namespace IT.WebServices.Authorization.Events.Services.Services
 
             newEvent.SinglePrivate = new();
 
-            var success = await _eventProvider.Create(newEvent);
-            if (!success)
+            var res = await _eventProvider.Create(newEvent);
+            if (res != CreateEventErrorType.CreateEventNoError)
             {
                 return new AdminCreateEventResponse()
                 {
-                    Error = EventErrorExtensions.CreateError(EventErrorReason.CreateEventErrorUnknown, "An error occurred while creating event"),
+                    Error = new() { CreateEventError = res, Message = "An Error Ocurred" },
                 };
             }
 
             return new AdminCreateEventResponse()
             {
-                Error = null, // Success case - no error
+                Error = new()
+                {
+                    CreateEventError = CreateEventErrorType.CreateEventNoError,
+                    Message = "Success",
+                },
                 Event = newEvent,
             };
         }
@@ -95,7 +93,12 @@ namespace IT.WebServices.Authorization.Events.Services.Services
 
             if (request == null || request.Data == null || request.RecurrenceRule == null)
             {
-                response.Error = EventErrorExtensions.CreateInvalidRequestError("Missing Data or Recurrence Rule");
+                response.Error = new EventError
+                {
+                    CreateRecurringEventError =
+                        CreateRecurringEventErrorType.CreateRecurringEventInvalidRequest,
+                    Message = "Missing Data or Recurrence Rule.",
+                };
                 return response;
             }
 
@@ -118,7 +121,11 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             string recurrenceHash = RecurrenceHelper.GenerateRecurrenceHash(combinedString);
 
             var userId = _userHelper.MyUserId; // Extension/middleware required
-            var baseRecord = new EventRecord(request, userId.ToString(), recurrenceHash);
+            var baseRecord = new EventRecord(
+                request,
+                userId.ToString(),
+                recurrenceHash
+            );
             // Expand the base into individual recurring records
             var instances = RecurrenceHelper.GenerateInstances(baseRecord);
             var records = new List<EventRecord>();
@@ -148,17 +155,26 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             // Persist
             var result = await _eventProvider.CreateRecurring(records);
 
-            if (!result)
+            if (result != CreateRecurringEventErrorType.CreateRecurringEventNoError)
             {
-                response.Error = EventErrorExtensions.CreateError(EventErrorReason.CreateRecurringEventErrorUnknown, "Failed to persist recurring events");
+                response.Error = new EventError
+                {
+                    CreateRecurringEventError = result,
+                    Message = "Failed to persist recurring events.",
+                };
                 return response;
             }
 
             // Return the "template" event (first instance)
             response.Event = records.First();
-            response.Error = null; // Success case - no error
+            response.Error = new EventError
+            {
+                CreateRecurringEventError =
+                    CreateRecurringEventErrorType.CreateRecurringEventNoError,
+            };
             return response;
         }
+
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventResponse> AdminGetEvent(
@@ -170,13 +186,17 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             if (eventId == Guid.Empty)
                 return new AdminGetEventResponse()
                 {
-                    Error = EventErrorExtensions.CreateInvalidRequestError("Invalid Event ID")
+                    Error = new()
+                    {
+                        GetEventError = GetEventErrorType.GetEventUnknown,
+                        Message = "Invalid Id",
+                    },
                 };
 
             var found = await _eventProvider.GetById(eventId);
-            return new AdminGetEventResponse() { Event = found };
+            return new AdminGetEventResponse() { Event = found.Item1 };
         }
-
+        
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
         public override async Task<AdminGetEventsResponse> AdminGetEvents(
             AdminGetEventsRequest request,
@@ -216,14 +236,22 @@ namespace IT.WebServices.Authorization.Events.Services.Services
 
             if (!Guid.TryParse(request.EventId, out var eventId) || eventId == Guid.Empty)
             {
-                res.Error = EventErrorExtensions.CreateInvalidRequestError("Invalid EventId passed");
+                res.Error = new EventError
+                {
+                    CreateEventError = CreateEventErrorType.CreateEventInvalidRequest,
+                    Message = "Invalid EventId passed",
+                };
                 return res;
             }
 
-            var existing = await _eventProvider.GetById(eventId);
+            var (existing, error) = await _eventProvider.GetById(eventId);
             if (existing == null || existing.OneOfType != EventRecordOneOfType.EventOneOfSingle)
             {
-                res.Error = EventErrorExtensions.CreateEventNotFoundError(eventId.ToString());
+                res.Error = new EventError
+                {
+                    CreateEventError = CreateEventErrorType.CreateEventInvalidRequest,
+                    Message = "Single event not found or event is not modifiable",
+                };
                 return res;
             }
 
@@ -235,7 +263,7 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             single.Title = newData.Title;
             single.Description = newData.Description;
             single.Venue = newData.Venue;
-            single.Location = "";
+            single.Location = newData.Venue?.Name ?? "";
             single.StartOnUTC = newData.StartTimeUTC;
             single.EndOnUTC = newData.EndTimeUTC;
             single.Tags.Clear();
@@ -257,14 +285,21 @@ namespace IT.WebServices.Authorization.Events.Services.Services
                     updated.SinglePrivate.ExtraMetadata.Add(newData.ExtraData);
             }
 
-            var success = await _eventProvider.Update(updated);
-            if (!success)
+            var updateError = await _eventProvider.Update(updated);
+            if (updateError != CreateEventErrorType.CreateEventNoError)
             {
-                res.Error = EventErrorExtensions.CreateError(EventErrorReason.CreateEventErrorUnknown, "Failed to update the event");
+                res.Error = new EventError
+                {
+                    CreateEventError = updateError,
+                    Message = "Failed to update the event",
+                };
                 return res;
             }
 
-            res.Error = null; // Success case - no error
+            res.Error = new EventError
+            {
+                CreateEventError = CreateEventErrorType.CreateEventNoError,
+            };
 
             return res;
         }
@@ -279,17 +314,34 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             Guid.TryParse(request.EventId, out var eventId);
             if (eventId == Guid.Empty)
             {
-                res.Error = EventErrorExtensions.CreateInvalidRequestError("Invalid Event ID");
+                res.Error = new()
+                {
+                    CancelEventError = CancelEventErrorType.CancelEventUnknown,
+                    Message = "Invalid Event Id",
+                };
                 return res;
             }
 
-            var rec = await _eventProvider.GetById(eventId);
+            var found = await _eventProvider.GetById(eventId);
+            if (found.Item2 != GetEventErrorType.GetEventNoError)
+            {
+                res.Error = new()
+                {
+                    CancelEventError = CancelEventErrorType.CancelEventUnknown,
+                    Message = "Error Getting Event To Cancel",
+                };
+            }
+
+            var rec = found.Item1;
+            var now = Timestamp.FromDateTime(DateTime.UtcNow);
             if (rec == null)
             {
-                res.Error = EventErrorExtensions.CreateEventNotFoundError(eventId.ToString());
-                return res;
+                res.Error = new()
+                {
+                    CancelEventError = CancelEventErrorType.CancelEventNotFound,
+                    Message = "Event Not Found",
+                };
             }
-            var now = Timestamp.FromDateTime(DateTime.UtcNow);
 
             if (rec.OneOfType == EventRecordOneOfType.EventOneOfRecurring)
             {
@@ -305,19 +357,31 @@ namespace IT.WebServices.Authorization.Events.Services.Services
             }
             else
             {
-                res.Error = EventErrorExtensions.CreateError(EventErrorReason.CancelEventErrorUnknown, "Error canceling event");
+                res.Error = new()
+                {
+                    CancelEventError = CancelEventErrorType.CancelEventUnknown,
+                    Message = "Error Canceling Event",
+                };
                 return res;
             }
 
-            var success = await _eventProvider.Update(rec);
+            var cancelRes = await _eventProvider.Update(rec);
 
-            if (!success)
+            if (cancelRes != CreateEventErrorType.CreateEventNoError)
             {
-                res.Error = EventErrorExtensions.CreateError(EventErrorReason.CancelEventErrorUnknown, "Unknown error occurred while canceling event");
+                res.Error = new()
+                {
+                    CancelEventError = CancelEventErrorType.CancelEventUnknown,
+                    Message = "Unknown Error Ocurred While Canceling Event",
+                };
             }
             else
             {
-                res.Error = null; // Success case - no error
+                res.Error = new()
+                {
+                    CancelEventError = CancelEventErrorType.CancelEventNoError,
+                    Message = "Canceled Event",
+                };
             }
 
             return res;
@@ -333,7 +397,12 @@ namespace IT.WebServices.Authorization.Events.Services.Services
 
             if (string.IsNullOrWhiteSpace(request.RecurrenceHash))
             {
-                response.Error = EventErrorExtensions.CreateInvalidHashError("RecurrenceHash is required");
+                response.Error = new EventError
+                {
+                    CreateRecurringEventError =
+                        CreateRecurringEventErrorType.CreateRecurringEventInvalidRequest,
+                    Message = "RecurrenceHash is required.",
+                };
                 return response;
             }
 
@@ -368,13 +437,21 @@ namespace IT.WebServices.Authorization.Events.Services.Services
 
                 var updateResult = await _eventProvider.UpdateRecurring(toCancel);
 
-                if (!updateResult)
+                if (updateResult != CreateRecurringEventErrorType.CreateRecurringEventNoError)
                 {
-                    response.Error = EventErrorExtensions.CreateError(EventErrorReason.CreateRecurringEventErrorUnknown, "Failed to update recurring events during cancellation");
+                    response.Error = new EventError
+                    {
+                        CreateRecurringEventError = updateResult,
+                        Message = "Failed to update recurring events during cancellation.",
+                    };
                     return response;
                 }
 
-                response.Error = null; // Success case - no error
+                response.Error = new EventError
+                {
+                    CreateRecurringEventError =
+                        CreateRecurringEventErrorType.CreateRecurringEventNoError,
+                };
                 return response;
             }
             catch (Exception ex)
@@ -384,16 +461,18 @@ namespace IT.WebServices.Authorization.Events.Services.Services
                     "Unexpected error cancelling recurring events with hash {RecurrenceHash}",
                     request.RecurrenceHash
                 );
-                response.Error = EventErrorExtensions.CreateError(EventErrorReason.CreateRecurringEventErrorUnknown, "Unexpected error occurred");
+                response.Error = new EventError
+                {
+                    CreateRecurringEventError =
+                        CreateRecurringEventErrorType.CreateRecurringEventUnknown,
+                    Message = "Unexpected error occurred.",
+                };
                 return response;
             }
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override async Task<AdminGetTicketResponse> AdminGetTicket(
-            AdminGetTicketRequest request,
-            ServerCallContext context
-        )
+        public override async Task<AdminGetTicketResponse> AdminGetTicket(AdminGetTicketRequest request, ServerCallContext context)
         {
             Guid.TryParse(request.TicketId, out var ticketId);
             if (ticketId == Guid.Empty)
@@ -424,23 +503,16 @@ namespace IT.WebServices.Authorization.Events.Services.Services
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override Task<AdminCancelOtherTicketResponse> AdminCancelOtherTicket(
-            AdminCancelOtherTicketRequest request,
-            ServerCallContext context
-        )
+        public override Task<AdminCancelOtherTicketResponse> AdminCancelOtherTicket(AdminCancelOtherTicketRequest request, ServerCallContext context)
         {
             throw new NotImplementedException();
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_EVENT_MODERATOR_OR_HIGHER)]
-        public override Task<AdminReserveEventTicketForUserResponse> AdminReserveEventTicketForUser(
-            AdminReserveEventTicketForUserRequest request,
-            ServerCallContext context
-        )
+        public override Task<AdminReserveEventTicketForUserResponse> AdminReserveEventTicketForUser(AdminReserveEventTicketForUserRequest request, ServerCallContext context)
         {
             return base.AdminReserveEventTicketForUser(request, context);
         }
-
         private async Task<List<EventRecord>> GetSingleEvents(
             IAsyncEnumerable<EventRecord> events,
             bool includeCanceled = false

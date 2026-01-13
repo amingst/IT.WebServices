@@ -41,22 +41,22 @@ namespace IT.WebServices.Authorization.Payment.Paypal
             {
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
                 if (userToken == null)
-                    return new() { Error = PaymentErrorExtensions.CreateUnauthorizedError("create subscription") };
+                    return new() { Error = "No user token specified" };
 
                 if (request?.PaypalSubscriptionID == null)
-                    return new() { Error = PaymentErrorExtensions.CreateValidationError("PaypalSubscriptionID is required") };
+                    return new() { Error = "SubscriptionId not valid" };
 
                 var sub = await client.GetSubscription(request.PaypalSubscriptionID);
                 if (sub == null)
-                    return new() { Error = PaymentErrorExtensions.CreateSubscriptionNotFoundError(request.PaypalSubscriptionID) };
+                    return new() { Error = "SubscriptionId not valid" };
 
                 var billing_info = sub.billing_info;
                 if (billing_info == null)
-                    return new() { Error = PaymentErrorExtensions.CreateProviderError("Paypal", "Invalid billing information") };
+                    return new() { Error = "SubscriptionId not valid" };
 
                 decimal value = 0;
                 if (!decimal.TryParse(sub.billing_info?.last_payment?.amount?.value ?? "0", out value))
-                    return new() { Error = PaymentErrorExtensions.CreateProviderError("Paypal", "Invalid subscription value") };
+                    return new() { Error = "Subscription Value not valid" };
 
                 var record = new GenericSubscriptionRecord()
                 {
@@ -94,7 +94,7 @@ namespace IT.WebServices.Authorization.Payment.Paypal
             }
             catch
             {
-                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.PaymentErrorUnknown, "Unknown error occurred") };
+                return new() { Error = "Unknown error" };
             }
         }
         #endregion

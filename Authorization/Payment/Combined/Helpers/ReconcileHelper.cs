@@ -115,11 +115,11 @@ namespace IT.WebServices.Authorization.Payment.Helpers
             {
                 var processor = genericProcessorProvider.GetProcessor(localSub);
                 if (processor == null)
-                    return new() { Error = PaymentErrorExtensions.CreateProviderError(localSub.ProcessorName, "Processor not found") };
+                    return new() { Error = $"Processor ({localSub.ProcessorName}) not found" };
 
                 var processorSub = await processor.GetSubscriptionFull(localSub.SubscriptionRecord.ProcessorSubscriptionID);
                 if (processorSub == null)
-                    return new() { Error = PaymentErrorExtensions.CreateSubscriptionNotFoundError(localSub.SubscriptionRecord.ProcessorSubscriptionID) };
+                    return new() { Error = "SubscriptionId not valid" };
 
                 await EnsureSubscription(localSub.SubscriptionRecord, processorSub.SubscriptionRecord, user);
                 foreach (var processorPayment in processorSub.Payments)
@@ -131,7 +131,7 @@ namespace IT.WebServices.Authorization.Payment.Helpers
             }
             catch
             {
-                return new() { Error = PaymentErrorExtensions.CreateError(PaymentErrorReason.ReconcileSubscriptionErrorUnknown, "Unknown error occurred") };
+                return new() { Error = "Unknown error" };
             }
         }
 

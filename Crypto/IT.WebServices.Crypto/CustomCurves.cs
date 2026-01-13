@@ -5,9 +5,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IT.WebServices.Crypto.Extra
+namespace IT.WebServices.Crypto
 {
-    internal class CustomCurves
+    public class CustomCurves
     {
         public static ECCurve Ed25519
         {
@@ -29,5 +29,7 @@ namespace IT.WebServices.Crypto.Extra
                 };
             }
         }
+
+        public static readonly ECCurve SecP256k1Curve = ECCurve.CreateFromFriendlyName("secP256k1");
     }
 }
