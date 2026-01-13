@@ -345,6 +345,8 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
                         successUrl += "?" + SUCCESS_URL_APPENDIX;
                 }
 
+                successUrl += $"&processor={PaymentConstants.PROCESSOR_NAME_STRIPE}";
+
                 var chekoutOpts = new global::Stripe.Checkout.SessionCreateOptions
                 {
                     ClientReferenceId = userToken.Id.ToString(),
