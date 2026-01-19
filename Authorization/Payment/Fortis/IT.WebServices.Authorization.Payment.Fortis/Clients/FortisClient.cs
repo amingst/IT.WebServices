@@ -1,4 +1,9 @@
-﻿using IT.WebServices.Helpers;
+﻿using FortisAPI.Standard.Controllers;
+using FortisAPI.Standard.Exceptions;
+using FortisAPI.Standard.Models;
+using IT.WebServices.Authentication;
+using IT.WebServices.Fragments.Authorization.Payment.Fortis;
+using IT.WebServices.Helpers;
 using Microsoft.Extensions.Options;
 
 namespace IT.WebServices.Authorization.Payment.Fortis.Clients
@@ -27,6 +32,31 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Clients
                 .Build();
 
             return client;
+        }
+
+        public async Task<FortisNewDetails> GetNewDetails(uint amountCents, string postalCode, ONUser userToken, string successUrl, string cancelUrl)
+        {
+            ElementsController elementsController = Client.ElementsController;
+            var body = new V1ElementsTransactionIntentionRequest()
+            {
+                Action = ActionEnum.Sale,
+                Amount = (int)amountCents,
+                TaxAmount = null,
+                Methods = new(),
+                LocationId = settingsHelper.Owner.Subscription.Fortis.LocationID
+            };
+            body.Methods.Add(new(TypeEnum.Cc, settingsHelper.Owner.Subscription.Fortis.ProductID));
+
+            try
+            {
+                ResponseTransactionIntention result = await elementsController.TransactionIntentionAsync(body);
+                return new() { ClientToken = result.Data.ClientToken };
+            }
+            catch (ApiException)
+            {
+                return new();
+            }
+            ;
         }
     }
 }

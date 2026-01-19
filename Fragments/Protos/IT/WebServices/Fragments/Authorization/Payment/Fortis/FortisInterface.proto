@@ -6,20 +6,20 @@ import "google/api/annotations.proto";
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/DataRecords.proto";
 
 service FortisInterface {
-  rpc FortisNewOwnSubscription (FortisNewOwnSubscriptionRequest) returns (FortisNewOwnSubscriptionResponse)
+  rpc FortisFinishOwnSubscription (FortisFinishOwnSubscriptionRequest) returns (FortisFinishOwnSubscriptionResponse)
   {
     option (google.api.http) = {
-      post: "/api/payment/fortis/subscription/new"
+      post: "/api/payment/fortis/subscription/finish"
       body: "*"
     };
   }
 }
 
-message FortisNewOwnSubscriptionRequest {
+message FortisFinishOwnSubscriptionRequest {
   string TransactionID = 1;
 }
 
-message FortisNewOwnSubscriptionResponse {
+message FortisFinishOwnSubscriptionResponse {
   GenericSubscriptionRecord Record = 1;
   string Error = 2;
 }

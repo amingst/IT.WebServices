@@ -3,10 +3,10 @@ syntax = "proto3";
 package IT.WebServices.Fragments.Authorization.Payment.Fortis;
 
 message FortisNewDetails {
-  string PaymentLink = 1;
+  string ClientToken = 1;
 }
 
 message FortisNewOneTimeDetails {
-  string PaymentLink = 1;
+  string ClientToken = 1;
 }
 

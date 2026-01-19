@@ -122,13 +122,13 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return await GetByAccountNumber(user.Id);
         }
 
-        public async Task<ResponseContact?> GetByAccountNumber(long userId)
+        public async Task<ResponseContact?> GetByAccountNumber(Guid userId)
         {
             try
             {
                 var list = await client.Client.ContactsController.ListAllContactsAsync(new Page() { Number = 1, Size = 1 }, null, new Filter1()
                 {
-                    ContactApiId = "u" + userId
+                    ContactApiId = "u" + userId.ToString()
                 }, new());
 
                 var item = list?.List?.FirstOrDefault();

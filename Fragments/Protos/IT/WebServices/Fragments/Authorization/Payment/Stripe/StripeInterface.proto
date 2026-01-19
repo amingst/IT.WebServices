@@ -31,29 +31,6 @@ service StripeInterface {
   rpc StripeEnsureOneTimeProduct(StripeEnsureOneTimeProductRequest) returns (StripeEnsureOneTimeProductResponse) {}
 }
 
-message StripeBulkActionCancelRequest {
-  PaymentBulkAction Action = 1;
-}
-  
-message StripeBulkActionCancelResponse {
-  repeated PaymentBulkActionProgress RunningActions = 1;
-}
-
-message StripeBulkActionStartRequest {
-  PaymentBulkAction Action = 1;
-}
-  
-message StripeBulkActionStartResponse {
-  repeated PaymentBulkActionProgress RunningActions = 1;
-}
-
-message StripeBulkActionStatusRequest {
-}
-  
-message StripeBulkActionStatusResponse {
-  repeated PaymentBulkActionProgress RunningActions = 1;
-}
-
 message StripeCheckOtherSubscriptionRequest {
     string UserID = 1;
 }
@@ -95,27 +72,6 @@ message StripeCreateBillingPortalRequest {
 message StripeCreateBillingPortalResponse {
 	string Url = 1;
 	string Error = 2;
-}
-
-message StripeCancelOtherSubscriptionRequest {
-  string UserID = 1;
-  string SubscriptionID = 2;
-  string Reason = 3;
-}
-  
-message StripeCancelOtherSubscriptionResponse {
-  GenericSubscriptionRecord Record = 1;
-  string Error = 2;
-}
-
-message StripeCancelOwnSubscriptionRequest {
-  string Reason = 1;
-  string SubscriptionID = 2;
-}
-  
-message StripeCancelOwnSubscriptionResponse {
-  GenericSubscriptionRecord Record = 1;
-  string Error = 2;
 }
 
 message StripeFinishOwnSubscriptionRequest {

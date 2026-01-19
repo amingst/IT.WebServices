@@ -49,7 +49,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return null;
         }
 
-        public async Task<GenericSubscriptionRecord?> CreateFromTransaction(string tranId, long dbSubId, UserModel user, uint monthsForFirst)
+        public async Task<GenericSubscriptionRecord?> CreateFromTransaction(string tranId, UserModel user, uint monthsForFirst)
         {
             try
             {
@@ -68,11 +68,6 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
 
                 try
                 {
-                    //if (trans.Data.AuthAmount != trans.Data.TransactionAmount)
-                    //{
-                    //    return null;
-                    //}
-
                     var startDate = trans.PaidOnUTC.ToDateTime();
                     var recStartDate = startDate.AddMonths((int)monthsForFirst);
 
@@ -83,14 +78,14 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
                     if (contact == null)
                         return null;
 
-                    var token = await tokenHelper.GetNewPreviousTransactionToken(tranId, "s" + dbSubId.ToString(), contact);
-                    if (token == null)
-                    {
-                        Console.WriteLine($"Error in CreateSubscriptionFromTransaction tranId={tranId}. Token is null. Failed to create a token.");
-                        return null;
-                    }
+                    //var token = await tokenHelper.GetNewPreviousTransactionToken(tranId, "s" + dbSubId.ToString(), contact);
+                    //if (token == null)
+                    //{
+                    //    Console.WriteLine($"Error in CreateSubscriptionFromTransaction tranId={tranId}. Token is null. Failed to create a token.");
+                    //    return null;
+                    //}
 
-                    return await Create(token, (int)trans.TotalCents, recStartDate);
+                    //return await Create(token, (int)trans.TotalCents, recStartDate);
                 }
                 catch (Exception ex)
                 {
