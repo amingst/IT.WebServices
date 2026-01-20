@@ -17,6 +17,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
     public class PaymentService : PaymentInterface.PaymentInterfaceBase
     {
         private readonly ILogger logger;
+        private readonly Fortis.Clients.FortisClient fortisClient;
         private readonly Paypal.Clients.PaypalClient paypalClient;
         private readonly Stripe.Clients.StripeClient stripeClient;
         private readonly ManualD.ISubscriptionRecordProvider manualProvider;
@@ -28,6 +29,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
 
         public PaymentService(
             ILogger<PaymentService> logger,
+            Fortis.Clients.FortisClient fortisClient,
             Paypal.Clients.PaypalClient paypalClient,
             Stripe.Clients.StripeClient stripeClient,
             IGenericOneTimePaymentRecordProvider genericOneTimeProvider,
@@ -39,6 +41,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
         )
         {
             this.logger = logger;
+            this.fortisClient = fortisClient;
             this.paypalClient = paypalClient;
             this.stripeClient = stripeClient;
             this.genericOneTimeProvider = genericOneTimeProvider;
@@ -96,7 +99,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
 
                 return new()
                 {
-                    //Paypal = await paypalClient.GetNewDetails(level),
+                    Fortis = await fortisClient.GetNewDetails(level, request!.PostalCode, userToken, request!.SuccessUrl, request!.CancelUrl),
                     Stripe = await stripeClient.GetNewDetails(level, userToken, request!.SuccessUrl, request!.CancelUrl),
                 };
             }

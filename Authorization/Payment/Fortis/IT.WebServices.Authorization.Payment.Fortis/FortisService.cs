@@ -1,13 +1,16 @@
 ﻿using Grpc.Core;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
 using IT.WebServices.Authentication;
+using IT.WebServices.Authorization.Payment.Fortis.Clients;
 using IT.WebServices.Authorization.Payment.Fortis.Helpers;
+using IT.WebServices.Authorization.Payment.Generic.Data;
+using IT.WebServices.Fragments.Authorization.Payment;
 using IT.WebServices.Fragments.Authorization.Payment.Fortis;
 using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Helpers;
 using IT.WebServices.Settings;
-using IT.WebServices.Authorization.Payment.Generic.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using MySqlX.XDevAPI;
 
 namespace IT.WebServices.Authorization.Payment.Fortis
 {
@@ -28,71 +31,94 @@ namespace IT.WebServices.Authorization.Payment.Fortis
             this.settingsClient = settingsClient;
         }
 
-        public override async Task<FortisNewOwnSubscriptionResponse> FortisNewOwnSubscription(FortisNewOwnSubscriptionRequest request, ServerCallContext context)
-        {
-            try
-            {
-                var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
-                if (userToken == null)
-                    return new() { Error = "No user token specified" };
-
-                if (request?.TransactionID == null)
-                    return new() { Error = "TransactionId not valid" };
-
-                var trans = await fortisTransactionHelper.Get(request.TransactionID);
-                if (trans == null)
-                    return new() { Error = "TransactionId not valid" };
-
-                //decimal value = 0;
-                //if (!decimal.TryParse(sub.billing_info?.last_payment?.amount?.value ?? "0", out value))
-                //    return new() { Error = "Subscription Value not valid" };
-
-                //var record = new SubscriptionRecord()
-                //{
-                //    UserID = Google.Protobuf.ByteString.CopyFrom(userToken.Id.ToByteArray()),
-                //    Level = (uint)value,
-                //    ChangedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow),
-                //    LastPaidUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow),
-                //    SubscriptionId = request.SubscriptionId,
-                //    PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(sub.billing_info.next_billing_time),
-                //    RenewsOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(sub.billing_info.next_billing_time),
-                //};
-
-                //await subscriptionProvider.Save(record);
-
-                //return new()
-                //{
-                //    Record = record
-                //};
-            }
-            catch
-            {
-            }
-
-            return new() { Error = "Unknown error" };
-        }
-
-        //public override async Task<StartNewSubscriptionResponse> StartNewSubscription(StartNewSubscriptionRequest request, ServerCallContext context)
+        //public override async Task<FortisFinishOwnSubscriptionResponse> FortisFinishOwnSubscription(FortisFinishOwnSubscriptionRequest request, ServerCallContext context)
         //{
         //    try
         //    {
+        //        var utcNow = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
         //        var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
         //        if (userToken == null)
-        //            return new StartNewSubscriptionResponse() { Error = "No user token specified" };
+        //            return new() { Error = "No user token specified" };
 
-        //        if ((request?.Level ?? 0) < 1)
-        //            return new StartNewSubscriptionResponse() { Error = "Level not valid" };
+        //        if (request == null)
+        //            return new() { Error = "Request not valid" };
 
-        //        var intentToken = await client.GetNewPaymentIntent(request.Level);
+        //        if (string.IsNullOrWhiteSpace(request.TransactionID))
+        //            return new() { Error = "TransactionID not valid" };
 
-        //        return new StartNewSubscriptionResponse()
+        //        var transaction = await fortisTransactionHelper.Get(request.TransactionID);
+        //        if (transaction == null)
+        //            return new() { Error = "TransactionID not valid" };
+        //        if (transaction.Status != PaymentStatus.PaymentComplete)
+        //            return new() { Error = "Transaction status not valid" };
+
+        //        var sub = await fortisSubscriptionHelper.CreateFromTransaction(request.TransactionID, userToken, 1);
+        //        if (sub == null)
+        //            return new() { Error = "SessionId not valid" };
+
+        //        var newSubId = Guid.NewGuid().ToString();
+
+        //        var curSubRecord = await subscriptionProvider.GetByProcessorId(sub.Id);
+        //        if (curSubRecord != null)
+        //            newSubId = curSubRecord.InternalSubscriptionID;
+
+        //        decimal value = sub.Items?.FirstOrDefault()?.Price?.UnitAmountDecimal ?? 0;
+        //        if (value <= 0)
+        //            return new() { Error = "Subscription Value not valid" };
+
+        //        var newSubRecord = new GenericSubscriptionRecord()
         //        {
-        //            ClientToken = intentToken
+        //            UserID = userToken.Id.ToString(),
+        //            InternalSubscriptionID = newSubId,
+        //            ProcessorName = PaymentConstants.PROCESSOR_NAME_STRIPE,
+        //            ProcessorCustomerID = sub.CustomerId,
+        //            ProcessorSubscriptionID = sub.Id,
+        //            Status = SubscriptionStatus.SubscriptionActive,
+        //            AmountCents = (uint)(value),
+        //            TaxCents = 0,
+        //            TaxRateThousandPercents = 0,
+        //            TotalCents = (uint)(value),
+        //            CreatedOnUTC = utcNow,
+        //            ModifiedOnUTC = utcNow,
+        //            CreatedBy = userToken.Id.ToString(),
+        //            ModifiedBy = userToken.Id.ToString(),
+        //        };
+
+        //        var newPaymentRecord = new GenericPaymentRecord()
+        //        {
+        //            UserID = userToken.Id.ToString(),
+        //            InternalSubscriptionID = newSubRecord.InternalSubscriptionID,
+        //            InternalPaymentID = Guid.NewGuid().ToString(),
+        //            ProcessorPaymentID = sub.LatestInvoiceId,
+        //            Status = PaymentStatus.PaymentComplete,
+        //            AmountCents = (uint)(value),
+        //            TaxCents = 0,
+        //            TaxRateThousandPercents = 0,
+        //            TotalCents = (uint)(value),
+        //            CreatedOnUTC = utcNow,
+        //            ModifiedOnUTC = utcNow,
+        //            PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(sub.Created),
+        //            PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(sub.Created.AddDays(1)),
+        //            CreatedBy = userToken.Id.ToString(),
+        //            ModifiedBy = userToken.Id.ToString(),
+        //        };
+
+        //        var fullRecord = new GenericSubscriptionFullRecord()
+        //        {
+        //            SubscriptionRecord = newSubRecord,
+        //        };
+        //        fullRecord.Payments.Add(newPaymentRecord);
+
+        //        //await fullProvider.Save(fullRecord);
+
+        //        return new()
+        //        {
+        //            Record = newSubRecord
         //        };
         //    }
         //    catch
         //    {
-        //        return new StartNewSubscriptionResponse() { Error = "Unknown error" };
+        //        return new() { Error = "Unknown error" };
         //    }
         //}
     }
