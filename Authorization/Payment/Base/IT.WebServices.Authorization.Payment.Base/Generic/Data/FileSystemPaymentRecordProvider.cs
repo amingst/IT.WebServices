@@ -83,6 +83,11 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
             return ReadLastOfFile(fi);
         }
 
+        public Task<GenericPaymentRecord?> GetByProcessorId(string processorPaymentId)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task Save(GenericPaymentRecord rec)
         {
             var userId = rec.UserID.ToGuid();

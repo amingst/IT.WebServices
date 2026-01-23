@@ -78,14 +78,19 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
                     if (contact == null)
                         return null;
 
-                    //var token = await tokenHelper.GetNewPreviousTransactionToken(tranId, "s" + dbSubId.ToString(), contact);
-                    //if (token == null)
-                    //{
-                    //    Console.WriteLine($"Error in CreateSubscriptionFromTransaction tranId={tranId}. Token is null. Failed to create a token.");
-                    //    return null;
-                    //}
+                    var dbSubId = Guid.NewGuid();
 
-                    //return await Create(token, (int)trans.TotalCents, recStartDate);
+                    var token = await tokenHelper.GetNewPreviousTransactionToken(tranId, "s" + dbSubId.ToString().Replace("-", ""), contact);
+                    if (token == null)
+                    {
+                        Console.WriteLine($"Error in CreateSubscriptionFromTransaction tranId={tranId}. Token is null. Failed to create a token.");
+                        return null;
+                    }
+
+                    var dbSub = await Create(token, (int)trans.TotalCents, recStartDate);
+                    dbSub?.InternalSubscriptionID = dbSubId.ToString();
+
+                    return dbSub;
                 }
                 catch (Exception ex)
                 {

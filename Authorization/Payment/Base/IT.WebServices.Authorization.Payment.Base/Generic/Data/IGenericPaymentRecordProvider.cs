@@ -11,6 +11,7 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
         IAsyncEnumerable<GenericPaymentRecord> GetAllBySubscriptionId(Guid userId, Guid subId);
         IAsyncEnumerable<GenericPaymentRecord> GetAllByUserId(Guid userId);
         Task<GenericPaymentRecord?> GetById(Guid userId, Guid subId, Guid paymentId);
+        Task<GenericPaymentRecord?> GetByProcessorId(string processorPaymentId);
         Task Save(GenericPaymentRecord record);
     }
 }

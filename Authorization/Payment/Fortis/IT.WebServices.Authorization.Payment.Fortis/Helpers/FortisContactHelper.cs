@@ -26,7 +26,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
 
                 var req = new V1ContactsRequest()
                 {
-                    ContactApiId = "u" + user.Id.ToString(),
+                    ContactApiId = "u" + user.Id.ToString().Replace("-", ""),
                     LocationId = settingsHelper.Owner.Subscription.Fortis.LocationID,
                 };
 
@@ -128,7 +128,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             {
                 var list = await client.Client.ContactsController.ListAllContactsAsync(new Page() { Number = 1, Size = 1 }, null, new Filter1()
                 {
-                    ContactApiId = "u" + userId.ToString()
+                    ContactApiId = "u" + userId.ToString().Replace("-", "")
                 }, new());
 
                 var item = list?.List?.FirstOrDefault();
