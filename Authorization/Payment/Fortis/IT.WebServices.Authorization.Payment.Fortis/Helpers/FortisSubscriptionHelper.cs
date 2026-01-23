@@ -3,6 +3,7 @@ using IT.WebServices.Authorization.Payment.Fortis.Clients;
 using IT.WebServices.Authorization.Payment.Fortis.Models;
 using IT.WebServices.Fragments.Authorization.Payment;
 using IT.WebServices.Helpers;
+using System;
 
 namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
 {
@@ -105,20 +106,16 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return null;
         }
 
-        public async Task<GenericSubscriptionRecord?> Cancel(string subscriptionId)
+        public async Task Cancel(string subscriptionId)
         {
             try
             {
                 var res = await client.Client.RecurringController.DeleteRecurringRecordAsync(subscriptionId);
-
-                return res?.ToSubscriptionRecord();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
             }
-
-            return null;
         }
 
         public async Task<GenericSubscriptionRecord?> ChangeAmount(GenericSubscriptionRecord sub, int newAmount)
@@ -140,7 +137,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             return null;
         }
 
-        public async Task<GenericSubscriptionRecord?> Get(string subscriptionId, int triesLeft = 5)
+        public async Task<GenericSubscriptionRecord?> Get(string subscriptionId, bool? active = null, int triesLeft = 5)
         {
             try
             {
@@ -149,6 +146,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
                         null,
                         new Filter6()
                         {
+                            Active = active is null ? null : (active == true ? ActiveEnum.Enum1 : ActiveEnum.Enum0),
                             LocationId = settingsHelper.Owner.Subscription.Fortis.LocationID,
                             ProductTransactionId = settingsHelper.Owner.Subscription.Fortis.ProductID,
                             Id = subscriptionId,
@@ -163,7 +161,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
             catch (Exception ex)
             {
                 if (triesLeft > 0)
-                    return await Get(subscriptionId, triesLeft - 1);
+                    return await Get(subscriptionId, active, triesLeft - 1);
                 else
                     Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
             }
