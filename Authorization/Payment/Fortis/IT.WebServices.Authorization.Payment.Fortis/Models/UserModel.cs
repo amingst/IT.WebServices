@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IT.WebServices.Authentication;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,5 +12,13 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Models
         public Guid Id { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+
+        internal static UserModel FromUserToken(ONUser userToken)
+        {
+            return new()
+            {
+                Id = userToken.Id,
+            };
+        }
     }
 }

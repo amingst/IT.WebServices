@@ -2,6 +2,7 @@
 using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Helpers;
 using MySql.Data.MySqlClient;
+using System;
 
 namespace IT.WebServices.Authorization.Payment.Generic.Data
 {
@@ -195,6 +196,41 @@ namespace IT.WebServices.Authorization.Payment.Generic.Data
                     new MySqlParameter("UserID", userId.ToString()),
                     new MySqlParameter("InternalSubscriptionID", subId.ToString()),
                     new MySqlParameter("InternalPaymentID", paymentId.ToString()),
+                };
+
+                using var rdr = await sql.ReturnReader(query, parameters);
+
+                if (await rdr.ReadAsync())
+                {
+                    var record = rdr.ParsePaymentRecord();
+
+                    return record;
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<GenericPaymentRecord?> GetByProcessorId(string processorPaymentId)
+        {
+            try
+            {
+                const string query = @"
+                    SELECT
+                        *
+                    FROM
+                        Payment_Generic_Payment
+                    WHERE
+                        ProcessorPaymentID = @ProcessorPaymentID
+                ";
+
+                var parameters = new MySqlParameter[]
+                {
+                    new MySqlParameter("ProcessorPaymentID", processorPaymentId),
                 };
 
                 using var rdr = await sql.ReturnReader(query, parameters);
