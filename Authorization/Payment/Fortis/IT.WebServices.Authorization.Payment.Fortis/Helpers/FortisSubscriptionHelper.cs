@@ -256,7 +256,7 @@ namespace IT.WebServices.Authorization.Payment.Fortis.Helpers
                     return null;
             }
 
-            if (ret.Count % size == 0)
+            if (ret.Count % size == 0 && ret.Count != 0)
                 throw new Exception($"{ret.Count} is divisible by {size} this normally indicates an error. Aborting!");
 
             return ret.Select(r => r.ToSubscriptionRecord()).ToList();

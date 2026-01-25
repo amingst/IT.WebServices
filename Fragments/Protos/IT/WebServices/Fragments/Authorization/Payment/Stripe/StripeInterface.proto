@@ -8,13 +8,13 @@ import "Protos/IT/WebServices/Fragments/Authorization/Payment/SharedTypes.proto"
 import "Protos/IT/WebServices/Fragments/Authorization/Payment/Stripe/ProductRecord.proto";
 
 service StripeInterface {
-  rpc StripeCheckOtherSubscription (StripeCheckOtherSubscriptionRequest) returns (StripeCheckOtherSubscriptionResponse) {}
+//  rpc StripeCheckOtherSubscription (StripeCheckOtherSubscriptionRequest) returns (StripeCheckOtherSubscriptionResponse) {}
 
-  rpc StripeCheckOwnSubscription (StripeCheckOwnSubscriptionRequest) returns (StripeCheckOwnSubscriptionResponse) {}
+//  rpc StripeCheckOwnSubscription (StripeCheckOwnSubscriptionRequest) returns (StripeCheckOwnSubscriptionResponse) {}
 
 //  rpc StripeCheckOwnOneTime (StripeCheckOwnOneTimeRequest) returns (StripeCheckOwnOneTimeResponse) {}
 
-  rpc StripeGetAccountDetails (StripeGetAccountDetailsRequest) returns (StripeGetAccountDetailsResponse) {}
+//  rpc StripeGetAccountDetails (StripeGetAccountDetailsRequest) returns (StripeGetAccountDetailsResponse) {}
 
   rpc StripeFinishOwnSubscription (StripeFinishOwnSubscriptionRequest) returns (StripeFinishOwnSubscriptionResponse)
   {
@@ -24,11 +24,11 @@ service StripeInterface {
     };
   }
 
-  rpc StripeCreateBillingPortal (StripeCreateBillingPortalRequest) returns (StripeCreateBillingPortalResponse) {}
+//  rpc StripeCreateBillingPortal (StripeCreateBillingPortalRequest) returns (StripeCreateBillingPortalResponse) {}
 
-  rpc StripeCreateCheckoutSession(StripeCheckoutSessionRequest) returns (StripeCheckoutSessionResponse) {}
+//  rpc StripeCreateCheckoutSession(StripeCheckoutSessionRequest) returns (StripeCheckoutSessionResponse) {}
 
-  rpc StripeEnsureOneTimeProduct(StripeEnsureOneTimeProductRequest) returns (StripeEnsureOneTimeProductResponse) {}
+//  rpc StripeEnsureOneTimeProduct(StripeEnsureOneTimeProductRequest) returns (StripeEnsureOneTimeProductResponse) {}
 }
 
 message StripeCheckOtherSubscriptionRequest {

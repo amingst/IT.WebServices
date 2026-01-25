@@ -32,11 +32,11 @@ namespace IT.WebServices.Authorization.Payment.Stripe
 
         public string ProcessorName => PaymentConstants.PROCESSOR_NAME_STRIPE;
 
-        public bool GetAllSubscriptionsSupported => false;
+        public bool GetAllSubscriptionsSupported => true;
 
-        public bool GetAllPaymentsBetweenDatesSupported => false;
+        public bool GetAllPaymentsBetweenDatesSupported => true;
 
-        public bool GetMissingUserIdForSubscriptionSupported => false;
+        public bool GetMissingUserIdForSubscriptionSupported => true;
 
         public bool IsEnabled => settingsHelper.Public.Subscription.Stripe.Enabled;
 
@@ -65,34 +65,16 @@ namespace IT.WebServices.Authorization.Payment.Stripe
             };
         }
 
-        public IAsyncEnumerable<GenericPaymentRecord> GetAllPaymentsForDateRange(DateTimeOffsetRange range)
-        {
-            throw new NotImplementedException();
-        }
+        public IAsyncEnumerable<GenericPaymentRecord> GetAllPaymentsForDateRange(DateTimeOffsetRange range) => stripeClient.GetAllPaymentsForDateRange(range);
 
-        public Task<List<GenericPaymentRecord>> GetAllPaymentsForSubscription(string processorSubscriptionID)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<List<GenericPaymentRecord>> GetAllPaymentsForSubscription(string processorSubscriptionID) => stripeClient.GetAllPaymentsForSubscription(processorSubscriptionID);
 
-        public Task<List<GenericSubscriptionRecord>> GetAllSubscriptions()
-        {
-            throw new NotImplementedException();
-        }
+        public Task<List<GenericSubscriptionRecord>> GetAllSubscriptions() => stripeClient.GetAllSubscriptions();
 
-        public Task<Guid> GetMissingUserIdForSubscription(GenericSubscriptionRecord processorSubscription)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<Guid> GetMissingUserIdForSubscription(GenericSubscriptionRecord processorSubscription) => stripeClient.GetMissingUserIdForSubscription(processorSubscription);
 
-        public Task<GenericSubscriptionRecord?> GetSubscription(string processorSubscriptionID)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<GenericSubscriptionRecord?> GetSubscription(string processorSubscriptionID) => stripeClient.GetSubscription(processorSubscriptionID);
 
-        public Task<GenericSubscriptionFullRecord?> GetSubscriptionFull(string processorSubscriptionID)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<GenericSubscriptionFullRecord?> GetSubscriptionFull(string processorSubscriptionID) => stripeClient.GetSubscriptionFull(processorSubscriptionID);
     }
 }

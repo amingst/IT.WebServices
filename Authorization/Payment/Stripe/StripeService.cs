@@ -9,6 +9,7 @@ using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Helpers;
 using IT.WebServices.Settings;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging;
 
 namespace IT.WebServices.Authorization.Payment.Stripe
@@ -39,151 +40,144 @@ namespace IT.WebServices.Authorization.Payment.Stripe
             this.settingsClient = settingsClient;
         }
 
-        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
-        public override async Task<StripeCheckOtherSubscriptionResponse> StripeCheckOtherSubscription(
-            StripeCheckOtherSubscriptionRequest request,
-            ServerCallContext context
-        )
-        {
-            try
-            {
-                var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
-                if (userToken == null)
-                    return new() { Error = "No user token specified" };
+        //[Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
+        //public override async Task<StripeCheckOtherSubscriptionResponse> StripeCheckOtherSubscription(
+        //    StripeCheckOtherSubscriptionRequest request,
+        //    ServerCallContext context
+        //)
+        //{
+        //    try
+        //    {
+        //        var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
+        //        if (userToken == null)
+        //            return new() { Error = "No user token specified" };
 
-                var userId = request.UserID.ToGuid();
+        //        var userId = request.UserID.ToGuid();
 
-                var customer = await client.GetCustomerByUserId(userId);
-                if (customer == null)
-                    return new() { };
+        //        var customer = await client.GetCustomerByUserId(userId);
+        //        if (customer == null)
+        //            return new() { };
 
-                var stripeSubs = await client.GetSubscriptionsByCustomerId(customer.Id);
+        //        var stripeSubs = await client.GetSubscriptionsByCustomerId(customer.Id);
 
-                var dbSubs = await subscriptionProvider.GetAllByUserId(userId).ToList();
+        //        var dbSubs = await subscriptionProvider.GetAllByUserId(userId).ToList();
 
-                foreach (var stripeSub in stripeSubs)
-                {
-                    var dbSub = dbSubs.FirstOrDefault(s => s.ProcessorSubscriptionID == stripeSub.Id);
-                    if (dbSub == null)
-                    {
-                        dbSub = new()
-                        {
-                            UserID = userId.ToString(),
-                            InternalSubscriptionID = Guid.NewGuid().ToString(),
-                            ProcessorSubscriptionID = stripeSub.Id.ToString(),
-                            ProcessorCustomerID = customer.Id,
-                            CreatedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Created),
-                            ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow),
-                            Status = ConvertStatus(stripeSub.Status),
-                            AmountCents = (uint)(
-                                stripeSub.Items.FirstOrDefault()?.Plan?.Amount ?? 0
-                            ),
-                        };
+        //        foreach (var stripeSub in stripeSubs)
+        //        {
+        //            var dbSub = dbSubs.FirstOrDefault(s => s.ProcessorSubscriptionID == stripeSub.ProcessorSubscriptionID);
+        //            if (dbSub == null)
+        //            {
+        //                dbSub = stripeSub;
+        //                dbSub.UserID = userId.ToString();
+        //                dbSub.InternalSubscriptionID = Guid.NewGuid().ToString();
+        //                dbSub.CreatedBy = userToken.Id.ToString();
+        //                dbSub.ModifiedBy = userToken.Id.ToString();
+        //                dbSub.ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
 
-                        await subscriptionProvider.Save(dbSub);
+        //                await subscriptionProvider.Save(dbSub);
 
-                        var dbPayment = new GenericPaymentRecord()
-                        {
-                            UserID = userId.ToString(),
-                            InternalSubscriptionID = dbSub.InternalSubscriptionID,
-                            InternalPaymentID = Guid.NewGuid().ToString(),
-                            ProcessorPaymentID = stripeSub.LatestInvoiceId,
-                            AmountCents = dbSub.AmountCents,
-                            Status =
-                                dbSub.Status == SubscriptionStatus.SubscriptionActive
-                                    ? PaymentStatus.PaymentComplete
-                                    : PaymentStatus.PaymentFailed,
-                            CreatedOnUTC = dbSub.CreatedOnUTC,
-                            ModifiedOnUTC = dbSub.ModifiedOnUTC,
-                            PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodStart ?? DateTime.MinValue),
-                            PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodEnd.AddDays(5) ?? DateTime.MinValue),
-                        };
+        //                var dbPayment = new GenericPaymentRecord()
+        //                {
+        //                    UserID = userId.ToString(),
+        //                    InternalSubscriptionID = dbSub.InternalSubscriptionID,
+        //                    InternalPaymentID = Guid.NewGuid().ToString(),
+        //                    ProcessorPaymentID = stripeSub.LatestInvoiceId,
+        //                    AmountCents = dbSub.AmountCents,
+        //                    Status =
+        //                        dbSub.Status == SubscriptionStatus.SubscriptionActive
+        //                            ? PaymentStatus.PaymentComplete
+        //                            : PaymentStatus.PaymentFailed,
+        //                    CreatedOnUTC = dbSub.CreatedOnUTC,
+        //                    ModifiedOnUTC = dbSub.ModifiedOnUTC,
+        //                    PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodStart ?? DateTime.MinValue),
+        //                    PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodEnd.AddDays(5) ?? DateTime.MinValue),
+        //                };
 
-                        await paymentProvider.Save(dbPayment);
-                    }
-                }
+        //                await paymentProvider.Save(dbPayment);
+        //            }
+        //        }
 
-                var ret = new StripeCheckOtherSubscriptionResponse();
-                ret.Records.AddRange(await fullProvider.GetAllByUserId(userId).ToList());
+        //        var ret = new StripeCheckOtherSubscriptionResponse();
+        //        ret.Records.AddRange(await fullProvider.GetAllByUserId(userId).ToList());
 
-                return ret;
-            }
-            catch
-            {
-                return new() { Error = "Unknown error" };
-            }
-        }
+        //        return ret;
+        //    }
+        //    catch
+        //    {
+        //        return new() { Error = "Unknown error" };
+        //    }
+        //}
 
-        public override async Task<StripeCheckOwnSubscriptionResponse> StripeCheckOwnSubscription(StripeCheckOwnSubscriptionRequest request, ServerCallContext context)
-        {
-            try
-            {
-                var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
-                if (userToken == null)
-                    return new() { Error = "No user token specified" };
+        //public override async Task<StripeCheckOwnSubscriptionResponse> StripeCheckOwnSubscription(StripeCheckOwnSubscriptionRequest request, ServerCallContext context)
+        //{
+        //    try
+        //    {
+        //        var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
+        //        if (userToken == null)
+        //            return new() { Error = "No user token specified" };
 
-                var customer = await client.GetCustomerByUserId(userToken.Id);
-                if (customer == null)
-                    return new() { };
+        //        var customer = await client.GetCustomerByUserId(userToken.Id);
+        //        if (customer == null)
+        //            return new() { };
 
-                var stripeSubs = await client.GetSubscriptionsByCustomerId(customer.Id);
+        //        var stripeSubs = await client.GetSubscriptionsByCustomerId(customer.Id);
 
-                var dbSubs = await subscriptionProvider.GetAllByUserId(userToken.Id).ToList();
+        //        var dbSubs = await subscriptionProvider.GetAllByUserId(userToken.Id).ToList();
 
-                foreach (var stripeSub in stripeSubs)
-                {
-                    var dbSub = dbSubs.FirstOrDefault(s => s.ProcessorSubscriptionID == stripeSub.Id);
-                    if (dbSub == null)
-                    {
-                        dbSub = new()
-                        {
-                            UserID = userToken.Id.ToString(),
-                            InternalSubscriptionID = Guid.NewGuid().ToString(),
-                            ProcessorSubscriptionID = stripeSub.Id.ToString(),
-                            ProcessorCustomerID = customer.Id,
-                            CreatedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Created),
-                            ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow),
-                            Status = ConvertStatus(stripeSub.Status),
-                            AmountCents = (uint)(stripeSub.Items.FirstOrDefault()?.Plan?.Amount ?? 0),
-                        };
+        //        foreach (var stripeSub in stripeSubs)
+        //        {
+        //            var dbSub = dbSubs.FirstOrDefault(s => s.ProcessorSubscriptionID == stripeSub.Id);
+        //            if (dbSub == null)
+        //            {
+        //                dbSub = new()
+        //                {
+        //                    UserID = userToken.Id.ToString(),
+        //                    InternalSubscriptionID = Guid.NewGuid().ToString(),
+        //                    ProcessorSubscriptionID = stripeSub.Id.ToString(),
+        //                    ProcessorCustomerID = customer.Id,
+        //                    CreatedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Created),
+        //                    ModifiedOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow),
+        //                    Status = ConvertStatus(stripeSub.Status),
+        //                    AmountCents = (uint)(stripeSub.Items.FirstOrDefault()?.Plan?.Amount ?? 0),
+        //                };
 
-                        await subscriptionProvider.Save(dbSub);
+        //                await subscriptionProvider.Save(dbSub);
 
-                        var dbPayment = new GenericPaymentRecord()
-                        {
-                            UserID = userToken.Id.ToString(),
-                            InternalSubscriptionID = dbSub.InternalSubscriptionID,
-                            InternalPaymentID = Guid.NewGuid().ToString(),
-                            ProcessorPaymentID = stripeSub.LatestInvoiceId,
-                            AmountCents = dbSub.AmountCents,
-                            Status =
-                                dbSub.Status == SubscriptionStatus.SubscriptionActive
-                                    ? PaymentStatus.PaymentComplete
-                                    : PaymentStatus.PaymentFailed,
-                            CreatedOnUTC = dbSub.CreatedOnUTC,
-                            ModifiedOnUTC = dbSub.ModifiedOnUTC,
-                            PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodStart ?? DateTime.MinValue),
-                            PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodEnd.AddDays(5) ?? DateTime.MinValue),
-                        };
+        //                var dbPayment = new GenericPaymentRecord()
+        //                {
+        //                    UserID = userToken.Id.ToString(),
+        //                    InternalSubscriptionID = dbSub.InternalSubscriptionID,
+        //                    InternalPaymentID = Guid.NewGuid().ToString(),
+        //                    ProcessorPaymentID = stripeSub.LatestInvoiceId,
+        //                    AmountCents = dbSub.AmountCents,
+        //                    Status =
+        //                        dbSub.Status == SubscriptionStatus.SubscriptionActive
+        //                            ? PaymentStatus.PaymentComplete
+        //                            : PaymentStatus.PaymentFailed,
+        //                    CreatedOnUTC = dbSub.CreatedOnUTC,
+        //                    ModifiedOnUTC = dbSub.ModifiedOnUTC,
+        //                    PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodStart ?? DateTime.MinValue),
+        //                    PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(stripeSub.Items.FirstOrDefault()?.CurrentPeriodEnd.AddDays(5) ?? DateTime.MinValue),
+        //                };
 
-                        await paymentProvider.Save(dbPayment);
-                    }
-                }
+        //                await paymentProvider.Save(dbPayment);
+        //            }
+        //        }
 
-                //dbSubs = await subscriptionProvider.GetAllByUserId(userToken.Id);
-                //foreach (var dbSub in dbSubs)
-                //    await EnsureAllPayments(dbSub);
+        //        //dbSubs = await subscriptionProvider.GetAllByUserId(userToken.Id);
+        //        //foreach (var dbSub in dbSubs)
+        //        //    await EnsureAllPayments(dbSub);
 
-                var ret = new StripeCheckOwnSubscriptionResponse();
-                ret.Records.AddRange(await fullProvider.GetAllByUserId(userToken.Id).ToList());
+        //        var ret = new StripeCheckOwnSubscriptionResponse();
+        //        ret.Records.AddRange(await fullProvider.GetAllByUserId(userToken.Id).ToList());
 
-                return ret;
-            }
-            catch
-            {
-                return new() { Error = "Unknown error" };
-            }
-        }
+        //        return ret;
+        //    }
+        //    catch
+        //    {
+        //        return new() { Error = "Unknown error" };
+        //    }
+        //}
 
         //public override async Task<StripeCheckOwnOneTimeResponse> StripeCheckOwnOneTime(StripeCheckOwnOneTimeRequest request, ServerCallContext context)
         //{
@@ -265,69 +259,32 @@ namespace IT.WebServices.Authorization.Payment.Stripe
         //    var stripePayments = client.GetPaymentsBySubscriptionId(dbSub.StripeSubscriptionID);
         //}
 
-        private SubscriptionStatus ConvertStatus(string status)
-        {
-            switch (status)
-            {
-                case "incomplete":
-                case "unpaid":
-                    return SubscriptionStatus.SubscriptionPending;
-                case "incomplete_expired":
-                case "canceled":
-                    return SubscriptionStatus.SubscriptionStopped;
-                case "active":
-                    return SubscriptionStatus.SubscriptionActive;
-                case "paused":
-                case "past_due":
-                default:
-                    return SubscriptionStatus.SubscriptionPaused;
-            }
-        }
+        //[Authorize(Roles = ONUser.ROLE_CAN_CREATE_CONTENT)]
+        //public override async Task<StripeEnsureOneTimeProductResponse> StripeEnsureOneTimeProduct(StripeEnsureOneTimeProductRequest request, ServerCallContext context)
+        //{
+        //    try
+        //    {
+        //        var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
+        //        if (userToken == null)
+        //            return new() { Error = "No user token specified" };
 
-        private PaymentStatus ConvertPaymentStatus(string status)
-        {
-            switch (status)
-            {
-                case "requires_payment_method":
-                case "requires_confirmation":
-                case "requires_capture":
-                case "requires_action":
-                case "processing":
-                    return PaymentStatus.PaymentPending;
-                case "succeeded":
-                    return PaymentStatus.PaymentComplete;
-                case "canceled":
-                default:
-                    return PaymentStatus.PaymentFailed;
-            }
-        }
+        //        var product = await client.EnsureOneTimeProduct(request);
+        //        if (product == null)
+        //            return new() { Error = "Failed To Get A Response From Stripe Client" };
 
-        [Authorize(Roles = ONUser.ROLE_CAN_CREATE_CONTENT)]
-        public override async Task<StripeEnsureOneTimeProductResponse> StripeEnsureOneTimeProduct(StripeEnsureOneTimeProductRequest request, ServerCallContext context)
-        {
-            try
-            {
-                var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
-                if (userToken == null)
-                    return new() { Error = "No user token specified" };
+        //        var price = await client.EnsureOneTimePrice(request, product);
+        //        if (price == null)
+        //            return new() { Error = "Failed To Get A Response From Stripe Client" };
 
-                var product = await client.EnsureOneTimeProduct(request);
-                if (product == null)
-                    return new() { Error = "Failed To Get A Response From Stripe Client" };
+        //        await client.EnsureOneTimeProductDefaultPrice(product, price);
 
-                var price = await client.EnsureOneTimePrice(request, product);
-                if (price == null)
-                    return new() { Error = "Failed To Get A Response From Stripe Client" };
-
-                await client.EnsureOneTimeProductDefaultPrice(product, price);
-
-                return new();
-            }
-            catch (Exception e)
-            {
-                return new() { Error = e.Message };
-            }
-        }
+        //        return new();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return new() { Error = e.Message };
+        //    }
+        //}
 
         //public override async Task<StripeGetOwnSubscriptionRecordsResponse> StripeGetOwnSubscriptionRecords(StripeGetOwnSubscriptionRecordsRequest request, ServerCallContext context)
         //{
@@ -360,62 +317,43 @@ namespace IT.WebServices.Authorization.Payment.Stripe
                 if (session == null)
                     return new() { Error = "ProcessorSessionID not valid" };
 
-                var sub = await client.GetSubscription(session.SubscriptionId);
-                if (sub == null)
+                var newSubRecord = await client.GetSubscription(session.SubscriptionId);
+                if (newSubRecord == null)
                     return new() { Error = "SessionId not valid" };
 
                 var newSubId = Guid.NewGuid().ToString();
 
-                var curSubRecord = await subscriptionProvider.GetByProcessorId(sub.Id);
+                var curSubRecord = await subscriptionProvider.GetByProcessorId(newSubRecord.ProcessorSubscriptionID);
                 if (curSubRecord != null)
                     newSubId = curSubRecord.InternalSubscriptionID;
 
-                decimal value = sub.Items?.FirstOrDefault()?.Price?.UnitAmountDecimal ?? 0;
+                decimal value = newSubRecord.AmountCents;
                 if (value <= 0)
-                    return new() { Error = "Subscription Value not valid" };
+                    return new() { Error = "Subscription amount not valid" };
 
-                var newSubRecord = new GenericSubscriptionRecord()
-                {
-                    UserID = userToken.Id.ToString(),
-                    InternalSubscriptionID = newSubId,
-                    ProcessorName = PaymentConstants.PROCESSOR_NAME_STRIPE,
-                    ProcessorCustomerID = sub.CustomerId,
-                    ProcessorSubscriptionID = sub.Id,
-                    Status = SubscriptionStatus.SubscriptionActive,
-                    AmountCents = (uint)(value),
-                    TaxCents = 0,
-                    TaxRateThousandPercents = 0,
-                    TotalCents = (uint)(value),
-                    CreatedOnUTC = utcNow,
-                    ModifiedOnUTC = utcNow,
-                    CreatedBy = userToken.Id.ToString(),
-                    ModifiedBy = userToken.Id.ToString(),
-                };
-
-                var newPaymentRecord = new GenericPaymentRecord()
-                {
-                    UserID = userToken.Id.ToString(),
-                    InternalSubscriptionID = newSubRecord.InternalSubscriptionID,
-                    InternalPaymentID = Guid.NewGuid().ToString(),
-                    ProcessorPaymentID = sub.LatestInvoiceId,
-                    Status = PaymentStatus.PaymentComplete,
-                    AmountCents = (uint)(value),
-                    TaxCents = 0,
-                    TaxRateThousandPercents = 0,
-                    TotalCents = (uint)(value),
-                    CreatedOnUTC = utcNow,
-                    ModifiedOnUTC = utcNow,
-                    PaidOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(sub.Created),
-                    PaidThruUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(sub.Created.AddDays(1)),
-                    CreatedBy = userToken.Id.ToString(),
-                    ModifiedBy = userToken.Id.ToString(),
-                };
+                newSubRecord.UserID = userToken.Id.ToString();
+                newSubRecord.InternalSubscriptionID = newSubId;
+                newSubRecord.CreatedBy = userToken.Id.ToString();
+                newSubRecord.ModifiedBy = userToken.Id.ToString();
 
                 var fullRecord = new GenericSubscriptionFullRecord()
                 {
                     SubscriptionRecord = newSubRecord,
                 };
-                fullRecord.Payments.Add(newPaymentRecord);
+
+                var payments = await client.GetAllPaymentsForSubscription(newSubRecord.ProcessorSubscriptionID);
+                var newPaymentRecord = payments.FirstOrDefault();
+
+                if (newPaymentRecord != null)
+                {
+                    newPaymentRecord.UserID = userToken.Id.ToString();
+                    newPaymentRecord.InternalSubscriptionID = newSubRecord.InternalSubscriptionID;
+                    newPaymentRecord.InternalPaymentID = Guid.NewGuid().ToString();
+                    newPaymentRecord.CreatedBy = userToken.Id.ToString();
+                    newPaymentRecord.ModifiedBy = userToken.Id.ToString();
+
+                    fullRecord.Payments.Add(newPaymentRecord);
+                }
 
                 await fullProvider.Save(fullRecord);
 
