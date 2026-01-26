@@ -45,17 +45,23 @@ namespace IT.WebServices.Authorization.Payment.Fortis
 
         public async Task<CancelSubscriptionResponse> CancelSubscription(GenericSubscriptionRecord record, ONUser userToken)
         {
-            var res = await fortisSubscriptionHelper.Get(record.InternalSubscriptionID);
+            var res = await fortisSubscriptionHelper.Get(record.ProcessorSubscriptionID);
             if (res == null)
-                return new() { Error = "SubscriptionId not valid" };
+            {
+                res = await fortisSubscriptionHelper.Get(record.ProcessorSubscriptionID, false);
+                if (res == null)
+                    return new() { Error = "SubscriptionId not valid" };
+            }
 
             if (res.Status == SubscriptionStatus.SubscriptionActive)
             {
-                var cancelRes = await fortisSubscriptionHelper.Cancel(record.InternalSubscriptionID);
+                await fortisSubscriptionHelper.Cancel(record.ProcessorSubscriptionID);
+                var cancelRes = await fortisSubscriptionHelper.Get(record.ProcessorSubscriptionID, false);
                 if (cancelRes?.Status != SubscriptionStatus.SubscriptionStopped)
                     return new() { Error = "Unable to cancel subscription" };
             }
 
+            record.Status = SubscriptionStatus.SubscriptionStopped;
             record.CanceledBy = userToken.Id.ToString();
             record.CanceledOnUTC = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
 
@@ -109,7 +115,16 @@ namespace IT.WebServices.Authorization.Payment.Fortis
 
             if (id.StartsWith("u"))
             {
-                var user = await userService.GetUserByOldUserID(id.Substring(1));
+                var withoutU = id.Substring(1);
+
+                if (Guid.TryParse(withoutU, out var guid2))
+                {
+                    var user2 = await userService.GetOtherPublicUserInternal(guid2);
+                    if (user2 != null)
+                        return user2;
+                }
+
+                var user = await userService.GetUserByOldUserID(withoutU);
                 if (user != null)
                     return user;
             }

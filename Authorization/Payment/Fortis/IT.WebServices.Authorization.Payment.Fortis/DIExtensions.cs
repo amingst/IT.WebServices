@@ -18,7 +18,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<SettingsHelper>();
 
-            services.AddSingleton<ReconcileHelper>();
             services.AddSingleton<FortisClient>();
             services.AddSingleton<FortisContactHelper>();
             services.AddSingleton<FortisSubscriptionHelper>();

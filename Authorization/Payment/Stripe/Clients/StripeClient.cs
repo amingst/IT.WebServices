@@ -1,13 +1,17 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+﻿using IT.WebServices.Authentication;
+using IT.WebServices.Authorization.Payment.Helpers.Models;
 using IT.WebServices.Authorization.Payment.Stripe.Data;
+using IT.WebServices.Authorization.Payment.Stripe.Helpers;
 using IT.WebServices.Fragments.Authorization;
+using IT.WebServices.Fragments.Authorization.Payment;
 using IT.WebServices.Fragments.Authorization.Payment.Stripe;
 using IT.WebServices.Fragments.Authorization.Payment;
 using Stripe;
 using IT.WebServices.Models;
-using IT.WebServices.Authentication;
 using IT.WebServices.Settings;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Stripe;
 using Stripe.Checkout;
 
 namespace IT.WebServices.Authorization.Payment.Stripe.Clients
@@ -359,7 +363,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
                         new() { Price = product.PriceID, Quantity = 1, },
                     },
                     Customer = customer.Id,
-                    
+
                 };
 
                 var session = await checkoutService.CreateAsync(chekoutOpts);
@@ -390,6 +394,99 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
             return null;
         }
 
+        public async Task<List<GenericPaymentRecord>> GetAllPaymentsForCustomer(string processorCustomerId)
+        {
+            List<GenericPaymentRecord> list = new();
+            try
+            {
+                var chargeService = new InvoiceService();
+                var options = new InvoiceListOptions()
+                {
+                    Customer = processorCustomerId,
+                };
+
+                var res = chargeService.ListAutoPagingAsync(options);
+                await foreach (var transaction in res)
+                {
+                    if (transaction == null) continue;
+
+                    list.Add(transaction.ToPaymentRecord());
+                }
+            }
+            catch
+            { }
+
+            return list;
+        }
+
+        public async IAsyncEnumerable<GenericPaymentRecord> GetAllPaymentsForDateRange(DateTimeOffsetRange range)
+        {
+            var chargeService = new InvoiceService();
+            var options = new InvoiceSearchOptions()
+            {
+                Query = $"created>{range.Begin.ToUnixTimeSeconds()} AND created<{range.End.ToUnixTimeSeconds()}",
+                Limit = 100,
+            };
+
+            var res = chargeService.SearchAutoPagingAsync(options);
+            await foreach (var transaction in res)
+            {
+                if (transaction == null) continue;
+
+                yield return transaction.ToPaymentRecord();
+            }
+        }
+
+        public async Task<List<GenericPaymentRecord>> GetAllPaymentsForSubscription(string processorSubscriptionId)
+        {
+            List<GenericPaymentRecord> list = new();
+            try
+            {
+                var chargeService = new InvoiceService();
+                var options = new InvoiceListOptions()
+                {
+                    Subscription = processorSubscriptionId,
+                };
+
+                var res = chargeService.ListAutoPagingAsync(options);
+                await foreach (var transaction in res)
+                {
+                    if (transaction == null) continue;
+
+                    list.Add(transaction.ToPaymentRecord());
+                }
+            }
+            catch
+            { }
+
+            return list;
+        }
+
+        public async Task<List<GenericSubscriptionRecord>> GetAllSubscriptions()
+        {
+            List<GenericSubscriptionRecord> list = new();
+            try
+            {
+                var options = new SubscriptionListOptions()
+                {
+
+                };
+
+                var service = new SubscriptionService();
+                var res = service.ListAutoPagingAsync(options);
+                await foreach (var sub in res)
+                {
+                    if (sub == null) continue;
+
+                    list.Add(sub.ToSubscriptionRecord());
+                }
+            }
+            catch
+            { }
+
+            return list;
+        }
+
         public async Task<Customer?> GetCustomerByUserId(Guid userId)
         {
             try
@@ -403,6 +500,25 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
 
             return null;
         }
+
+        public async Task<Guid> GetMissingUserIdForSubscription(GenericSubscriptionRecord subscription)
+        {
+            try
+            {
+                var customer = await customerService.GetAsync(subscription.ProcessorCustomerID);
+
+                if (customer.Metadata.ContainsKey("id"))
+                {
+                    var id = customer.Metadata["id"];
+
+                    return id.ToGuid();
+                }
+            }
+            catch { }
+
+            return Guid.Empty;
+        }
+
 
         private string CreatePaymentLink(string priceId)
         {
@@ -602,19 +718,41 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
             return newPrice;
         }
 
-        public async Task<Subscription> GetSubscription(string id)
+        public async Task<GenericSubscriptionRecord?> GetSubscription(string processorSubscriptionID)
         {
             try
             {
-                var sub = await subService.GetAsync(id, new());
-                return sub;
+                var sub = await subService.GetAsync(processorSubscriptionID, new());
+                return sub.ToSubscriptionRecord();
             }
             catch { }
 
-            return new();
+            return null;
         }
 
-        public async Task<List<Subscription>> GetSubscriptionsByCustomerId(string id)
+        public async Task<GenericSubscriptionFullRecord?> GetSubscriptionFull(string processorSubscriptionID)
+        {
+            try
+            {
+                var sub = await GetSubscription(processorSubscriptionID);
+                if (sub == null)
+                    return null;
+
+                GenericSubscriptionFullRecord record = new()
+                {
+                    SubscriptionRecord = sub,
+                };
+
+                record.Payments.AddRange(await GetAllPaymentsForSubscription(processorSubscriptionID));
+
+                return record;
+            }
+            catch { }
+
+            return null;
+        }
+
+        public async Task<List<GenericSubscriptionRecord>> GetSubscriptionsByCustomerId(string id)
         {
             try
             {
@@ -622,7 +760,7 @@ namespace IT.WebServices.Authorization.Payment.Stripe.Clients
                     id,
                     new() { Expand = new() { "subscriptions" } }
                 );
-                return customer.Subscriptions.ToList();
+                return customer.Subscriptions.Select(s => s.ToSubscriptionRecord()).ToList();
             }
             catch { }
 

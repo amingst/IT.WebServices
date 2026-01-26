@@ -199,7 +199,7 @@ namespace IT.WebServices.Authorization.Payment.Helpers
                 changed = true;
             }
 
-            if (localSub.TotalCents == localPayment.TotalCents)
+            if (localSub.TotalCents != localPayment.TotalCents)
             {
                 localPayment.AmountCents = localSub.AmountCents;
                 localPayment.TaxCents = localSub.TaxCents;
