@@ -94,9 +94,15 @@ namespace IT.WebServices.Content.CMS.Services.Data
         {
             const string query = @"
                     SELECT
-                        *
+                        con.*,
+                        GROUP_CONCAT(DISTINCT cat.CategoryID SEPARATOR ',') categories,
+                        GROUP_CONCAT(DISTINCT chan.ChannelID SEPARATOR ',') channels
                     FROM
-                        CMS_Content
+                        CMS_Content as con
+                        LEFT JOIN CMS_Category as cat ON con.ContentID = cat.ContentID
+                        LEFT JOIN CMS_Channel as chan ON con.ContentID = chan.ContentID
+					GROUP BY
+						con.ContentID;
                 ";
 
             using var rdr = await sql.ReturnReader(query);
@@ -104,11 +110,6 @@ namespace IT.WebServices.Content.CMS.Services.Data
             while (await rdr.ReadAsync())
             {
                 var record = rdr.ParseContentRecord();
-
-                //await Task.WhenAll(
-                //        categoryProvider.Load(record),
-                //        channelProvider.Load(record)
-                //    );
 
                 yield return record;
             }
@@ -120,25 +121,17 @@ namespace IT.WebServices.Content.CMS.Services.Data
             {
                 const string query = @"
                     SELECT
-                        *
+                        con.*,
+                        GROUP_CONCAT(DISTINCT cat.CategoryID SEPARATOR ',') categories,
+                        GROUP_CONCAT(DISTINCT chan.ChannelID SEPARATOR ',') channels
                     FROM
-                        CMS_Content
+                        CMS_Content as con
+                        LEFT JOIN CMS_Category as cat ON con.ContentID = cat.ContentID
+                        LEFT JOIN CMS_Channel as chan ON con.ContentID = chan.ContentID
                     WHERE
                         ContentID = @ContentID;
-
-                    SELECT
-                        CategoryID
-                    FROM
-                        CMS_Category
-                    WHERE
-                        ContentID = @ContentID;
-
-                    SELECT
-                        ChannelID
-                    FROM
-                        CMS_Channel
-                    WHERE
-                        ContentID = @ContentID;
+					GROUP BY
+						con.ContentID;
                 ";
 
                 var parameters = new MySqlParameter[]
@@ -148,12 +141,20 @@ namespace IT.WebServices.Content.CMS.Services.Data
 
                 using var rdr = await sql.ReturnReader(query, parameters);
 
-                return await LoadOneFromSqlReader(rdr);
+                if (await rdr.ReadAsync())
+                {
+                    if (!await rdr.ReadAsync())
+                        return null;
+
+                    var record = rdr.ParseContentRecord();
+                    return record;
+                }
             }
             catch (Exception)
             {
-                return null;
             }
+
+            return null;
         }
 
         public async Task<ContentRecord> GetByURL(string url)
@@ -162,32 +163,17 @@ namespace IT.WebServices.Content.CMS.Services.Data
             {
                 const string query = @"
                     SELECT
-                        @ContentID := ContentID
+                        con.*,
+                        GROUP_CONCAT(DISTINCT cat.CategoryID SEPARATOR ',') categories,
+                        GROUP_CONCAT(DISTINCT chan.ChannelID SEPARATOR ',') channels
                     FROM
-                        CMS_Content
+                        CMS_Content as con
+                        LEFT JOIN CMS_Category as cat ON con.ContentID = cat.ContentID
+                        LEFT JOIN CMS_Channel as chan ON con.ContentID = chan.ContentID
                     WHERE
                         URL = @URL;
-
-                    SELECT
-                        *
-                    FROM
-                        CMS_Content
-                    WHERE
-                        ContentID = @ContentID;
-
-                    SELECT
-                        CategoryID
-                    FROM
-                        CMS_Category
-                    WHERE
-                        ContentID = @ContentID;
-
-                    SELECT
-                        ChannelID
-                    FROM
-                        CMS_Channel
-                    WHERE
-                        ContentID = @ContentID;
+					GROUP BY
+						con.ContentID;
                 ";
 
                 var parameters = new MySqlParameter[]
@@ -199,9 +185,11 @@ namespace IT.WebServices.Content.CMS.Services.Data
 
                 if (await rdr.ReadAsync())
                 {
-                    var record = rdr.ParseContentRecord();
+                    if (!await rdr.ReadAsync())
+                        return null;
 
-                    return await LoadOneFromSqlReader(rdr);
+                    var record = rdr.ParseContentRecord();
+                    return record;
                 }
 
                 return null;
@@ -327,36 +315,6 @@ namespace IT.WebServices.Content.CMS.Services.Data
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
             }
-        }
-
-        private async Task<ContentRecord> LoadOneFromSqlReader(DbDataReader rdr)
-        {
-            if (!await rdr.ReadAsync())
-                return null;
-
-            var record = rdr.ParseContentRecord();
-
-            if (await rdr.NextResultAsync())
-            {
-                while (await rdr.ReadAsync())
-                {
-                    var id = rdr.GetString(0);
-                    if (!string.IsNullOrWhiteSpace(id))
-                        record.Public.Data.CategoryIds.Add(id);
-                }
-            }
-
-            if (await rdr.NextResultAsync())
-            {
-                while (await rdr.ReadAsync())
-                {
-                    var id = rdr.GetString(0);
-                    if (!string.IsNullOrWhiteSpace(id))
-                        record.Public.Data.ChannelIds.Add(id);
-                }
-            }
-
-            return record;
         }
     }
 }

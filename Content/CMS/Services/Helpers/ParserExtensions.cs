@@ -1,6 +1,4 @@
-﻿using Google.Protobuf;
-using IT.WebServices.Fragments.Content;
-using IT.WebServices.Fragments.Generic;
+﻿using IT.WebServices.Fragments.Content;
 using System;
 using System.Data.Common;
 
@@ -40,6 +38,14 @@ namespace IT.WebServices.Content.CMS.Services.Helpers
                     },
                 },
             };
+
+            var categories = rdr["categories"] as string;
+            if (!string.IsNullOrWhiteSpace(categories))
+                contentRecord.Public.Data.CategoryIds.AddRange(categories.Split(','));
+
+            var channels = rdr["channels"] as string;
+            if (!string.IsNullOrWhiteSpace(channels))
+                contentRecord.Public.Data.ChannelIds.AddRange(channels.Split(','));
 
             DateTime d;
             if (!(rdr["CreatedOnUTC"] is DBNull))

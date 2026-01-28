@@ -3,6 +3,8 @@ using IT.WebServices.Helpers;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace IT.WebServices.Content.CMS.Services.Data
@@ -42,6 +44,33 @@ namespace IT.WebServices.Content.CMS.Services.Data
             }
         }
 
+        public async Task<Dictionary<string, string[]>> GetAll()
+        {
+            Dictionary<string, string[]> dict = new();
+
+            const string query = @"
+                SELECT
+	                ContentID,
+                    GROUP_CONCAT(CategoryID SEPARATOR ',')
+                FROM
+	                CMS_Category
+                GROUP BY
+	                ContentID;
+            ";
+
+            using var rdr = await sql.ReturnReader(query);
+
+            while (await rdr.ReadAsync())
+            {
+                var contentId = rdr.GetString(0);
+                var catIds = rdr.GetString(1);
+
+                dict[contentId] = catIds.Split(',');
+            }
+
+            return dict;
+        }
+
         public async Task<List<string>> GetById(Guid contentId)
         {
             try
@@ -74,9 +103,15 @@ namespace IT.WebServices.Content.CMS.Services.Data
             }
         }
 
-        public async Task Load(ContentRecord content)
+        public async Task LoadFromDB(ContentRecord content)
         {
             content.Public.Data.CategoryIds.AddRange(await GetById(content.Public.ContentIDGuid));
+        }
+
+        public void Load(ContentRecord content, Dictionary<string, string[]>allCategories)
+        {
+            if (allCategories.TryGetValue(content.Public.ContentID, out var ids))
+                content.Public.Data.CategoryIds.AddRange(ids);
         }
 
         public async Task Update(ContentRecord content)
