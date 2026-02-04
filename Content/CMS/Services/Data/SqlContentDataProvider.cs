@@ -129,7 +129,7 @@ namespace IT.WebServices.Content.CMS.Services.Data
                         LEFT JOIN CMS_Category as cat ON con.ContentID = cat.ContentID
                         LEFT JOIN CMS_Channel as chan ON con.ContentID = chan.ContentID
                     WHERE
-                        ContentID = @ContentID;
+                        con.ContentID = @ContentID
 					GROUP BY
 						con.ContentID;
                 ";
@@ -143,9 +143,6 @@ namespace IT.WebServices.Content.CMS.Services.Data
 
                 if (await rdr.ReadAsync())
                 {
-                    if (!await rdr.ReadAsync())
-                        return null;
-
                     var record = rdr.ParseContentRecord();
                     return record;
                 }
@@ -171,7 +168,7 @@ namespace IT.WebServices.Content.CMS.Services.Data
                         LEFT JOIN CMS_Category as cat ON con.ContentID = cat.ContentID
                         LEFT JOIN CMS_Channel as chan ON con.ContentID = chan.ContentID
                     WHERE
-                        URL = @URL;
+                        con.URL = @URL
 					GROUP BY
 						con.ContentID;
                 ";
@@ -185,9 +182,6 @@ namespace IT.WebServices.Content.CMS.Services.Data
 
                 if (await rdr.ReadAsync())
                 {
-                    if (!await rdr.ReadAsync())
-                        return null;
-
                     var record = rdr.ParseContentRecord();
                     return record;
                 }
