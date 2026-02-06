@@ -149,7 +149,7 @@ namespace IT.WebServices.Authentication.Services
             };
         }
 
-        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
+        [Authorize(Roles = ONUser.ROLE_IS_MEMBER_MANAGER_OR_HIGHER)]
         public override async Task<ChangeOtherPasswordResponse> ChangeOtherPassword(
             ChangeOtherPasswordRequest request,
             ServerCallContext context
@@ -166,14 +166,14 @@ namespace IT.WebServices.Authentication.Services
 
             try
             {
-                if (!await AmIReallyAdmin(context))
-                    return new ChangeOtherPasswordResponse
-                    {
-                        Error = ErrorExtensions.CreateError(
-                            AuthErrorReason.ChangeOtherPasswordErrorUnknown,
-                            "Admin access required"
-                        )
-                    };
+                //if (!await AmIReallyAdmin(context))
+                //    return new ChangeOtherPasswordResponse
+                //    {
+                //        Error = ErrorExtensions.CreateError(
+                //            AuthErrorReason.ChangeOtherPasswordErrorUnknown,
+                //            "Admin access required"
+                //        )
+                //    };
 
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
@@ -954,7 +954,7 @@ namespace IT.WebServices.Authentication.Services
             }
         }
 
-        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
+        [Authorize(Roles = ONUser.ROLE_IS_MEMBER_MANAGER_OR_HIGHER)]
         public override async Task<GetAllUsersResponse> GetAllUsers(
             GetAllUsersRequest request,
             ServerCallContext context
@@ -996,7 +996,7 @@ namespace IT.WebServices.Authentication.Services
             return ret;
         }
 
-        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
+        [Authorize(Roles = ONUser.ROLE_IS_MEMBER_MANAGER_OR_HIGHER)]
         public override async Task GetListOfOldUserIDs(
             GetListOfOldUserIDsRequest request,
             IServerStreamWriter<GetListOfOldUserIDsResponse> responseStream,
@@ -1027,16 +1027,13 @@ namespace IT.WebServices.Authentication.Services
             catch { }
         }
 
-        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
+        [Authorize(Roles = ONUser.ROLE_IS_MEMBER_MANAGER_OR_HIGHER)]
         public override async Task<GetOtherUserResponse> GetOtherUser(
             GetOtherUserRequest request,
             ServerCallContext context
         )
         {
             if (offlineHelper.IsOffline)
-                return new();
-
-            if (!await AmIReallyAdmin(context))
                 return new();
 
             var id = request.UserID.ToGuid();
@@ -1165,7 +1162,7 @@ namespace IT.WebServices.Authentication.Services
             return userServiceInternal.GetUserIdListInternal();
         }
 
-        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
+        [Authorize(Roles = ONUser.ROLE_IS_MEMBER_MANAGER_OR_HIGHER)]
         public override async Task<ModifyOtherUserResponse> ModifyOtherUser(
             ModifyOtherUserRequest request,
             ServerCallContext context
@@ -1176,8 +1173,8 @@ namespace IT.WebServices.Authentication.Services
 
             try
             {
-                if (!await AmIReallyAdmin(context))
-                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserErrorUnauthorized, "Not an admin") };
+                //if (!await AmIReallyAdmin(context))
+                //    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserErrorUnauthorized, "Not an admin") };
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
 
                 var userId = request.UserID.ToGuid();
@@ -1246,7 +1243,10 @@ namespace IT.WebServices.Authentication.Services
                 if (!await AmIReallyAdmin(context))
                     return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserRolesErrorUnknown, "Not an admin") };
                 var userToken = ONUserHelper.ParseUser(context.GetHttpContext());
-
+                if (!userToken.CanManageMembers)
+                {
+                    return new() { Error = ErrorExtensions.CreateError(AuthErrorReason.ModifyOtherUserRolesErrorUnknown, "Not an admin") };
+                }
                 var userId = request.UserID.ToGuid();
                 var record = await dataProvider.GetById(userId);
                 if (record == null)
@@ -1344,7 +1344,7 @@ namespace IT.WebServices.Authentication.Services
             }
         }
 
-        [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
+        [Authorize(Roles = ONUser.ROLE_IS_MEMBER_MANAGER_OR_HIGHER)]
         public override async Task<SearchUsersAdminResponse> SearchUsersAdmin(
             SearchUsersAdminRequest request,
             ServerCallContext context

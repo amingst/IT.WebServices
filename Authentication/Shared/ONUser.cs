@@ -21,6 +21,8 @@ namespace IT.WebServices.Authentication
         public const string ROLE_BOT_VERIFICATION = "bot_verification";
         public const string ROLE_EVENT_CREATOR = "evt_creator";
         public const string ROLE_EVENT_MODERATOR = "evt_moderator";
+        public const string ROLE_MEMBER_MANAGER = "member_manager";
+        public const string ROLE_SUBSCRIPTION_MANAGER = "sub_manager";
 
         public const string ROLE_CAN_BACKUP = ROLE_OWNER + "," + ROLE_BACKUP;
         public const string ROLE_CAN_CREATE_CONTENT = ROLE_CAN_PUBLISH + "," + ROLE_CONTENT_WRITER;
@@ -41,6 +43,9 @@ namespace IT.WebServices.Authentication
             ROLE_IS_ADMIN_OR_OWNER + "," + ROLE_EVENT_CREATOR;
         public const string ROLE_IS_EVENT_MODERATOR_OR_HIGHER =
             ROLE_IS_EVENT_CREATOR_OR_HIGHER + "," + ROLE_IS_ADMIN_OR_OWNER;
+        public const string ROLE_IS_MEMBER_MANAGER_OR_HIGHER = ROLE_MEMBER_MANAGER + "," + ROLE_IS_ADMIN_OR_OWNER;
+        public const string ROLE_IS_SUBSCRIPTION_MANAGER_OR_HIGHER = ROLE_SUBSCRIPTION_MANAGER + "," + ROLE_IS_ADMIN_OR_OWNER;
+
         public Guid Id { get; set; } = Guid.Empty;
         public const string IdType = "Id";
 
@@ -130,6 +135,26 @@ namespace IT.WebServices.Authentication
         public bool CanModerateEvent
         {
             get => IsInRole(ROLE_IS_EVENT_MODERATOR_OR_HIGHER);
+        }
+
+        public bool IsMemberManagerOrHigher
+        {
+            get => IsInRole(ROLE_IS_MEMBER_MANAGER_OR_HIGHER);
+        }
+
+        public bool IsSubscriptionManagerOrHigher
+        {
+            get => IsInRole(ROLE_IS_SUBSCRIPTION_MANAGER_OR_HIGHER);
+        }
+
+        public bool CanManageMembers
+        {
+            get => IsMemberManagerOrHigher;
+        }
+
+        public bool CanManageSubscriptions
+        {
+            get => IsSubscriptionManagerOrHigher;
         }
 
         public List<Claim> ExtraClaims { get; private set; } = new List<Claim>();

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using IT.WebServices.Authentication;
 using IT.WebServices.Authorization.Payment.Generic.Data;
-using IT.WebServices.Authorization.Payment.Generic;
+using IT.WebServices.Authorization.Payment.Generic;                                                                     
 using IT.WebServices.Fragments.Authorization.Payment;
 using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Helpers;
@@ -103,6 +103,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             }
         }
 
+        [Authorize(Roles = ONUser.ROLE_IS_SUBSCRIPTION_MANAGER_OR_HIGHER)]
         public override async Task<CancelSubscriptionResponse> CancelOtherSubscription(CancelOtherSubscriptionRequest request, ServerCallContext context)
         {
             try
@@ -133,6 +134,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             }
         }
 
+        [Authorize(Roles = ONUser.ROLE_IS_SUBSCRIPTION_MANAGER_OR_HIGHER)]
         public override async Task<GetOneTimeRecordResponse> GetOtherOneTimeRecord(GetOtherOneTimeRecordRequest request, ServerCallContext context)
         {
             try
@@ -163,6 +165,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             }
         }
 
+        [Authorize(Roles = ONUser.ROLE_IS_SUBSCRIPTION_MANAGER_OR_HIGHER)]
         public override async Task<GetOneTimeRecordsResponse> GetOtherOneTimeRecords(GetOtherOneTimeRecordsRequest request, ServerCallContext context)
         {
             try
@@ -189,6 +192,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             }
         }
 
+        [Authorize(Roles = ONUser.ROLE_IS_SUBSCRIPTION_MANAGER_OR_HIGHER)]
         public override async Task<GetSubscriptionRecordResponse> GetOtherSubscriptionRecord(GetOtherSubscriptionRecordRequest request, ServerCallContext context)
         {
             try
@@ -228,6 +232,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
         }
 
 
+        [Authorize(Roles = ONUser.ROLE_IS_SUBSCRIPTION_MANAGER_OR_HIGHER)]
         public override async Task<GetSubscriptionRecordsResponse> GetOtherSubscriptionRecords(GetOtherSubscriptionRecordsRequest request, ServerCallContext context)
         {
             try
@@ -292,7 +297,7 @@ namespace IT.WebServices.Authorization.Payment.Combined.Services
             }
         }
 
-        // TODO: Add Date Range Filter
+        // TODO: Remove This Waste Of Time
         public override async Task<ListSubscriptionsResponse> ListSubscriptions(ListSubscriptionsRequest request, ServerCallContext context)
         {
 
