@@ -1,4 +1,4 @@
-name: Payment-Service
+name: Combined-Service
 
 on:
   push:

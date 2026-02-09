@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../Services/IT.WebServices.Authentication.Services.csproj" />
+  <Project Path="IT.WebServices.Authentication.Services.Microsoft.csproj" />
+</Solution>
