@@ -5,7 +5,7 @@ EXPOSE 80
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY . .
-WORKDIR "/src/Services/Authentication/Microsoft"
+WORKDIR "/src/Authentication/Microsoft"
 RUN dotnet restore "IT.WebServices.Authentication.Services.Microsoft.csproj"
 RUN rm -f appsettings.Development.json
 RUN dotnet build "IT.WebServices.Authentication.Services.Microsoft.csproj" -c Release -o /app/build
