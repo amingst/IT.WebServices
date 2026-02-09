@@ -31,16 +31,16 @@ namespace IT.WebServices.Authentication.Services
     {
         private readonly OfflineHelper offlineHelper;
         private readonly ILogger<UserService> logger;
-        private readonly SigningCredentials creds;
         private readonly IProfilePicDataProvider picProvider;
         private readonly IUserDataProvider dataProvider;
         private readonly ClaimsClient claimsClient;
         private readonly ISettingsService settingsService;
+        private readonly TokenHelper tokenHelper;
         private readonly UserServiceInternal userServiceInternal;
         private static readonly HashAlgorithm hasher = SHA256.Create();
         private static readonly RandomNumberGenerator rng = RandomNumberGenerator.Create();
 
-        public UserService(OfflineHelper offlineHelper, ILogger<UserService> logger, IProfilePicDataProvider picProvider, IUserDataProvider dataProvider, ClaimsClient claimsClient, ISettingsService settingsService, UserServiceInternal userServiceInternal)
+        public UserService(OfflineHelper offlineHelper, ILogger<UserService> logger, IProfilePicDataProvider picProvider, IUserDataProvider dataProvider, ClaimsClient claimsClient, ISettingsService settingsService, TokenHelper tokenHelper, UserServiceInternal userServiceInternal)
         {
             this.offlineHelper = offlineHelper;
             this.logger = logger;
@@ -48,12 +48,8 @@ namespace IT.WebServices.Authentication.Services
             this.dataProvider = dataProvider;
             this.claimsClient = claimsClient;
             this.settingsService = settingsService;
+            this.tokenHelper = tokenHelper;
             this.userServiceInternal = userServiceInternal;
-
-            creds = new SigningCredentials(
-                JwtExtensions.GetPrivateKey(),
-                SecurityAlgorithms.EcdsaSha256
-            );
 
             //if (Program.IsDevelopment)
             //{
@@ -144,7 +140,7 @@ namespace IT.WebServices.Authentication.Services
             return new AuthenticateUserResponse()
             {
                 Ok = true,
-                BearerToken = GenerateToken(user.Normal, otherClaims),
+                BearerToken = tokenHelper.GenerateToken(user.Normal, otherClaims),
                 UserRecord = user.Normal,
             };
         }
@@ -588,7 +584,7 @@ namespace IT.WebServices.Authentication.Services
                     )
                 };
 
-            return new CreateUserResponse { BearerToken = GenerateToken(user.Normal, null) };
+            return new CreateUserResponse { BearerToken = tokenHelper.GenerateToken(user.Normal, null) };
         }
 
         [Authorize(Roles = ONUser.ROLE_IS_ADMIN_OR_OWNER)]
@@ -1308,7 +1304,7 @@ namespace IT.WebServices.Authentication.Services
                 await dataProvider.Save(record);
                 var otherClaims = await claimsClient.GetOtherClaims(userToken.Id);
 
-                return new() { BearerToken = GenerateToken(record.Normal, otherClaims) };
+                return new() { BearerToken = tokenHelper.GenerateToken(record.Normal, otherClaims) };
             }
             catch
             {
@@ -1336,7 +1332,7 @@ namespace IT.WebServices.Authentication.Services
 
                 var otherClaims = await claimsClient.GetOtherClaims(userToken.Id);
 
-                return new() { BearerToken = GenerateToken(record.Normal, otherClaims) };
+                return new() { BearerToken = tokenHelper.GenerateToken(record.Normal, otherClaims) };
             }
             catch
             {
@@ -1639,52 +1635,6 @@ namespace IT.WebServices.Authentication.Services
             salt.CopyTo(plainTextWithSaltBytes.AsSpan(plainText.Length));
 
             return hasher.ComputeHash(plainTextWithSaltBytes);
-        }
-
-        private string GenerateToken(UserNormalRecord user, IEnumerable<ClaimRecord> otherClaims)
-        {
-            var onUser = new ONUser()
-            {
-                Id = user.Public.UserID.ToGuid(),
-                UserName = user.Public.Data.UserName,
-                DisplayName = user.Public.Data.DisplayName,
-            };
-
-            onUser.Idents.AddRange(user.Public.Data.Identities);
-            onUser.Roles.AddRange(user.Private.Roles);
-
-            if (otherClaims != null)
-            {
-                onUser.ExtraClaims.AddRange(otherClaims.Select(c => new Claim(c.Name, c.Value)));
-                onUser.ExtraClaims.AddRange(
-                    otherClaims.Select(c => new Claim(
-                        c.Name + "Exp",
-                        c.ExpiresOnUTC.Seconds.ToString()
-                    ))
-                );
-            }
-
-            return GenerateToken(onUser);
-        }
-
-        private string GenerateToken(ONUser user)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            var tokenExpiration = DateTime.UtcNow.AddDays(7);
-            var claims = user.ToClaims().ToArray();
-            var subject = new ClaimsIdentity(claims);
-            var token = tokenHandler.CreateJwtSecurityToken(
-                null,
-                null,
-                subject,
-                null,
-                tokenExpiration,
-                DateTime.UtcNow,
-                creds
-            );
-
-            return tokenHandler.WriteToken(token);
         }
 
         private bool ValidateTotp(IEnumerable<TOTPDevice> devices, string code)

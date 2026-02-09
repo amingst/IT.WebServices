@@ -16,16 +16,6 @@ namespace IT.WebServices.Authentication.Services.Helpers
         public const string CHANNEL_NAME_PAYMENT = "payment";
         public const string CHANNEL_NAME_EVENTS = "events";
 
-        private readonly ILogger logger;
-        public readonly ONUser User;
-
-        public ClaimsClient(ONUserHelper userHelper, ILogger<ClaimsClient> logger)
-        {
-            this.logger = logger;
-
-            User = userHelper.MyUser;
-        }
-
         public async Task<IEnumerable<ClaimRecord>> GetOtherClaims(Guid userId)
         {
             List<Channel> channels = GetChannels();

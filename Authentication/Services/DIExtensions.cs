@@ -20,9 +20,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<UserServiceInternal>();
             services.AddSingleton<IUserService, UserServiceInternal>();
 
-            services.AddScoped<ClaimsClient>();
+            services.AddSingleton<ClaimsClient>();
             services.AddSingleton<MySQLHelper>();
             services.AddSingleton<OfflineHelper>();
+            services.AddSingleton<TokenHelper>();
 
             return services;
         }
