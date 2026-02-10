@@ -15,16 +15,22 @@ namespace IT.WebServices.Authentication.Services.Microsoft.Controllers
         private readonly MySettings settings;
         private readonly TokenHelper tokenHelper;
         private readonly IUserDataProvider userDataProvider;
+        private readonly ILogger log;
 
-        public HomeController(IOptions<MySettings> settings, TokenHelper tokenHelper, IUserDataProvider userDataProvider)
+        public HomeController(IOptions<MySettings> settings, TokenHelper tokenHelper, IUserDataProvider userDataProvider, ILogger<HomeController> log)
         {
             this.settings = settings.Value;
             this.tokenHelper = tokenHelper;
             this.userDataProvider = userDataProvider;
+            this.log = log;
         }
 
         public async Task<IActionResult> Index()
         {
+            var claims = (User?.Identity as ClaimsIdentity)?.Claims?.ToList() ?? new();
+            foreach (var c in claims)
+                log.LogInformation("Claim: {Type} = {value}", c.Type, c.Value);
+
             var sid = GetUserSid();
 
             if (sid == Guid.Empty)
@@ -62,6 +68,9 @@ namespace IT.WebServices.Authentication.Services.Microsoft.Controllers
         public Guid GetUserSid()
         {
             var str = (User?.Identity as ClaimsIdentity)?.Claims?.FirstOrDefault(c => c.Type == "sid")?.Value;
+
+            log.LogInformation("SID: {sid}", str);
+
             if (str is null)
                 return Guid.Empty;
 
