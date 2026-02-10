@@ -1,3 +1,4 @@
+using IT.WebServices.Authentication.Services.Data;
 using IT.WebServices.Authentication.Services.Helpers;
 using IT.WebServices.Authentication.Services.Microsoft.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -13,21 +14,27 @@ namespace IT.WebServices.Authentication.Services.Microsoft.Controllers
     {
         private readonly MySettings settings;
         private readonly TokenHelper tokenHelper;
+        private readonly IUserDataProvider userDataProvider;
 
-        public HomeController(IOptions<MySettings> settings, TokenHelper tokenHelper)
+        public HomeController(IOptions<MySettings> settings, TokenHelper tokenHelper, IUserDataProvider userDataProvider)
         {
             this.settings = settings.Value;
             this.tokenHelper = tokenHelper;
+            this.userDataProvider = userDataProvider;
         }
 
         public async Task<IActionResult> Index()
         {
-            var id = GetUserSid();
+            var sid = GetUserSid();
 
-            if (id == Guid.Empty)
+            if (sid == Guid.Empty)
                 return Unauthorized();
 
-            var token = await tokenHelper.GenerateToken(id);
+            var userId = await userDataProvider.GetIdByMicrosoftAuthProviderUserId(sid.ToString());
+            if (userId == Guid.Empty)
+                return Unauthorized();
+
+            var token = await tokenHelper.GenerateToken(userId);
             if (string.IsNullOrEmpty(token))
                 return Unauthorized();
 

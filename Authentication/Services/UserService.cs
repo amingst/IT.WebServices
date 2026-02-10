@@ -542,7 +542,13 @@ namespace IT.WebServices.Authentication.Services
                     {
                         CreatedBy = (userToken?.Id ?? newGuid).ToString(),
                         ModifiedBy = (userToken?.Id ?? newGuid).ToString(),
-                        Data = new() { Email = request.Email ?? string.Empty },
+                        Data = new()
+                        {
+                            Email = request.Email ?? string.Empty,
+                            FirstName = request.FirstName ?? string.Empty,
+                            LastName = request.LastName ?? string.Empty,
+                            PostalCode = request.PostalCode ?? string.Empty,
+                        },
                     },
                 },
                 Server = new(),
@@ -1208,6 +1214,10 @@ namespace IT.WebServices.Authentication.Services
                     record.Normal.Private.Data.Email = request.Email;
                 }
 
+                record.Normal.Private.Data.FirstName = request.FirstName;
+                record.Normal.Private.Data.LastName = request.LastName;
+                record.Normal.Private.Data.PostalCode = request.PostalCode;
+
                 record.Normal.Public.ModifiedOnUTC =
                     Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 record.Normal.Public.Data.DisplayName = request.DisplayName;
@@ -1296,6 +1306,10 @@ namespace IT.WebServices.Authentication.Services
 
                     record.Normal.Private.Data.Email = request.Email;
                 }
+
+                record.Normal.Private.Data.FirstName = request.FirstName;
+                record.Normal.Private.Data.LastName = request.LastName;
+                record.Normal.Private.Data.PostalCode = request.PostalCode;
 
                 record.Normal.Public.ModifiedOnUTC =
                     Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);

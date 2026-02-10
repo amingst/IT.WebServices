@@ -21,6 +21,7 @@ namespace IT.WebServices.Authentication.Services.Data
         Task<UserRecord> GetByEmail(string email);
         Task<UserRecord> GetByLogin(string loginName);
         Task<UserRecord> GetByOldUserID(string oldUserId);
+        Task<Guid> GetIdByMicrosoftAuthProviderUserId(string userId);
         Task Save(UserRecord user);
     }
 }

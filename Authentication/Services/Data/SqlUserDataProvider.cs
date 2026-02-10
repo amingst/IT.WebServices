@@ -352,6 +352,41 @@ namespace IT.WebServices.Authentication.Services.Data
             }
         }
 
+        public async Task<Guid> GetIdByMicrosoftAuthProviderUserId(string userId)
+        {
+            try
+            {
+                const string query = @"
+                    SELECT
+                        UserID
+                    FROM
+                        Auth_User
+                    WHERE
+                        MicrosoftAuthProviderUserID = @MicrosoftAuthProviderUserID;
+                ";
+
+                var parameters = new MySqlParameter[]
+                {
+                    new MySqlParameter("MicrosoftAuthProviderUserID", userId)
+                };
+
+                using var rdr = await sql.ReturnReader(query, parameters);
+
+                if (await rdr.ReadAsync())
+                {
+                    var str = rdr.GetString(0) ?? "";
+                    if (Guid.TryParse(str, out var id))
+                        return id;
+                }
+
+                return Guid.Empty;
+            }
+            catch (Exception)
+            {
+                return Guid.Empty;
+            }
+        }
+
         public async Task<bool> LoginExists(string loginName)
         {
             try
@@ -395,9 +430,11 @@ namespace IT.WebServices.Authentication.Services.Data
                 const string query = @"
                     INSERT INTO Auth_User
                             (UserID,  UserName,  DisplayName,  Bio,  Roles,  Email,  OldUserID,  PasswordHash,  PasswordSalt,  OldPassword,
-                             OldPasswordAlgorithm,  CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  DisabledOnUTC,  DisabledBy)
+                             OldPasswordAlgorithm,  FirstName,  LastName,  PostalCode,  MicrosoftAuthProviderUserId,
+                             CreatedOnUTC,  CreatedBy,  ModifiedOnUTC,  ModifiedBy,  DisabledOnUTC,  DisabledBy)
                     VALUES (@UserID, @UserName, @DisplayName, @Bio, @Roles, @Email, @OldUserID, @PasswordHash, @PasswordSalt, @OldPassword,
-                            @OldPasswordAlgorithm, @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @DisabledOnUTC, @DisabledBy)
+                            @OldPasswordAlgorithm, @FirstName, @LastName, @PostalCode, @MicrosoftAuthProviderUserId,
+                            @CreatedOnUTC, @CreatedBy, @ModifiedOnUTC, @ModifiedBy, @DisabledOnUTC, @DisabledBy)
                     ON DUPLICATE KEY UPDATE
                             UserName = @UserName,
                             DisplayName = @DisplayName,
@@ -409,6 +446,10 @@ namespace IT.WebServices.Authentication.Services.Data
                             PasswordSalt = @PasswordSalt,
                             OldPassword = @OldPassword,
                             OldPasswordAlgorithm = @OldPasswordAlgorithm,
+                            FirstName = @FirstName,
+                            LastName = @LastName,
+                            PostalCode = @PostalCode,
+                            MicrosoftAuthProviderUserId = @MicrosoftAuthProviderUserId,
                             CreatedOnUTC = @CreatedOnUTC,
                             CreatedBy = @CreatedBy,
                             ModifiedOnUTC = @ModifiedOnUTC,
@@ -430,6 +471,10 @@ namespace IT.WebServices.Authentication.Services.Data
                     new MySqlParameter("PasswordSalt", user.Server.PasswordSalt?.ToByteArray()),
                     new MySqlParameter("OldPassword", user.Server.OldPassword),
                     new MySqlParameter("OldPasswordAlgorithm", user.Server.OldPasswordAlgorithm),
+                    new MySqlParameter("FirstName", user.Normal.Private.Data.FirstName),
+                    new MySqlParameter("LastName", user.Normal.Private.Data.LastName),
+                    new MySqlParameter("PostalCode", user.Normal.Private.Data.PostalCode),
+                    new MySqlParameter("MicrosoftAuthProviderUserId", user.Server.AuthProviders?.Microsoft?.UserId is null ? DBNull.Value : user.Server.AuthProviders?.Microsoft?.UserId),
                     new MySqlParameter("CreatedOnUTC", user.Normal.Public.CreatedOnUTC.ToDateTime()),
                     new MySqlParameter("CreatedBy", user.Normal.Private.CreatedBy),
                     new MySqlParameter("ModifiedOnUTC", user.Normal.Public.ModifiedOnUTC?.ToDateTime()),

@@ -44,6 +44,9 @@ message UserPrivateRecord {
 
 message UserPrivateData {
   string Email = 1; // Private email used for password resets
+  string FirstName = 11;
+  string LastName = 12;
+  string PostalCode = 21;
   string OldUserID = 51;
 }
 
@@ -51,6 +54,7 @@ message UserServerRecord {
   bytes PasswordHash = 1;     // Password hash bytes
   bytes PasswordSalt = 2;     // Password salt bytes
   repeated TOTPDevice TOTPDevices = 10;
+  AuthProviders AuthProviders = 11;
   string OldPassword = 51;
   string OldPasswordAlgorithm = 52;
 }
@@ -63,4 +67,12 @@ message TOTPDevice {
   google.protobuf.Timestamp CreatedOnUTC = 4;  // UTC timestamp when the record was created
   google.protobuf.Timestamp VerifiedOnUTC = 5; // UTC timestamp when the record was verified
   google.protobuf.Timestamp DisabledOnUTC = 6; // UTC timestamp when the record was disabled, null = not disabled
+}
+
+message AuthProviders {
+	MicrosoftAuthProvider Microsoft = 1;
+}
+
+message MicrosoftAuthProvider {
+	string UserId = 1;
 }

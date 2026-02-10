@@ -32,6 +32,9 @@ namespace IT.WebServices.Authentication.Services.Helpers
                         Data = new()
                         {
                             Email = rdr["Email"] as string ?? "",
+                            FirstName = rdr["FirstName"] as string ?? "",
+                            LastName = rdr["LastName"] as string ?? "",
+                            PostalCode = rdr["PostalCode"] as string ?? "",
                             OldUserID = rdr["OldUserID"] as string ?? "",
                         },
                     },
@@ -42,6 +45,13 @@ namespace IT.WebServices.Authentication.Services.Helpers
                     PasswordSalt = ByteString.CopyFrom(rdr["PasswordSalt"] as byte[]),
                     OldPassword = rdr["OldPassword"] as string ?? "",
                     OldPasswordAlgorithm = rdr["OldPasswordAlgorithm"] as string ?? "",
+                    AuthProviders = new()
+                    {
+                        Microsoft = new()
+                        {
+                            UserId = rdr["MicrosoftAuthProviderUserId"] as string ?? "",
+                        },
+                    },
                 },
             };
 

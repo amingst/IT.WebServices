@@ -181,5 +181,14 @@ namespace IT.WebServices.Authentication.Services.Data
         {
             return dataDir.CreateGuidFileInfo(userID);
         }
+
+        public async Task<Guid> GetIdByMicrosoftAuthProviderUserId(string userId)
+        {
+            await foreach (var record in GetAll())
+                if (record.Server.AuthProviders?.Microsoft?.UserId == userId)
+                    return record.UserIDGuid;
+
+            return Guid.Empty;
+        }
     }
 }

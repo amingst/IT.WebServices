@@ -366,6 +366,9 @@ message CreateUserRequest {
   string DisplayName = 3;             // Public display name of the user
   string Bio = 4;                     // Biographical info of the user
   string Email = 5[(buf.validate.field).string.email = true];                   // Private email used for password resets
+  string FirstName = 6;
+  string LastName = 7;
+  string PostalCode = 8;
 }
   
 message CreateUserResponse {
@@ -513,6 +516,9 @@ message ModifyOtherUserRequest {
   string DisplayName = 3;     // Public display name of the user
   string Bio = 4;             // Biographical info of the user
   string Email = 5;           // Private email used for password resets
+  string FirstName = 6;
+  string LastName = 7;
+  string PostalCode = 8;
 }
   
 message ModifyOtherUserResponse {
@@ -533,6 +539,9 @@ message ModifyOwnUserRequest {
   string DisplayName = 2;     // Public display name of the user
   string Bio = 3;             // Biographical info of the user
   string Email = 4;           // Private email used for password resets
+  string FirstName = 5;
+  string LastName = 6;
+  string PostalCode = 7;
 }
   
 message ModifyOwnUserResponse {
