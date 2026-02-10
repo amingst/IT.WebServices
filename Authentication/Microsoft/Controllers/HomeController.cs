@@ -37,10 +37,12 @@ namespace IT.WebServices.Authentication.Services.Microsoft.Controllers
                 return Unauthorized();
 
             var userId = await userDataProvider.GetIdByMicrosoftAuthProviderUserId(sid.ToString());
+            log.LogInformation("UserId: {userId}", userId.ToString());
             if (userId == Guid.Empty)
                 return Unauthorized();
 
             var token = await tokenHelper.GenerateToken(userId);
+            log.LogInformation("Token: {token}", token);
             if (string.IsNullOrEmpty(token))
                 return Unauthorized();
 
