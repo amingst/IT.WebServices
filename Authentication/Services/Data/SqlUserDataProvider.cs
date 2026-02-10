@@ -2,6 +2,7 @@
 using IT.WebServices.Fragments.Authentication;
 using IT.WebServices.Fragments.Generic;
 using IT.WebServices.Helpers;
+using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -13,10 +14,12 @@ namespace IT.WebServices.Authentication.Services.Data
     internal class SqlUserDataProvider : IUserDataProvider
     {
         public readonly MySQLHelper sql;
+        private readonly ILogger log;
 
-        public SqlUserDataProvider(MySQLHelper sql)
+        public SqlUserDataProvider(MySQLHelper sql, ILogger<SqlUserDataProvider> log)
         {
             this.sql = sql;
+            this.log = log;
         }
 
         public Task<bool> ChangeEmailIndex(string email, Guid id) => Task.FromResult(true);
@@ -381,8 +384,9 @@ namespace IT.WebServices.Authentication.Services.Data
 
                 return Guid.Empty;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                log.LogError(ex, "Error in GetIdByMicrosoftAuthProviderUserId");
                 return Guid.Empty;
             }
         }
