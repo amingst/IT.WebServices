@@ -1,6 +1,5 @@
-using Google.Api;
 using IT.WebServices.Authentication.Services.Microsoft.Models;
-using Microsoft.AspNetCore.Authentication;
+using IT.WebServices.Models;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -15,6 +14,7 @@ namespace IT.WebServices.Authentication.Services.Microsoft
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
             builder.Services.Configure<MySettings>(builder.Configuration.GetSection(MySettings.SectionName));
 
             builder.Services.AddHttpContextAccessor();
