@@ -13,7 +13,8 @@ namespace IT.WebServices.Helpers
 {
     public class MySQLHelper
     {
-        string connString;
+        public readonly string connString;
+
         public MySQLHelper(IOptions<AppSettings> settings)
         {
             connString = settings.Value.MySQLConn ?? "";

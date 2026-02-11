@@ -386,6 +386,7 @@ namespace IT.WebServices.Authentication.Services.Data
             }
             catch (Exception ex)
             {
+                log.LogError("SQL Conn: {connStr}", sql.connString);
                 log.LogError(ex, "Error in GetIdByMicrosoftAuthProviderUserId");
                 return Guid.Empty;
             }
