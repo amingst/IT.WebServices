@@ -4,7 +4,6 @@ using IT.WebServices.Authentication.Services.Microsoft.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Diagnostics;
 using System.Security.Claims;
 
 namespace IT.WebServices.Authentication.Services.Microsoft.Controllers
@@ -31,12 +30,12 @@ namespace IT.WebServices.Authentication.Services.Microsoft.Controllers
             foreach (var c in claims)
                 log.LogInformation("Claim: {Type} = {value}", c.Type, c.Value);
 
-            var sid = GetUserSid();
+            var azureId = GetUserAzureId();
 
-            if (sid == Guid.Empty)
+            if (azureId == Guid.Empty)
                 return Unauthorized();
 
-            var userId = await userDataProvider.GetIdByMicrosoftAuthProviderUserId(sid.ToString());
+            var userId = await userDataProvider.GetIdByMicrosoftAuthProviderUserId(azureId.ToString());
             log.LogInformation("UserId: {userId}", userId.ToString());
             if (userId == Guid.Empty)
                 return Unauthorized();
@@ -67,11 +66,11 @@ namespace IT.WebServices.Authentication.Services.Microsoft.Controllers
             return string.Join('.', pieces.Skip(pieces.Length - 2));
         }
 
-        public Guid GetUserSid()
+        public Guid GetUserAzureId()
         {
-            var str = (User?.Identity as ClaimsIdentity)?.Claims?.FirstOrDefault(c => c.Type == "sid")?.Value;
+            var str = (User?.Identity as ClaimsIdentity)?.Claims?.FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
 
-            log.LogInformation("SID: {sid}", str);
+            log.LogInformation("Azure ID: {azureId}", str);
 
             if (str is null)
                 return Guid.Empty;
