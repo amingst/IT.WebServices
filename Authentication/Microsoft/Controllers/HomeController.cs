@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
+using System.Web;
 
 namespace IT.WebServices.Authentication.Services.Microsoft.Controllers
 {
@@ -45,14 +46,28 @@ namespace IT.WebServices.Authentication.Services.Microsoft.Controllers
             if (string.IsNullOrEmpty(token))
                 return Unauthorized();
 
-            Response.Cookies.Append(JwtExtensions.JWT_COOKIE_NAME, token, new CookieOptions()
+            var uriBuilder = new UriBuilder(settings.GoodRedirect);
+            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+
+            switch (settings.CookieOrGet)
             {
-                HttpOnly = true,
-                Expires = DateTimeOffset.UtcNow.AddDays(21),
-                IsEssential = true,
-                Domain = GetMainDomain(),
-            });
-            return Redirect(settings.GoodRedirect);
+                case MySettings.CookieOrGetEnum.Cookie:
+                    Response.Cookies.Append(JwtExtensions.JWT_COOKIE_NAME, token, new CookieOptions()
+                    {
+                        HttpOnly = true,
+                        Expires = DateTimeOffset.UtcNow.AddDays(21),
+                        IsEssential = true,
+                        Domain = GetMainDomain(),
+                    });
+                    break;
+                case MySettings.CookieOrGetEnum.Get:
+                    query["token"] = token;
+                    break;
+            }
+
+            uriBuilder.Query = query.ToString();
+
+            return Redirect(uriBuilder.Uri.ToString());
         }
 
         private string GetMainDomain()
