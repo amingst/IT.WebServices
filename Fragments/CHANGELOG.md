@@ -1,5 +1,11 @@
 # @inverted-tech/fragments
 
+## 0.9.2
+
+### Patch Changes
+
+- Add Error Proto To Content and Asset Services
+
 ## 0.9.1
 
 ### Patch Changes
