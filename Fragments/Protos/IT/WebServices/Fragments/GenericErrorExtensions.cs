@@ -17,7 +17,9 @@ namespace IT.WebServices.Fragments
 
         public static APIError CreateError(APIErrorReason reason, string message) => Create(reason, message);
 
-        public static APIError AddValidationError(this APIError error, string field, string message, string code = "")
+        public static APIError CreateNoError(string message = "No Error") => Create(APIErrorReason.ErrorReasonNoError, message);
+
+        public static APIError AddValidationIssue(this APIError error, string field, string message, string code = "")
         {
             if (error == null)
                 throw new ArgumentNullException(nameof(error));
@@ -49,7 +51,7 @@ namespace IT.WebServices.Fragments
             {
                 foreach (var violation in validationResult.Violations)
                 {
-                    error.AddValidationError(
+                    error.AddValidationIssue(
                         GetFieldPath(violation),
                         GetStringProperty(violation, "Message"),
                         GetRuleId(violation)
